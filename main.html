@@ -1,689 +1,163 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wheel Bias</title>
+<title>Two Dozen Exclusion Strategy</title>
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        max-width: 720px;
-        margin: 20px auto;
-        padding: 20px;
-        background: #f7f7f7;
-        color: #222;
-    }
-    h2 { text-align: center; margin-bottom: 4px; }
-    .subtitle { text-align: center; color: #666; font-size: 0.9rem; margin-bottom: 20px; }
-    .card {
-        background: white;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-        padding: 18px;
-        margin-bottom: 18px;
-    }
-    .card h3 { margin-top: 0; }
-    .disclaimer {
-        background: #fff7e6;
-        border: 1px solid #f0c36d;
-        border-radius: 6px;
-        padding: 12px 14px;
-        font-size: 0.88rem;
-        line-height: 1.4;
-        margin-bottom: 18px;
-    }
-    textarea {
-        width: 100%;
-        padding: 10px;
-        font-size: 1rem;
-        box-sizing: border-box;
-        border-radius: 6px;
-        border: 1px solid #aaa;
-        font-family: inherit;
-    }
-    input[type=number], input[type=text] {
-        padding: 8px;
-        font-size: 1rem;
-        border-radius: 6px;
-        border: 1px solid #aaa;
-        box-sizing: border-box;
-    }
-    label { font-size: 0.85rem; color: #555; display: block; margin-bottom: 4px; }
-    button {
-        padding: 10px 16px;
-        margin-top: 10px;
-        font-size: 0.95rem;
-        cursor: pointer;
-        border-radius: 6px;
-        border: none;
-        background: #0066cc;
-        color: white;
-    }
-    button:hover { background: #004999; }
-    button.secondary { background: #888; }
-    button.secondary:hover { background: #666; }
-    button.danger { background: #c0392b; }
-    button.danger:hover { background: #922b21; }
-    .row { display: flex; gap: 10px; flex-wrap: wrap; }
-    .row > div { flex: 1; min-width: 120px; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    th, td { padding: 6px 8px; text-align: center; border-bottom: 1px solid #eee; }
-    th { background: #fafafa; }
-    .bias-high { background: #ffe5e5; font-weight: bold; }
-    .stat-line { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #eee; }
-    .stat-line:last-child { border-bottom: none; }
-    .pill {
-        display: inline-block;
-        padding: 2px 10px;
-        border-radius: 12px;
-        font-size: 0.78rem;
-        font-weight: bold;
-    }
-    .pill.ok { background: #e6f4ea; color: #1e7e34; }
-    .pill.warn { background: #fff3cd; color: #856404; }
-    .pill.bad { background: #fde2e2; color: #a11; }
-    .muted { color: #777; font-size: 0.85rem; }
-    .big-number { font-size: 1.6rem; font-weight: bold; color: #0066cc; }
-    .dozen-bar-track { background: #eee; border-radius: 4px; height: 14px; overflow: hidden; margin-top: 4px; }
-    .dozen-bar-fill { background: #0066cc; height: 100%; }
-    .outcome-card {
-        text-align: center;
-        padding: 24px 18px;
-    }
-    .outcome-dozens {
-        display: flex;
-        justify-content: center;
-        gap: 16px;
-        margin: 14px 0;
-    }
-    .outcome-dozen {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #0066cc;
-        background: #eaf2fc;
-        border-radius: 8px;
-        padding: 10px 22px;
-    }
-    .outcome-status { font-size: 0.95rem; color: #555; margin-top: 6px; }
-    .progress-track { background: #eee; border-radius: 4px; height: 10px; overflow: hidden; margin: 10px auto; max-width: 300px; }
-    .progress-fill { background: #999; height: 100%; }
-    details { margin-top: 4px; }
-    summary {
-        cursor: pointer;
-        color: #0066cc;
-        font-weight: bold;
-        font-size: 0.9rem;
-        padding: 6px 0;
-    }
-    summary:hover { text-decoration: underline; }
-</style>
+body {
+    font-family: Arial, sans-serif;
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 20px;
+    background: #f4f4f4;
+}
 
+h2 {
+    text-align: center;
+}
+
+.box {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+select, button {
+    padding: 10px;
+    margin: 5px;
+    font-size: 16px;
+}
+
+button {
+    background: #1b7f3a;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #145c2b;
+}
+
+.result {
+    margin-top: 20px;
+    padding: 15px;
+    background: #e8f5e9;
+    border-radius: 8px;
+    font-size: 18px;
+}
+</style>
 </head>
+
 <body>
 
-<h2>Wheel Bias</h2>
+<div class="box">
 
-<div class="card">
-<h3>1. Log Spins</h3>
-<p class="muted">Enter spin results (comma or space separated). Use "00" for the American double-zero. You can paste more at any time — history accumulates across the session.</p>
-<textarea id="spins" rows="3" placeholder="e.g. 5,12,0,34,7,18,26,9,32,1,14,25"></textarea>
-<div class="row">
-  <button id="addBtn">Add Spins</button>
-  <button id="clearSpinsBtn" class="secondary">Clear Spin History</button>
-</div>
-<p class="muted" id="spinCount">Total spins logged: 0</p>
-</div>
+<h2>Two-Dozen Exclusion Strategy</h2>
 
-<div class="card outcome-card">
-<h3 style="margin-top:0;">2. Recommendation</h3>
-<div id="outcomeView"></div>
-<details id="detailsToggle">
-<summary>Show full analysis (chi-square test, pocket table, dozen distribution)</summary>
-<div style="text-align:left; margin-top:14px;">
-<h4>Pocket Bias Analysis (Chi-Square Test)</h4>
-<div id="biasSummary"><p class="muted">Log at least a few spins to see analysis.</p></div>
-<div id="biasTableWrap"></div>
-<h4 style="margin-top:20px;">Dozens — Observed Distribution</h4>
-<p class="muted">How your logged spins have actually landed, grouped into dozens. A description of the past, not a forecast, unless the test above indicates real bias with sufficient sample size.</p>
-<div id="dozenView"></div>
-</div>
-</details>
+<p>Enter last 5 dozen results:</p>
+
+<div id="fiveSpins">
+<select></select>
+<select></select>
+<select></select>
+<select></select>
+<select></select>
 </div>
 
+<p>Enter 6th spin:</p>
+
+<select id="sixth"></select>
+
+<br><br>
+
+<button onclick="calculate()">Generate Next 4 Bets</button>
+
+<div class="result" id="output"></div>
+
+</div>
 
 
 <script>
-"use strict";
 
-// ---------- State ----------
-let spinHistory = []; // array of strings: "0","00","1".."36"
-let bankroll = { start: null, limit: null, current: null };
-let bets = []; // {amount, result, payout, bankrollAfter}
+const options = `
+<option value="D1">D1</option>
+<option value="D2">D2</option>
+<option value="D3">D3</option>
+`;
 
-// ---------- Helpers ----------
-const AMERICAN_POCKETS = ["0","00", ...Array.from({length:36}, (_,i)=>String(i+1))];
+document.querySelectorAll("select").forEach(s => {
+    s.innerHTML = options;
+});
 
-function normalizeToken(tok) {
-    tok = tok.trim();
-    if (tok === "00" || tok === "0") return tok;
-    const n = Number(tok);
-    if (Number.isInteger(n) && n >= 1 && n <= 36) return String(n);
-    return null;
+
+function rotateClockwise(dozen) {
+    if (dozen === "D1") return "D2";
+    if (dozen === "D2") return "D3";
+    if (dozen === "D3") return "D1";
 }
 
-function getDozen(pocket) {
-    if (pocket === "0" || pocket === "00") return null;
-    const n = Number(pocket);
-    if (n <= 12) return 1;
-    if (n <= 24) return 2;
-    return 3;
+
+function betFromExclusion(exclude) {
+
+    if (exclude === "D1")
+        return "Bet D2 + D3";
+
+    if (exclude === "D2")
+        return "Bet D1 + D3";
+
+    if (exclude === "D3")
+        return "Bet D1 + D2";
 }
 
-// Chi-square upper-tail p-value approximation (Wilson-Hilferty),
-// good enough for flagging significance, df = 37 fixed here (38 pockets - 1)
-function chiSquarePValue(chiSq, df) {
-    // Wilson-Hilferty approximation converts chi-square to approx normal z
-    const z = (Math.pow(chiSq / df, 1/3) - (1 - 2/(9*df))) / Math.sqrt(2/(9*df));
-    // Upper tail of standard normal via complementary error function approx
-    return 0.5 * erfc(z / Math.sqrt(2));
-}
-function erfc(x) {
-    // Abramowitz & Stegun approximation
-    const t = 1 / (1 + 0.3275911 * Math.abs(x));
-    const y = 1 - (((((1.061405429*t -1.453152027)*t) + 1.421413741)*t -0.284496736)*t + 0.254829592)*t*Math.exp(-x*x);
-    const erf = x >= 0 ? y : -y;
-    return 1 - erf;
-}
 
-function formatPct(x) { return (x*100).toFixed(2) + "%"; }
+function calculate() {
 
-// ---------- Rendering ----------
-function renderSpinCount() {
-    document.getElementById("spinCount").textContent =
-        `Total spins logged: ${spinHistory.length}`;
-}
+    let spins = [];
 
-function renderBiasAnalysis() {
-    const summaryEl = document.getElementById("biasSummary");
-    const tableWrap = document.getElementById("biasTableWrap");
-
-    if (spinHistory.length === 0) {
-        summaryEl.innerHTML = `<p class="muted">Log at least a few spins to see analysis.</p>`;
-        tableWrap.innerHTML = "";
-        return;
-    }
-
-    const counts = {};
-    AMERICAN_POCKETS.forEach(p => counts[p] = 0);
-    spinHistory.forEach(p => counts[p]++);
-
-    const n = spinHistory.length;
-    const k = AMERICAN_POCKETS.length; // 38
-    const expected = n / k;
-    const df = k - 1;
-
-    let chiSq = 0;
-    AMERICAN_POCKETS.forEach(p => {
-        const o = counts[p];
-        chiSq += Math.pow(o - expected, 2) / expected;
+    document.querySelectorAll("#fiveSpins select").forEach(s => {
+        spins.push(s.value);
     });
 
-    const pValue = expected > 0 ? chiSquarePValue(chiSq, df) : 1;
+    let sixth = document.getElementById("sixth").value;
 
-    let confidenceLabel, pillClass;
-    if (n < 380) {
-        confidenceLabel = "Sample too small to draw conclusions";
-        pillClass = "warn";
-    } else if (pValue < 0.01) {
-        confidenceLabel = "Statistically significant deviation detected";
-        pillClass = "bad";
-    } else if (pValue < 0.05) {
-        confidenceLabel = "Borderline — worth continuing to track";
-        pillClass = "warn";
+    let exclusions = [...spins];
+
+    let message = "";
+
+    if (sixth === spins[0]) {
+
+        message += "6th spin MATCHES 1st spin → Clockwise rotation applied.<br><br>";
+
+        exclusions = exclusions.map(x => rotateClockwise(x));
+
     } else {
-        confidenceLabel = "Consistent with a fair wheel";
-        pillClass = "ok";
-    }
 
-    summaryEl.innerHTML = `
-        <div class="stat-line"><span>Spins logged</span><span>${n}</span></div>
-        <div class="stat-line"><span>Expected count per pocket (uniform)</span><span>${expected.toFixed(2)}</span></div>
-        <div class="stat-line"><span>Chi-square statistic (df=${df})</span><span>${chiSq.toFixed(2)}</span></div>
-        <div class="stat-line"><span>Approx. p-value</span><span>${pValue.toFixed(4)}</span></div>
-        <div class="stat-line"><span>Reading</span><span class="pill ${pillClass}">${confidenceLabel}</span></div>
-        <p class="muted" style="margin-top:8px;">
-            Rule of thumb: reliable wheel-bias detection typically wants on the order of
-            ${(k * 10)}+ spins (roughly 10x per-pocket expected count) minimum, and serious
-            analyses often use several thousand. At ${n} spins, treat any single "hot" pocket
-            below as anecdotal, not evidence.
-        </p>
-    `;
+        message += "6th spin DOES NOT MATCH 1st spin → Pattern kept unchanged.<br><br>";
 
-    // Top deviating pockets table
-    const rows = AMERICAN_POCKETS.map(p => {
-        const o = counts[p];
-        const dev = expected > 0 ? (o - expected) / expected : 0;
-        return { pocket: p, observed: o, expected: expected, dev: dev };
-    }).sort((a,b) => Math.abs(b.dev) - Math.abs(a.dev)).slice(0, 8);
-
-    let tableHtml = `
-        <table>
-        <tr><th>Pocket</th><th>Observed</th><th>Expected</th><th>Deviation</th></tr>
-    `;
-    rows.forEach(r => {
-        const highlight = Math.abs(r.dev) > 0.5 && n >= 380 ? "bias-high" : "";
-        tableHtml += `
-            <tr class="${highlight}">
-                <td>${r.pocket}</td>
-                <td>${r.observed}</td>
-                <td>${r.expected.toFixed(1)}</td>
-                <td>${r.dev >= 0 ? "+" : ""}${formatPct(r.dev)}</td>
-            </tr>
-        `;
-    });
-    tableHtml += `</table>`;
-    tableWrap.innerHTML = `<p class="muted" style="margin-top:12px;"><strong>Top 8 deviating pockets</strong> (largest absolute deviation from expected):</p>${tableHtml}`;
-}
-
-
-function computeRecommendation() {
-
-    const spins = spinHistory.slice(-30);
-
-    if (spins.length < 30) {
-        return {
-            status: "need_more",
-            n: spins.length
-        };
     }
 
 
-    const stats = {
+    message += "<b>Next 4 Two-Dozen Bets:</b><br><br>";
 
-        1: {
-            total: 0,
-            recent10: 0,
-            recent5: 0,
-            positions: [],
-            lastSeen: -1
-        },
+    for (let i = 0; i < 4; i++) {
 
-        2: {
-            total: 0,
-            recent10: 0,
-            recent5: 0,
-            positions: [],
-            lastSeen: -1
-        },
+        message += 
+        "Spin " + (i+1) + 
+        ": Exclude " + exclusions[i] +
+        " → " +
+        betFromExclusion(exclusions[i]) +
+        "<br>";
 
-        3: {
-            total: 0,
-            recent10: 0,
-            recent5: 0,
-            positions: [],
-            lastSeen: -1
-        }
+    }
 
-    };
 
+    message += "<br><b>Continue:</b><br>";
+    message += "Enter the next 5 dozen results after these bets if another cycle is needed.";
 
-    spins.forEach((spin,index)=>{
-
-        const dozen = getDozen(spin);
-
-        if (!dozen) return;
-
-
-        stats[dozen].total++;
-
-        stats[dozen].positions.push(index);
-
-        stats[dozen].lastSeen = index;
-
-
-        if(index >= 20) {
-            stats[dozen].recent10++;
-        }
-
-
-        if(index >= 25) {
-            stats[dozen].recent5++;
-        }
-
-    });
-
-
-
-    const ranked = [1,2,3].map(dozen=>{
-
-        const s = stats[dozen];
-
-
-        /*
-            Weighted intelligence model
-
-            Frequency:
-            35%
-
-            Recent momentum:
-            25%
-
-            Freshness:
-            15%
-
-            Short-term confirmation:
-            15%
-
-            Consistency:
-            10%
-        */
-
-
-        const frequencyScore =
-            s.total * 35;
-
-
-
-        const momentumScore =
-            s.recent10 * 25;
-
-
-
-        const freshnessScore =
-            s.lastSeen >= 0
-            ? (s.lastSeen / 30) * 15
-            : 0;
-
-
-
-        const shortTermScore =
-            s.recent5 * 15;
-
-
-
-        let consistencyScore = 0;
-
-
-        if(s.positions.length > 1) {
-
-            let gaps = [];
-
-            for(let i=1;i<s.positions.length;i++){
-
-                gaps.push(
-                    s.positions[i] -
-                    s.positions[i-1]
-                );
-
-            }
-
-
-            const averageGap =
-                gaps.reduce((a,b)=>a+b,0)
-                /
-                gaps.length;
-
-
-            // Rewards moderate repeat appearance
-            if(averageGap <= 8) {
-                consistencyScore = 10;
-            }
-
-        }
-
-
-
-        const finalScore =
-            frequencyScore +
-            momentumScore +
-            freshnessScore +
-            shortTermScore +
-            consistencyScore;
-
-
-
-        return {
-
-            dozen,
-            score: finalScore
-
-        };
-
-
-    });
-
-
-
-    ranked.sort((a,b)=>b.score-a.score);
-
-
-
-    return {
-
-        status:"ready",
-
-        dozens:[
-            ranked[0].dozen,
-            ranked[1].dozen
-        ]
-
-    };
+    document.getElementById("output").innerHTML = message;
 
 }
-
-function renderOutcome() {
-
-    const el = document.getElementById("outcomeView");
-
-    const rec = computeRecommendation();
-
-
-    if(rec.status === "need_more") {
-
-        el.innerHTML = `
-        <div class="outcome-status">
-        Enter ${30-rec.n} more spins to generate recommendation.
-        </div>
-        `;
-
-        return;
-    }
-
-
-    el.innerHTML = `
-
-    <div class="outcome-dozens">
-
-        <div class="outcome-dozen">
-        Dozen ${rec.dozens[0]}
-        </div>
-
-        <div class="outcome-dozen">
-        Dozen ${rec.dozens[1]}
-        </div>
-
-    </div>
-
-
-    <div class="outcome-status">
-    Based on the latest 30 spins using weighted frequency,
-    momentum, and recency scoring.
-    </div>
-
-    `;
-
-}
-
-function renderDozens() {
-    const dozenView = document.getElementById("dozenView");
-    if (spinHistory.length === 0) {
-        dozenView.innerHTML = `<p class="muted">No spins logged yet.</p>`;
-        return;
-    }
-
-    const dozenCounts = {1:0, 2:0, 3:0};
-    let zeros = 0;
-    spinHistory.forEach(p => {
-        const d = getDozen(p);
-        if (d) dozenCounts[d]++;
-        else zeros++;
-    });
-
-    const nonZeroTotal = spinHistory.length - zeros;
-    const maxCount = Math.max(dozenCounts[1], dozenCounts[2], dozenCounts[3], 1);
-
-    let html = "";
-    [1,2,3].forEach(d => {
-        const count = dozenCounts[d];
-        const pct = nonZeroTotal > 0 ? (count / nonZeroTotal) : 0;
-        const barPct = (count / maxCount) * 100;
-        html += `
-            <div style="margin-bottom:10px;">
-                <div class="stat-line" style="border:none; padding:2px 0;">
-                    <span>Dozen ${d} (${d===1?"1-12":d===2?"13-24":"25-36"})</span>
-                    <span>${count} hits — ${formatPct(pct)}</span>
-                </div>
-                <div class="dozen-bar-track">
-                    <div class="dozen-bar-fill" style="width:${barPct}%;"></div>
-                </div>
-            </div>
-        `;
-    });
-    html += `<p class="muted">Zero / double-zero: ${zeros} hits (${formatPct(spinHistory.length ? zeros/spinHistory.length : 0)})</p>`;
-    html += `<p class="muted">Expected share per dozen on a fair wheel: 31.6% each (12/38). Compare that to the observed shares above — small gaps at low spin counts are normal noise, not edge.</p>`;
-
-    dozenView.innerHTML = html;
-}
-
-function renderSessionSummary() {
-    const el = document.getElementById("sessionSummary");
-    if (bankroll.start === null) {
-        el.innerHTML = `<p class="muted">Set a starting bankroll and stop-loss limit above to begin tracking.</p>`;
-        return;
-    }
-
-    const netChange = bankroll.current - bankroll.start;
-    const lossSoFar = bankroll.start - bankroll.current;
-    let warning = "";
-    if (bankroll.limit !== null && lossSoFar >= bankroll.limit) {
-        warning = `<div class="disclaimer" style="background:#fde2e2; border-color:#c0392b;">
-            <strong>Stop-loss limit reached.</strong> You set a limit of ${bankroll.limit} and you're down ${lossSoFar.toFixed(2)}.
-            This is the point you told yourself you'd stop.
-        </div>`;
-    }
-
-    let betRows = "";
-    bets.slice().reverse().slice(0, 10).forEach(b => {
-        betRows += `
-            <tr>
-                <td>${b.amount}</td>
-                <td>${b.result === "win" ? "Win" : "Loss"}</td>
-                <td>${b.result === "win" ? "x" + b.payout : "—"}</td>
-                <td>${b.bankrollAfter.toFixed(2)}</td>
-            </tr>
-        `;
-    });
-
-    el.innerHTML = `
-        ${warning}
-        <div class="stat-line"><span>Starting bankroll</span><span>${bankroll.start.toFixed(2)}</span></div>
-        <div class="stat-line"><span>Current bankroll</span><span class="big-number">${bankroll.current.toFixed(2)}</span></div>
-        <div class="stat-line"><span>Net change</span><span>${netChange >= 0 ? "+" : ""}${netChange.toFixed(2)}</span></div>
-        <div class="stat-line"><span>Stop-loss limit</span><span>${bankroll.limit !== null ? bankroll.limit.toFixed(2) : "not set"}</span></div>
-        <div class="stat-line"><span>Bets logged</span><span>${bets.length}</span></div>
-        ${bets.length > 0 ? `
-            <p class="muted" style="margin-top:10px;">Recent bets:</p>
-            <table>
-                <tr><th>Amount</th><th>Result</th><th>Payout</th><th>Bankroll After</th></tr>
-                ${betRows}
-            </table>
-        ` : ""}
-    `;
-}
-
-// ---------- Event Handlers ----------
-document.getElementById("addBtn").addEventListener("click", () => {
-    const input = document.getElementById("spins").value.trim();
-    if (!input) { alert("Please enter at least one spin."); return; }
-
-    const tokens = input.split(/[\s,]+/).filter(Boolean);
-    const valid = [];
-    const invalid = [];
-    tokens.forEach(t => {
-        const norm = normalizeToken(t);
-        if (norm !== null) valid.push(norm);
-        else invalid.push(t);
-    });
-
-    if (invalid.length > 0) {
-        alert(`Ignored ${invalid.length} invalid entr${invalid.length===1?"y":"ies"}: ${invalid.join(", ")}`);
-    }
-    if (valid.length === 0) return;
-
-spinHistory = spinHistory.concat(valid);
-
-renderSpinCount();
-renderOutcome();
-renderBiasAnalysis();
-renderDozens();
-});
-
-document.getElementById("clearSpinsBtn").addEventListener("click", () => {
-    if (spinHistory.length === 0) return;
-    if (confirm("Clear all logged spin history? This cannot be undone.")) {
-        spinHistory = [];
-        renderSpinCount();
-        renderOutcome();
-        renderBiasAnalysis();
-        renderDozens();
-    }
-});
-
-document.getElementById("setBankrollBtn").addEventListener("click", () => {
-    const start = Number(document.getElementById("startBankroll").value);
-    const limit = Number(document.getElementById("lossLimit").value);
-    if (!start || start <= 0) { alert("Enter a valid starting bankroll."); return; }
-
-    bankroll.start = start;
-    bankroll.current = start;
-    bankroll.limit = limit > 0 ? limit : null;
-    bets = [];
-    renderSessionSummary();
-});
-
-document.getElementById("logBetBtn").addEventListener("click", () => {
-    if (bankroll.start === null) { alert("Set a starting bankroll first."); return; }
-
-    const amount = Number(document.getElementById("betAmount").value);
-    const result = document.getElementById("betResult").value;
-    const payout = Number(document.getElementById("payout").value) || 2;
-
-    if (!amount || amount <= 0) { alert("Enter a valid bet amount."); return; }
-
-    if (result === "win") {
-        bankroll.current += amount * (payout - 1);
-    } else {
-        bankroll.current -= amount;
-    }
-
-    bets.push({ amount, result, payout, bankrollAfter: bankroll.current });
-    renderSessionSummary();
-});
-
-document.getElementById("resetSessionBtn").addEventListener("click", () => {
-    if (confirm("Reset bankroll and bet history?")) {
-        bankroll = { start: null, limit: null, current: null };
-        bets = [];
-        renderSessionSummary();
-    }
-});
-
-// ---------- Init ----------
-renderSpinCount();
-renderOutcome();
-renderBiasAnalysis();
-renderDozens();
-renderSessionSummary();
 
 </script>
 
