@@ -1,62 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Advisor</title>
+<title>Two Dozen Exclusion Strategy</title>
 <style>
-* {
-    box-sizing: border-box;
-}
-
 body {
     font-family: Arial, sans-serif;
     max-width: 600px;
-    margin: 0 auto;
-    padding: 12px;
+    margin: 30px auto;
+    padding: 20px;
     background: #f4f4f4;
 }
 
 h2 {
     text-align: center;
-    margin-top: 0;
-    margin-bottom: 18px;
 }
 
 .box {
     background: white;
-    padding: 18px;
+    padding: 20px;
     border-radius: 10px;
 }
 
-#fiveSpins {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
-    margin-bottom: 15px;
-}
-
-select {
-    width: 100%;
-    height: 48px;
-    font-size: 18px;
-    text-align: center;
-}
-
-#sixth {
-    width: 100%;
-    height: 50px;
-    font-size: 18px;
-    margin-top: 6px;
+select, button {
+    padding: 10px;
+    margin: 5px;
+    font-size: 16px;
 }
 
 button {
-    width: 100%;
-    padding: 14px;
-    margin-top: 18px;
-    font-size: 18px;
     background: #1b7f3a;
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: 5px;
     cursor: pointer;
 }
 
@@ -65,81 +40,11 @@ button:hover {
 }
 
 .result {
-    margin-top: 18px;
+    margin-top: 20px;
     padding: 15px;
     background: #e8f5e9;
     border-radius: 8px;
-    font-size: 17px;
-    line-height: 1.5;
-}
-
-/* Portrait phones */
-@media (max-width: 600px) {
-
-    body {
-        padding: 8px;
-    }
-
-    .box {
-        padding: 14px;
-    }
-
-    #fiveSpins {
-        gap: 6px;
-    }
-
-    select {
-        height: 52px;
-        font-size: 18px;
-    }
-}
-
-/* Landscape phones */
-@media (max-width: 900px) and (orientation: landscape) {
-
-    body {
-        max-width: 100%;
-        padding: 8px;
-    }
-
-    .box {
-        padding: 12px 16px;
-    }
-
-    h2 {
-        font-size: 22px;
-        margin-bottom: 12px;
-    }
-
-    p {
-        margin: 8px 0;
-    }
-
-    #fiveSpins {
-        gap: 10px;
-    }
-
-    select {
-        height: 60px;
-        font-size: 22px;
-        font-weight: bold;
-    }
-
-    #sixth {
-        height: 60px;
-        font-size: 22px;
-    }
-
-    button {
-        height: 60px;
-        font-size: 22px;
-        margin-top: 12px;
-    }
-
-    .result {
-        font-size: 18px;
-        margin-top: 14px;
-    }
+    font-size: 18px;
 }
 </style>
 </head>
@@ -148,9 +53,9 @@ button:hover {
 
 <div class="box">
 
-<h2>Advisor</h2>
+<h2>Two-Dozen Exclusion Strategy</h2>
 
-<p>Enter the last 5:</p>
+<p>Enter last 5 dozen results:</p>
 
 <div id="fiveSpins">
 <select></select>
@@ -160,13 +65,13 @@ button:hover {
 <select></select>
 </div>
 
-<p>Enter 6th:</p>
+<p>Enter 6th spin:</p>
 
 <select id="sixth"></select>
 
 <br><br>
 
-<button onclick="calculate()">Generate Next 4</button>
+<button onclick="calculate()">Generate Next 4 Bets</button>
 
 <div class="result" id="output"></div>
 
@@ -222,18 +127,18 @@ function calculate() {
 
     if (sixth === spins[0]) {
 
-        message += "6th MATCHES 1st → Clockwise rotation applied.<br><br>";
+        message += "6th spin MATCHES 1st spin → Clockwise rotation applied.<br><br>";
 
         exclusions = exclusions.map(x => rotateClockwise(x));
 
     } else {
 
-        message += "6th DOES NOT MATCH 1st → Pattern kept unchanged.<br><br>";
+        message += "6th spin DOES NOT MATCH 1st spin → Pattern kept unchanged.<br><br>";
 
     }
 
 
-    message += "<b>Next 4:</b><br><br>";
+    message += "<b>Next 4 Two-Dozen Bets:</b><br><br>";
 
     for (let i = 0; i < 4; i++) {
 
@@ -248,7 +153,7 @@ function calculate() {
 
 
     message += "<br><b>Continue:</b><br>";
-    message += "Enter the next 5 results after if another cycle is needed.";
+    message += "Enter the next 5 dozen results after these bets if another cycle is needed.";
 
     document.getElementById("output").innerHTML = message;
 
