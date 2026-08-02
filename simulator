@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Simulator</title>
+
+<style>
+
+body{
+background:#111;
+color:white;
+font-family:Arial,sans-serif;
+max-width:1100px;
+margin:auto;
+padding:20px;
+}
+
+h1{
+text-align:center;
+color:#00ff99;
+}
+
+
+.container{
+display:grid;
+grid-template-columns:2fr 1fr;
+gap:20px;
+}
+
+
+.box{
+background:#1d1d1d;
+padding:15px;
+border-radius:12px;
+}
+
+
+.balance{
+font-size:32px;
+color:#00ff99;
+text-align:center;
+}
+
+
+button{
+padding:12px;
+margin:4px;
+border:none;
+border-radius:8px;
+font-size:16px;
+cursor:pointer;
+color:white;
+}
+
+
+.numberGrid{
+
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:5px;
+
+}
+
+
+.number{
+background:#222;
+}
+
+
+.red{
+background:#a00000;
+}
+
+
+.black{
+background:#050505;
+}
+
+
+.green{
+background:#008000;
+}
+
+
+.outside{
+background:#005577;
+width:100%;
+}
+
+
+.result{
+font-size:20px;
+line-height:1.6;
+color:#ccc;
+}
+
+
+.win{
+color:#00ff99;
+}
+
+
+.loss{
+color:#ff5555;
+}
+
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<h1>
+Simulator
+</h1>
+
+
+
+<div class="container">
+
+
+<div>
+
+
+<div class="box">
+
+<h3>
+Numbers
+</h3>
+
+<div id="numbers" class="numberGrid"></div>
+
+</div>
+
+
+
+<div class="box">
+
+<h3>
+Outside Bets
+</h3>
+
+
+<button class="outside" onclick="placeOutside('RED')">
+RED 1:1
+</button>
+
+
+<button class="outside" onclick="placeOutside('BLACK')">
+BLACK 1:1
+</button>
+
+
+<button class="outside" onclick="placeOutside('ODD')">
+ODD 1:1
+</button>
+
+
+<button class="outside" onclick="placeOutside('EVEN')">
+EVEN 1:1
+</button>
+
+
+<button class="outside" onclick="placeOutside('LOW')">
+1-18 1:1
+</button>
+
+
+<button class="outside" onclick="placeOutside('HIGH')">
+19-36 1:1
+</button>
+
+
+<button class="outside" onclick="placeOutside('D1')">
+DOZEN 1 2:1
+</button>
+
+
+<button class="outside" onclick="placeOutside('D2')">
+DOZEN 2 2:1
+</button>
+
+
+<button class="outside" onclick="placeOutside('D3')">
+DOZEN 3 2:1
+</button>
+
+
+<button class="outside" onclick="placeOutside('C1')">
+COLUMN 1 2:1
+</button>
+
+
+<button class="outside" onclick="placeOutside('C2')">
+COLUMN 2 2:1
+</button>
+
+
+<button class="outside" onclick="placeOutside('C3')">
+COLUMN 3 2:1
+</button>
+
+
+<br>
+
+<button onclick="clearBets()">
+CLEAR BETS
+</button>
+
+
+<div id="bet">
+Current Bet: $0
+</div>
+
+
+</div>
+
+</div>
+
+
+
+
+
+<div class="box result">
+
+
+<h3>
+Session
+</h3>
+
+
+<div id="balance" class="balance">
+$2000
+</div>
+
+
+<br>
+
+
+<div id="message">
+Waiting for spin...
+</div>
+
+
+<br>
+
+
+<h3>
+Spin History
+</h3>
+
+
+<div id="history">
+--
+</div>
+
+
+<br>
+
+
+<h3>
+Stats
+</h3>
+
+
+<div id="stats">
+
+Spins:0<br>
+Wins:0<br>
+Losses:0
+
+</div>
+
+<button onclick="randomSpin()">
+RANDOM SPIN
+</button>
+
+
+</div>
+
+
+
+</div>
+
+
+
+<script>
+
+
+const CHIP=10;
+
+
+let balance=2000;
+
+
+let bets=[];
+
+
+let history=[];
+
+
+let spins=0;
+
+let wins=0;
+
+let losses=0;
+
+
+
+const RED=[
+
+1,3,5,7,9,
+12,14,16,18,
+19,21,23,25,27,
+30,32,34,36
+
+];
+
+
+
+function color(n){
+
+if(n===0 || n==="00")
+return "green";
+
+return RED.includes(n)
+?"red"
+:"black";
+
+}
+
+
+
+function createNumbers(){
+
+
+let area=document.getElementById("numbers");
+
+
+let nums=["00",0];
+
+
+for(let i=1;i<=36;i++)
+nums.push(i);
+
+
+
+nums.forEach(n=>{
+
+
+let b=document.createElement("button");
+
+
+b.innerHTML=n;
+
+
+b.className="number "+color(n);
+
+
+b.onclick=()=>placeNumber(n);
+
+
+area.appendChild(b);
+
+
+});
+
+
+}
+
+
+
+function addBet(type,amount){
+
+
+if(balance<amount){
+
+alert("Insufficient balance");
+
+return;
+
+}
+
+
+balance-=amount;
+
+
+bets.push({
+
+type:type,
+
+amount:amount
+
+});
+
+
+update();
+
+
+}
+
+
+
+function placeNumber(n){
+
+addBet("N"+n,CHIP);
+
+}
+
+
+
+function placeOutside(type){
+
+addBet(type,CHIP);
+
+}
+
+
+
+
+function clearBets(){
+
+let refund=0;
+
+
+bets.forEach(b=>{
+
+refund+=b.amount;
+
+});
+
+
+balance+=refund;
+
+
+bets=[];
+
+
+update();
+
+
+}
+
+
+
+
+function dozen(n){
+
+if(n>=1&&n<=12)
+return "D1";
+
+if(n>=13&&n<=24)
+return "D2";
+
+if(n>=25&&n<=36)
+return "D3";
+
+return null;
+
+}
+
+
+
+function column(n){
+
+if(n<1)
+return null;
+
+
+let c=((n-1)%3)+1;
+
+
+return "C"+c;
+
+}
+
+
+
+
+function winBet(bet,result){
+
+
+let n=parseInt(result);
+
+
+if(bet.type.startsWith("N")){
+
+
+return bet.type==="N"+result
+?bet.amount*36:0;
+
+
+}
+
+
+if(result==="00" || result===0)
+return 0;
+
+
+
+if(bet.type==="RED" && color(n)==="red")
+return bet.amount*2;
+
+
+if(bet.type==="BLACK" && color(n)==="black")
+return bet.amount*2;
+
+
+
+if(bet.type==="ODD" && n%2===1)
+return bet.amount*2;
+
+
+if(bet.type==="EVEN" && n%2===0)
+return bet.amount*2;
+
+
+
+if(bet.type==="LOW" && n<=18)
+return bet.amount*2;
+
+
+if(bet.type==="HIGH" && n>=19)
+return bet.amount*2;
+
+
+
+if(bet.type===dozen(n))
+return bet.amount*3;
+
+
+
+if(bet.type===column(n))
+return bet.amount*3;
+
+
+
+return 0;
+
+
+}
+
+
+
+
+function spin(){
+
+
+let input=prompt(
+"Enter spin result (0,00-36)"
+);
+
+
+if(input===null)
+return;
+
+
+
+let result=input==="00"
+?"00"
+:parseInt(input);
+
+
+
+let payout=0;
+
+
+bets.forEach(b=>{
+
+payout+=winBet(b,result);
+
+});
+
+
+
+if(payout>0){
+
+wins++;
+
+balance+=payout;
+
+
+document.getElementById("message")
+.innerHTML=
+"<span class='win'>WIN: "+result+"</span>";
+
+
+}
+else{
+
+losses++;
+
+
+document.getElementById("message")
+.innerHTML=
+"<span class='loss'>LOSS: "+result+"</span>";
+
+}
+
+
+
+spins++;
+
+
+history.unshift(result);
+
+
+if(history.length>20)
+history.pop();
+
+
+
+bets=[];
+
+
+update();
+
+
+}
+
+
+
+function randomSpin(){
+
+    let result;
+
+    let roll = Math.floor(Math.random()*38);
+
+    if(roll===37){
+        result="00";
+    }
+    else{
+        result=roll;
+    }
+
+
+    let payout=0;
+
+
+    bets.forEach(b=>{
+
+        payout += winBet(b,result);
+
+    });
+
+
+
+    if(payout>0){
+
+        wins++;
+
+        balance += payout;
+
+
+        document.getElementById("message")
+        .innerHTML =
+        "<span class='win'>WIN: "+result+
+        " | Payout $"+payout+
+        "</span>";
+
+
+    }
+    else{
+
+
+        losses++;
+
+
+        document.getElementById("message")
+        .innerHTML =
+        "<span class='loss'>LOSS: "+result+
+        "</span>";
+
+    }
+
+
+
+    spins++;
+
+
+    history.unshift(result);
+
+
+    if(history.length>20)
+        history.pop();
+
+
+
+    bets=[];
+
+
+    update();
+
+}
+
+
+
+
+function update(){
+
+
+document.getElementById("balance")
+.innerHTML="$"+balance;
+
+
+let total=0;
+
+bets.forEach(b=>{
+total+=b.amount;
+});
+
+
+document.getElementById("bet")
+.innerHTML=
+"Current Bet: $"+total;
+
+
+
+document.getElementById("history")
+.innerHTML=
+history.join(", ");
+
+
+
+document.getElementById("stats")
+.innerHTML=
+
+"Spins: "+spins+
+"<br>Wins: "+wins+
+"<br>Losses: "+losses;
+
+
+}
+
+
+
+createNumbers();
+
+
+update();
+
+
+</script>
+
+
+<br>
+
+<div style="text-align:center">
+<button onclick="spin()">
+SPIN RESULT
+</button>
+</div>
+
+
+</body>
+
+</html>
