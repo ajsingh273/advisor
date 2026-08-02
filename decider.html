@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Decider Engine</title>
+
+<style>
+
+body{
+    background:#111;
+    color:white;
+    font-family:Arial,sans-serif;
+    max-width:450px;
+    margin:auto;
+    padding:20px;
+}
+
+h1{
+    text-align:center;
+    color:#00ff99;
+}
+
+.box{
+    background:#1d1d1d;
+    padding:15px;
+    border-radius:12px;
+    margin-top:15px;
+}
+
+.label{
+    color:#aaa;
+    font-size:14px;
+}
+
+select,
+button{
+
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    font-size:18px;
+    border-radius:8px;
+
+}
+
+select{
+
+    background:#222;
+    color:white;
+    border:1px solid #555;
+
+}
+
+button{
+
+    background:#00aa66;
+    color:white;
+    border:none;
+
+}
+
+.value{
+
+    text-align:center;
+    font-size:28px;
+    color:#00ff99;
+    margin:10px;
+
+}
+
+.small{
+
+    color:#ccc;
+    line-height:1.6;
+
+}
+
+.red{
+
+    color:#ff5555;
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<h1>
+Red Black Permutation Engine
+</h1>
+
+
+
+<div class="box">
+
+<div class="label">
+Enter Last 5 Spins
+</div>
+
+
+<select class="spin"></select>
+<select class="spin"></select>
+<select class="spin"></select>
+<select class="spin"></select>
+<select class="spin"></select>
+
+
+<div class="label" style="margin-top:15px;">
+6th Trigger Spin
+</div>
+
+
+<select id="trigger"></select>
+
+
+<button onclick="analyze()">
+GENERATE STRATEGY
+</button>
+
+
+</div>
+
+
+
+
+
+<div class="box">
+
+
+<div class="label">
+Decision
+</div>
+
+
+<div id="decision" class="value">
+--
+</div>
+
+
+<div class="label">
+Next 4 Bets
+</div>
+
+
+<div id="bets" class="value">
+--
+</div>
+
+
+<div class="label">
+Progression
+</div>
+
+
+<div id="progression" class="small">
+--
+</div>
+
+
+</div>
+
+
+
+
+
+
+<div class="box">
+
+
+<div class="label">
+LIVE CYCLE TRACKER
+</div>
+
+
+<select id="liveResult">
+
+<option>R</option>
+<option>B</option>
+
+</select>
+
+
+<button onclick="submitSpin()">
+SUBMIT RESULT
+</button>
+
+
+<div id="tracker" class="small">
+Waiting for cycle...
+</div>
+
+
+</div>
+
+
+
+
+
+<div class="box">
+
+<div class="label">
+Engine Message
+</div>
+
+
+<div id="message" class="small">
+
+Waiting...
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+<script>
+
+
+// ===============================
+// RED BLACK PERMUTATION ENGINE
+// ===============================
+
+
+let session = {
+
+original:[],
+
+active:[],
+
+bets:[],
+
+step:0,
+
+units:[1,2,4,8],
+
+wins:0,
+
+losses:0
+
+};
+
+
+
+
+
+// -------------------------------
+// Initialize selectors
+// -------------------------------
+
+
+document.querySelectorAll(".spin")
+.forEach(select=>{
+
+select.innerHTML =
+`
+<option>R</option>
+<option>B</option>
+`;
+
+});
+
+
+document.getElementById("trigger")
+.innerHTML =
+`
+<option>R</option>
+<option>B</option>
+`;
+
+
+
+
+
+// -------------------------------
+// Opposite Conversion
+// -------------------------------
+
+
+function opposite(x){
+
+return x==="R"
+?"B"
+:"R";
+
+}
+
+
+
+
+
+
+// -------------------------------
+// Main Decision Engine
+// -------------------------------
+
+
+function analyze(){
+
+
+let history=[];
+
+
+document.querySelectorAll(".spin")
+.forEach(s=>{
+
+history.push(s.value);
+
+});
+
+
+
+let sixth =
+document.getElementById("trigger").value;
+
+
+
+session.original = history;
+
+
+
+let nextFour;
+
+
+
+if(sixth===history[0]){
+
+
+// MATCH FIRST SPIN
+// USE OPPOSITE PERMUTATION
+
+
+let inverse =
+history.map(opposite);
+
+
+nextFour =
+inverse.slice(1,5);
+
+
+
+document.getElementById("decision")
+.innerHTML =
+"OPPOSITE PERMUTATION";
+
+
+
+}
+
+else{
+
+
+// NO MATCH
+// FOLLOW ORIGINAL
+
+
+nextFour =
+history.slice(1,5);
+
+
+
+document.getElementById("decision")
+.innerHTML =
+"SAME PERMUTATION";
+
+
+
+}
+
+
+
+session.bets = nextFour;
+
+session.active = nextFour;
+
+session.step=0;
+
+
+
+displayStrategy();
+
+
+
+}
+
+
+
+
+
+
+
+// -------------------------------
+// Display Strategy
+// -------------------------------
+
+
+function displayStrategy(){
+
+
+
+document.getElementById("bets")
+.innerHTML =
+
+session.bets.join(" → ");
+
+
+
+document.getElementById("progression")
+.innerHTML =
+
+"Current Spin: "
++
+(session.step+1)
++
+"/4"
++
+"<br>"
++
+"Bet Units: "
++
+session.units[session.step];
+
+
+
+document.getElementById("tracker")
+.innerHTML =
+
+"Next Target: "
++
+session.bets[session.step];
+
+
+
+document.getElementById("message")
+.innerHTML =
+
+"Cycle locked. Follow the 4-spin sequence.";
+
+
+
+}
+
+
+
+
+
+
+
+// -------------------------------
+// Live Tracker
+// -------------------------------
+
+
+function submitSpin(){
+
+
+if(session.bets.length===0){
+
+alert(
+"Generate a strategy first."
+);
+
+return;
+
+}
+
+
+
+let result =
+document.getElementById("liveResult").value;
+
+
+
+let target =
+session.bets[session.step];
+
+
+
+if(result===target){
+
+
+session.wins++;
+
+
+document.getElementById("message")
+.innerHTML =
+
+"WIN - Advance progression.";
+
+
+
+}
+
+else{
+
+
+session.losses++;
+
+
+document.getElementById("message")
+.innerHTML =
+
+"LOSS - Follow progression.";
+
+
+}
+
+
+
+
+session.step++;
+
+
+
+
+
+if(session.step>=4){
+
+
+document.getElementById("tracker")
+.innerHTML =
+
+"4-spin cycle completed.<br>"
++
+"Review result.";
+
+
+session.step=0;
+
+
+}
+
+
+
+else{
+
+
+displayStrategy();
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+</script>
+
+
+</body>
+
+</html>
