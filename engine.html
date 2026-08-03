@@ -66,6 +66,14 @@ button{
     background:#00aa66;
     color:white;
     border:none;
+    cursor:pointer;
+
+}
+
+
+button:hover{
+
+    background:#00cc77;
 
 }
 
@@ -95,14 +103,11 @@ button{
 
 }
 
-
 </style>
 
 </head>
 
-
 <body>
-
 
 <h1>
 Two Dozen Exclusion Engine V2
@@ -113,72 +118,103 @@ Two Dozen Exclusion Engine V2
 <div class="box">
 
 <div class="label">
-Enter Last 5 Dozen Results
+Enter Last 5 Results
 </div>
 
+<select class="spin">
 
-<select class="spin"></select>
-<select class="spin"></select>
-<select class="spin"></select>
-<select class="spin"></select>
-<select class="spin"></select>
+<option>D1</option>
+<option>D2</option>
+<option>D3</option>
+<option>0</option>
+<option>00</option>
+
+</select>
+
+<select class="spin">
+
+<option>D1</option>
+<option>D2</option>
+<option>D3</option>
+<option>0</option>
+<option>00</option>
+
+</select>
+
+<select class="spin">
+
+<option>D1</option>
+<option>D2</option>
+<option>D3</option>
+<option>0</option>
+<option>00</option>
+
+</select>
+
+<select class="spin">
+
+<option>D1</option>
+<option>D2</option>
+<option>D3</option>
+<option>0</option>
+<option>00</option>
+
+</select>
+
+<select class="spin">
+
+<option>D1</option>
+<option>D2</option>
+<option>D3</option>
+<option>0</option>
+<option>00</option>
+
+</select>
 
 
 <button onclick="analyze()">
 ANALYZE PATTERN
 </button>
 
-
 </div>
 
 
 
-
 <div class="box">
-
 
 <div class="label">
 Observed Pattern
 </div>
 
-
 <div id="pattern" class="value">
 --
 </div>
-
 
 <div class="label">
 Recommendation
 </div>
 
-
 <div id="result" class="value">
 --
 </div>
-
 
 <div class="label">
 Confidence
 </div>
 
-
 <div id="confidence" class="value">
 --
 </div>
 
-
 </div>
-
 
 
 
 <div class="box">
 
-
 <div class="label">
 Engine Data
 </div>
-
 
 <div id="details" class="small">
 
@@ -186,8 +222,8 @@ Waiting for analysis...
 
 </div>
 
-
 </div>
+
 
 
 <div class="box">
@@ -201,12 +237,14 @@ LIVE CYCLE TRACKING
 <option>D1</option>
 <option>D2</option>
 <option>D3</option>
+<option>0</option>
+<option>00</option>
 
 </select>
 
 
 <button onclick="submitLiveSpin()">
-SUBMIT NEXT DOZEN
+SUBMIT NEXT RESULT
 </button>
 
 
@@ -216,8 +254,8 @@ Waiting for cycle...
 
 </div>
 
-
 </div>
+
 
 
 <div class="box">
@@ -235,9 +273,6 @@ No cycles completed.
 </div>
 
 
-
-
-
 <script>
 
 
@@ -247,537 +282,458 @@ No cycles completed.
 // CORE DATA MODEL
 // =====================================
 
-
+// -------------------------------------
+// Valid Results
+// -------------------------------------
 
 const DOZENS = [
+    "D1",
+    "D2",
+    "D3"
+];
 
-"D1",
-"D2",
-"D3"
-
+const ALL_RESULTS = [
+    "D1",
+    "D2",
+    "D3",
+    "0",
+    "00"
 ];
 
 
-
+// -------------------------------------
+// Session State
+// -------------------------------------
 
 let session = {
 
-history:[],
+    history:[],
 
-currentExclude:null,
+    currentExclude:null,
 
-currentPlay:[],
+    currentPlay:[],
 
-pattern:"",
+    pattern:"",
 
-confidence:0,
+    confidence:0,
 
-wins:0,
+    wins:0,
 
-losses:0,
+    losses:0,
 
-cycles:0
+    pushes:0,
+
+    cycles:0
 
 };
 
 
-
 // -------------------------------------
-// Initialize Inputs
+// Initialize Input Selectors
 // -------------------------------------
-
 
 document
 .querySelectorAll(".spin")
 .forEach(select=>{
 
+    select.innerHTML=`
 
-select.innerHTML = `
+        <option>D1</option>
+        <option>D2</option>
+        <option>D3</option>
+        <option>0</option>
+        <option>00</option>
 
-<option>D1</option>
-<option>D2</option>
-<option>D3</option>
+    `;
+
+});
+
+
+// Populate Live Tracker
+
+document.getElementById("liveSpin").innerHTML = `
+
+    <option>D1</option>
+    <option>D2</option>
+    <option>D3</option>
+    <option>0</option>
+    <option>00</option>
 
 `;
 
 
-});
-
-
-
-
-
 // -------------------------------------
 // Frequency Analysis
+// (Ignore 0 and 00)
 // -------------------------------------
-
 
 function frequency(spins){
 
+    let count={
 
-let count={
+        D1:0,
+        D2:0,
+        D3:0
 
-D1:0,
-D2:0,
-D3:0
+    };
 
-};
+    spins.forEach(d=>{
 
+        if(DOZENS.includes(d)){
 
+            count[d]++;
 
-spins.forEach(d=>{
+        }
 
-count[d]++;
+    });
 
-});
-
-
-return count;
-
+    return count;
 
 }
-
-
-
-
 
 
 // -------------------------------------
 // Recency Analysis
 // -------------------------------------
 
-
 function recency(spins){
 
+    return{
 
-return {
+        last:spins[4],
 
-last:spins[4],
+        previous:spins[3],
 
-previous:spins[3],
+        oldest:spins[0]
 
-oldest:spins[0]
-
-};
-
+    };
 
 }
-
-
-
-
-
 
 
 // -------------------------------------
 // Transition Analysis
+// Ignore transitions containing 0 or 00
 // -------------------------------------
-
 
 function transitions(spins){
 
+    let map={
 
-let map={
+        D1:{},
+        D2:{},
+        D3:{}
 
-D1:{},
-D2:{},
-D3:{}
+    };
 
-};
+    for(let i=0;i<spins.length-1;i++){
 
+        let from=spins[i];
+        let to=spins[i+1];
 
+        if(
+            !DOZENS.includes(from) ||
+            !DOZENS.includes(to)
+        ){
+            continue;
+        }
 
-for(let i=0;i<spins.length-1;i++){
+        if(!map[from][to]){
 
+            map[from][to]=0;
 
-let from=spins[i];
+        }
 
-let to=spins[i+1];
+        map[from][to]++;
 
+    }
 
-if(!map[from][to])
-
-map[from][to]=0;
-
-
-map[from][to]++;
-
-
-}
-
-
-
-return map;
-
+    return map;
 
 }
 
 
-
-
-
-
-
-
 // -------------------------------------
-// Rotation Detection Placeholder
+// Rotation Detection
+// Zero interrupts rotation
 // -------------------------------------
-
 
 function detectRotation(spins){
 
+    if(
+        spins.includes("0") ||
+        spins.includes("00")
+    ){
+        return "NO ROTATION";
+    }
 
-let clockwise=true;
+    let clockwise=true;
+    let counter=true;
 
-let counter=true;
+    for(let i=0;i<spins.length-1;i++){
 
+        let current=spins[i];
+        let next=spins[i+1];
 
+        if(next!==rotateClockwise(current))
+            clockwise=false;
 
-for(let i=0;i<spins.length-1;i++){
+        if(next!==rotateCounter(current))
+            counter=false;
 
+    }
 
-let current=spins[i];
+    if(clockwise)
+        return "CLOCKWISE ROTATION";
 
-let next=spins[i+1];
+    if(counter)
+        return "COUNTER ROTATION";
 
-
-
-if(next !== rotateClockwise(current))
-
-clockwise=false;
-
-
-
-if(next !== rotateCounter(current))
-
-counter=false;
-
-
-
-}
-
-
-
-if(clockwise)
-
-return "CLOCKWISE ROTATION";
-
-
-
-if(counter)
-
-return "COUNTER ROTATION";
-
-
-
-return "NO ROTATION";
-
+    return "NO ROTATION";
 
 }
 
 
-
-
-
-
+// -------------------------------------
+// Rotation Helpers
+// -------------------------------------
 
 function rotateClockwise(d){
 
+    if(d==="D1")
+        return "D2";
 
-if(d==="D1")
-return "D2";
+    if(d==="D2")
+        return "D3";
 
-
-if(d==="D2")
-return "D3";
-
-
-return "D1";
-
+    return "D1";
 
 }
-
-
-
 
 
 function rotateCounter(d){
 
+    if(d==="D1")
+        return "D3";
 
-if(d==="D1")
-return "D3";
+    if(d==="D3")
+        return "D2";
 
-
-if(d==="D3")
-return "D2";
-
-
-return "D1";
-
+    return "D1";
 
 }
 
 
-
-
-
-
-
-
 // -------------------------------------
-// Main Analysis
+// Recommendation Display
 // -------------------------------------
-
-
 
 function createRecommendation(spins){
 
+    let result=generateDecision(spins);
 
-let result =
-generateDecision(spins);
+    session.currentExclude=result.exclude;
+    session.currentPlay=result.play;
+    session.pattern=result.pattern;
+    session.confidence=result.confidence;
 
+    document
+    .getElementById("pattern")
+    .innerHTML=result.pattern;
 
+    document
+    .getElementById("result")
+    .innerHTML=
 
-session.currentExclude =
-result.exclude;
+        "EXCLUDE "
+        +result.exclude
+        +"<br><br>"
+        +"PLAY "
+        +result.play.join(" + ");
 
+    document
+    .getElementById("confidence")
+    .innerHTML=
 
-session.currentPlay =
-result.play;
+        Math.round(result.confidence)
+        +"%";
 
+    document
+    .getElementById("details")
+    .innerHTML=
 
-session.pattern =
-result.pattern;
+        "Scores:<br><br>"
 
+        +"D1: "+result.scores.D1
 
-session.confidence =
-result.confidence;
+        +"<br>D2: "+result.scores.D2
 
+        +"<br>D3: "+result.scores.D3
 
+        +"<br><br>"
 
-document
-.getElementById("pattern")
-.innerHTML =
-result.pattern;
-
-
-
-document
-.getElementById("result")
-.innerHTML =
-
-"EXCLUDE "
-+
-result.exclude
-+
-"<br><br>"
-+
-"PLAY "
-+
-result.play.join(" + ");
-
-
-
-
-document
-.getElementById("confidence")
-.innerHTML =
-
-Math.round(result.confidence)
-+
-"%";
-
-
-
-
-document
-.getElementById("details")
-.innerHTML =
-
-
-"Scores:<br><br>"
-
-+
-
-"D1: "
-+
-result.scores.D1
-
-+
-"<br>D2: "
-+
-result.scores.D2
-
-+
-"<br>D3: "
-+
-result.scores.D3
-
-+
-
-"<br><br>"
-
-+
-
-"Waiting for next dozen result.";
+        +"Waiting for next result.";
 
 }
 
 
-
+// -------------------------------------
+// Live Tracking
+// 0 / 00 treated as PUSH
+// -------------------------------------
 
 function submitLiveSpin(){
 
+    let actual=
+    document
+    .getElementById("liveSpin")
+    .value;
 
-let actual =
-document
-.getElementById("liveSpin")
-.value;
+    if(!session.currentExclude){
 
+        alert(
+            "Generate a recommendation first."
+        );
 
+        return;
 
-if(!session.currentExclude){
+    }
 
-alert(
-"Generate a recommendation first."
-);
+    if(actual=="0" || actual=="00"){
 
+    session.pushes++;
 
-return;
+    updateStats();
+
+    return;
 
 }
-
-
 
 session.cycles++;
 
+    session.cycles++;
 
+    if(actual==="0" || actual==="00"){
 
-if(
-actual === session.currentExclude
-){
+        session.pushes++;
 
-session.losses++;
+        document
+        .getElementById("liveStatus")
+        .innerHTML=
 
+            "RESULT: "
+            +actual
+            +"<br>Push (no win or loss).";
 
-document
-.getElementById("liveStatus")
-.innerHTML =
+    }
 
-"RESULT: EXCLUDED DOZEN HIT<br>"
-+
-"Cycle lost.";
+    else if(actual===session.currentExclude){
 
-}
+        session.losses++;
 
-else{
+        document
+        .getElementById("liveStatus")
+        .innerHTML=
 
+            "RESULT: EXCLUDED DOZEN HIT<br>"
+            +"Cycle lost.";
 
-session.wins++;
+    }
 
+    else{
 
-document
-.getElementById("liveStatus")
-.innerHTML =
+        session.wins++;
 
-"RESULT: PLAY AREA HIT<br>"
-+
-"Cycle successful.";
+        document
+        .getElementById("liveStatus")
+        .innerHTML=
 
-}
+            "RESULT: PLAY AREA HIT<br>"
+            +"Cycle successful.";
 
+    }
 
+    session.history.push(actual);
 
+    let lastFive=session.history.slice(-5);
 
-session.history.push(actual);
+    if(lastFive.length===5){
 
+        createRecommendation(lastFive);
 
+    }
 
-let lastFive =
-session.history.slice(-5);
-
-
-
-if(lastFive.length===5){
-
-createRecommendation(lastFive);
-
-}
-
-
-updateStats();
-
-
+    updateStats();
 
 }
 
 
-
+// -------------------------------------
+// Reset Session
+// -------------------------------------
 
 function resetSession(){
 
-session={
+    session={
 
-history:[],
-currentExclude:null,
-currentPlay:[],
-pattern:"",
-confidence:0,
-wins:0,
-losses:0,
-cycles:0
+        history:[],
 
-};
+        currentExclude:null,
 
+        currentPlay:[],
 
-document.getElementById("pattern").innerHTML="--";
+        pattern:"",
 
-document.getElementById("result").innerHTML="--";
+        confidence:0,
 
-document.getElementById("confidence").innerHTML="--";
+        wins:0,
 
-document.getElementById("details").innerHTML="Waiting for analysis...";
+        losses:0,
 
-document.getElementById("stats").innerHTML="No cycles completed.";
+        pushes:0,
+
+        cycles:0
+
+    };
+
+    document.getElementById("pattern").innerHTML="--";
+    document.getElementById("result").innerHTML="--";
+    document.getElementById("confidence").innerHTML="--";
+    document.getElementById("details").innerHTML="Waiting for analysis...";
+    document.getElementById("stats").innerHTML="No cycles completed.";
 
 }
 
 
+// -------------------------------------
+// Statistics
+// -------------------------------------
 
 function updateStats(){
 
+    document
+    .getElementById("stats")
+    .innerHTML=
 
-document
-.getElementById("stats")
-.innerHTML =
+        "Cycles: "
+        +session.cycles
 
-"Cycles: "
-+
-session.cycles
+        +"<br>"
 
-+
-"<br>"
+        +"Successful: "
+        +session.wins
 
-+
+        +"<br>"
 
-"Successful: "
-+
-session.wins
+        +"Failed: "
+        +session.losses
 
-+
-"<br>"
+        +"<br>"
 
-+
-
-"Failed: "
-+
-session.losses;
+        +"Pushes (0/00): "
+        +session.pushes;
 
 }
-
-
-
-
 
 
 // =====================================
@@ -788,30 +744,27 @@ session.losses;
 // =====================================
 
 
-
-
-
-
-
 // -------------------------------------
 // Frequency
 // -------------------------------------
 
 function frequency(spins){
 
-let count={
-D1:0,
-D2:0,
-D3:0
-};
+    let count={
+        D1:0,
+        D2:0,
+        D3:0
+    };
 
+    spins.forEach(d=>{
 
-spins.forEach(d=>{
-count[d]++;
-});
+        if(DOZENS.includes(d)){
+            count[d]++;
+        }
 
+    });
 
-return count;
+    return count;
 
 }
 
@@ -823,34 +776,38 @@ return count;
 
 function transitions(spins){
 
-let map={
+    let map={
 
-D1:{},
-D2:{},
-D3:{}
+        D1:{},
+        D2:{},
+        D3:{}
 
-};
+    };
 
+    for(let i=0;i<spins.length-1;i++){
 
-for(let i=0;i<spins.length-1;i++){
+        let from=spins[i];
+        let to=spins[i+1];
 
-let from=spins[i];
-let to=spins[i+1];
+        // Ignore transitions involving 0 / 00
 
+        if(
+            !DOZENS.includes(from) ||
+            !DOZENS.includes(to)
+        ){
+            continue;
+        }
 
-if(!map[from][to])
-map[from][to]=0;
+        if(!map[from][to])
+            map[from][to]=0;
 
+        map[from][to]++;
 
-map[from][to]++;
+    }
+
+    return map;
 
 }
-
-
-return map;
-
-}
-
 
 
 
@@ -861,30 +818,28 @@ return map;
 
 function rotateClockwise(d){
 
-if(d==="D1")
-return "D2";
+    if(d==="D1")
+        return "D2";
 
-if(d==="D2")
-return "D3";
+    if(d==="D2")
+        return "D3";
 
-return "D1";
+    return "D1";
 
 }
 
 
 function rotateCounter(d){
 
-if(d==="D1")
-return "D3";
+    if(d==="D1")
+        return "D3";
 
-if(d==="D3")
-return "D2";
+    if(d==="D3")
+        return "D2";
 
-return "D1";
+    return "D1";
 
 }
-
-
 
 
 
@@ -896,83 +851,71 @@ return "D1";
 
 function detectPattern(spins){
 
+    // 0 and 00 interrupt rotation analysis
 
-let clockwise=true;
-let counter=true;
+    if(
+        spins.includes("0") ||
+        spins.includes("00")
+    ){
+        return "MIXED PATTERN";
+    }
 
+    let clockwise=true;
+    let counter=true;
 
+    for(let i=0;i<spins.length-1;i++){
 
-for(let i=0;i<spins.length-1;i++){
+        if(
+            spins[i+1]!==rotateClockwise(spins[i])
+        )
+            clockwise=false;
 
+        if(
+            spins[i+1]!==rotateCounter(spins[i])
+        )
+            counter=false;
 
-if(
-spins[i+1] !== rotateClockwise(spins[i])
-)
+    }
 
-clockwise=false;
+    if(clockwise)
+        return "CLOCKWISE ROTATION";
 
-
-
-if(
-spins[i+1] !== rotateCounter(spins[i])
-)
-
-counter=false;
-
-
-}
-
-
-
-if(clockwise)
-return "CLOCKWISE ROTATION";
-
-
-if(counter)
-return "COUNTER ROTATION";
+    if(counter)
+        return "COUNTER ROTATION";
 
 
 
+    // Alternating
 
-// Alternating detection
-
-if(
-spins[0]===spins[2]
-&&
-spins[1]===spins[3]
-&&
-spins[2]===spins[4]
-)
-
-return "ALTERNATING";
+    if(
+        spins[0]===spins[2] &&
+        spins[1]===spins[3] &&
+        spins[2]===spins[4]
+    )
+        return "ALTERNATING";
 
 
 
+    // Dominant dozen
 
-// Dominant dozen
+    let freq=frequency(spins);
 
-let freq=frequency(spins);
+    let max=Math.max(
 
-let max=Math.max(
-freq.D1,
-freq.D2,
-freq.D3
-);
+        freq.D1,
+        freq.D2,
+        freq.D3
 
+    );
 
-if(max>=3)
-
-return "DOMINANT DOZEN";
-
+    if(max>=3)
+        return "DOMINANT DOZEN";
 
 
-return "MIXED PATTERN";
 
+    return "MIXED PATTERN";
 
 }
-
-
-
 
 
 
@@ -984,150 +927,111 @@ return "MIXED PATTERN";
 
 function scoreDozens(spins){
 
+    let scores={
 
-let scores={
+        D1:50,
+        D2:50,
+        D3:50
 
-D1:50,
-D2:50,
-D3:50
+    };
 
-};
+    let freq=frequency(spins);
 
-
-let freq =
-frequency(spins);
-
-let trans =
-transitions(spins);
+    let trans=transitions(spins);
 
 
 
+    // -----------------------------
+    // Frequency pressure
+    // -----------------------------
 
-// -----------------------------
-// Frequency pressure
-// -----------------------------
+    DOZENS.forEach(d=>{
 
+        scores[d]-=freq[d]*5;
 
-DOZENS.forEach(d=>{
-
-
-scores[d] -= freq[d]*5;
-
-
-});
+    });
 
 
 
+    // -----------------------------
+    // Recent appearance penalty
+    // -----------------------------
 
+    let last=spins[4];
 
-// -----------------------------
-// Recent appearance penalty
-// -----------------------------
+    if(DOZENS.includes(last)){
 
+        scores[last]-=15;
 
-let last =
-spins[4];
-
-
-scores[last]-=15;
-
-
+    }
 
 
 
-// -----------------------------
-// Transition support
-// -----------------------------
+    // -----------------------------
+    // Transition support
+    // -----------------------------
+
+    let previous=spins[3];
+
+    if(DOZENS.includes(previous)){
+
+        let nextCounts=trans[previous];
+
+        for(let d in nextCounts){
+
+            scores[d]+=nextCounts[d]*15;
+
+        }
+
+    }
 
 
-let previous =
-spins[3];
+
+    // -----------------------------
+    // Pattern bonus
+    // -----------------------------
+
+    let pattern=detectPattern(spins);
+
+    if(
+        pattern==="CLOCKWISE ROTATION" &&
+        DOZENS.includes(spins[4])
+    ){
+
+        let expected=rotateClockwise(spins[4]);
+
+        scores[expected]+=25;
+
+    }
+
+    if(
+        pattern==="COUNTER ROTATION" &&
+        DOZENS.includes(spins[4])
+    ){
+
+        let expected=rotateCounter(spins[4]);
+
+        scores[expected]+=25;
+
+    }
 
 
-let nextCounts =
-trans[previous];
 
+    // Clamp
 
+    DOZENS.forEach(d=>{
 
-for(let d in nextCounts){
+        if(scores[d]>100)
+            scores[d]=100;
 
+        if(scores[d]<0)
+            scores[d]=0;
 
-scores[d]+=
-nextCounts[d]*15;
+    });
 
+    return scores;
 
 }
-
-
-
-
-
-// -----------------------------
-// Pattern completion bonus
-// -----------------------------
-
-
-let pattern =
-detectPattern(spins);
-
-
-
-if(pattern==="CLOCKWISE ROTATION"){
-
-
-let expected =
-rotateClockwise(spins[4]);
-
-
-scores[expected]+=25;
-
-
-}
-
-
-
-if(pattern==="COUNTER ROTATION"){
-
-
-let expected =
-rotateCounter(spins[4]);
-
-
-scores[expected]+=25;
-
-
-}
-
-
-
-
-// Clamp
-
-DOZENS.forEach(d=>{
-
-
-if(scores[d]>100)
-
-scores[d]=100;
-
-
-if(scores[d]<0)
-
-scores[d]=0;
-
-
-});
-
-
-
-return scores;
-
-
-}
-
-
-
-
 
 
 
@@ -1139,31 +1043,22 @@ return scores;
 
 function chooseExclusion(scores){
 
+    let lowest=null;
 
-let lowest=null;
+    DOZENS.forEach(d=>{
 
+        if(
+            lowest===null ||
+            scores[d]<scores[lowest]
+        ){
+            lowest=d;
+        }
 
-DOZENS.forEach(d=>{
+    });
 
-
-if(
-lowest===null ||
-scores[d]<scores[lowest]
-)
-
-lowest=d;
-
-
-});
-
-
-return lowest;
-
+    return lowest;
 
 }
-
-
-
 
 
 
@@ -1175,33 +1070,25 @@ return lowest;
 
 function confidence(scores){
 
+    let values=[
 
-let values=[
-scores.D1,
-scores.D2,
-scores.D3
-];
+        scores.D1,
+        scores.D2,
+        scores.D3
 
+    ];
 
-values.sort((a,b)=>b-a);
+    values.sort((a,b)=>b-a);
 
+    let difference=
+        values[0]-values[1];
 
-
-let difference =
-values[0]-values[1];
-
-
-return Math.min(
-95,
-50+difference
-);
-
+    return Math.min(
+        95,
+        50+difference
+    );
 
 }
-
-
-
-
 
 
 
@@ -1213,59 +1100,38 @@ return Math.min(
 
 function generateDecision(spins){
 
+    let pattern=
+        detectPattern(spins);
 
+    let scores=
+        scoreDozens(spins);
 
-let pattern =
-detectPattern(spins);
+    let exclude=
+        chooseExclusion(scores);
 
+    let confidenceValue=
+        confidence(scores);
 
+    let play=
+        DOZENS.filter(
+            d=>d!==exclude
+        );
 
-let scores =
-scoreDozens(spins);
+    return{
 
+        pattern:pattern,
 
+        exclude:exclude,
 
-let exclude =
-chooseExclusion(scores);
+        play:play,
 
+        scores:scores,
 
+        confidence:confidenceValue
 
-let confidenceValue =
-confidence(scores);
-
-
-
-
-
-let play =
-DOZENS.filter(d=>d!==exclude);
-
-
-
-
-
-return {
-
-
-pattern:pattern,
-
-exclude:exclude,
-
-play:play,
-
-scores:scores,
-
-confidence:confidenceValue
-
-
-};
-
+    };
 
 }
-
-
-
-
 
 
 
@@ -1274,95 +1140,87 @@ confidence:confidenceValue
 // -------------------------------------
 // Analyze Button
 // -------------------------------------
+
 function analyze(){
 
-let spins=[];
+    let spins=[];
 
-document
-.querySelectorAll(".spin")
-.forEach(s=>{
-    spins.push(s.value);
-});
+    document
+    .querySelectorAll(".spin")
+    .forEach(s=>{
 
+        spins.push(s.value);
 
-let result =
-generateDecision(spins);
+    });
 
+    let result=
+        generateDecision(spins);
 
-// Save active recommendation
+    session.history=spins;
 
-session.history = spins;
+    session.currentExclude=result.exclude;
 
-session.currentExclude = result.exclude;
+    session.currentPlay=result.play;
 
-session.currentPlay = result.play;
+    session.pattern=result.pattern;
 
-session.pattern = result.pattern;
-
-session.confidence = result.confidence;
+    session.confidence=result.confidence;
 
 
 
-document
-.getElementById("pattern")
-.innerHTML =
-result.pattern;
+    document
+    .getElementById("pattern")
+    .innerHTML=result.pattern;
 
 
 
-document
-.getElementById("result")
-.innerHTML =
+    document
+    .getElementById("result")
+    .innerHTML=
 
-"EXCLUDE "
-+
-result.exclude
-+
-"<br><br>"
-+
-"PLAY "
-+
-result.play.join(" + ");
+        "EXCLUDE "
+        +result.exclude
 
+        +"<br><br>"
 
+        +"PLAY "
 
-document
-.getElementById("confidence")
-.innerHTML =
-Math.round(result.confidence)
-+
-"%";
+        +result.play.join(" + ");
 
 
 
-document
-.getElementById("details")
-.innerHTML =
+    document
+    .getElementById("confidence")
+    .innerHTML=
 
-"Dozen Scores:<br><br>"
-+
-"D1: "
-+
-result.scores.D1
-+
-"<br>D2: "
-+
-result.scores.D2
-+
-"<br>D3: "
-+
-result.scores.D3
-+
-"<br><br>"
-+
-"Lowest danger dozen removed.";
+        Math.round(
+            result.confidence
+        )+"%";
+
+
+
+    document
+    .getElementById("details")
+    .innerHTML=
+
+        "Dozen Scores:<br><br>"
+
+        +"D1: "
+        +result.scores.D1
+
+        +"<br>D2: "
+        +result.scores.D2
+
+        +"<br>D3: "
+        +result.scores.D3
+
+        +"<br><br>"
+
+        +"0 and 00 logged as neutral events.";
 
 }
 
-
 </script>
 
-
 </body>
-
 </html>
