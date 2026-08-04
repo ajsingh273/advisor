@@ -1,764 +1,1133 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Simulator</title>
-
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
 <style>
+  :root{
+    --felt-deep:#0a3d2c;
+    --felt-mid:#0e4a36;
+    --felt-light:#125a41;
+    --bg:#050907;
+    --panel:#0d1512;
+    --panel-2:#0f1b16;
+    --brass:#c9a961;
+    --brass-bright:#f0d896;
+    --brass-dim:#8a713f;
+    --red:#a91d33;
+    --red-bright:#c9293f;
+    --black-pocket:#151515;
+    --cream:#ede6d6;
+    --cream-dim:#a9a294;
+    --win:#4fd88a;
+    --loss:#f0596b;
+    --line:rgba(201,169,97,0.18);
+    --font-display:'Playfair Display',serif;
+    --font-body:'Inter',sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+  }
 
-body{
-background:#111;
-color:white;
-font-family:Arial,sans-serif;
-max-width:1100px;
-margin:auto;
-padding:20px;
-}
+  *{box-sizing:border-box;}
 
-h1{
-text-align:center;
-color:#00ff99;
-}
+  html,body{
+    margin:0;
+    padding:0;
+    background:
+      radial-gradient(ellipse at 50% -10%, #103d2d 0%, transparent 60%),
+      var(--bg);
+    color:var(--cream);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+  }
 
+  .app{
+    max-width:1240px;
+    margin:0 auto;
+    padding:28px 20px 60px;
+  }
 
-.container{
-display:grid;
-grid-template-columns:2fr 1fr;
-gap:20px;
-}
+  /* ---------- Header ---------- */
+  header{
+    text-align:center;
+    margin-bottom:22px;
+  }
+  header .eyebrow{
+    font-family:var(--font-mono);
+    letter-spacing:.35em;
+    font-size:11px;
+    color:var(--brass-dim);
+    text-transform:uppercase;
+  }
+  header h1{
+    font-family:var(--font-display);
+    font-weight:800;
+    font-size:clamp(28px,4vw,44px);
+    margin:6px 0 4px;
+    background:linear-gradient(180deg,var(--brass-bright),var(--brass) 60%,var(--brass-dim));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    letter-spacing:.02em;
+  }
+  header .sub{
+    font-size:13px;
+    color:var(--cream-dim);
+  }
 
+  /* ---------- Wheel stage ---------- */
+  .wheel-stage{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:18px 0 30px;
+  }
+  .wheel-wrap{
+    position:relative;
+    width:min(400px,86vw);
+    height:min(400px,86vw);
+    filter:drop-shadow(0 18px 34px rgba(0,0,0,.55));
+  }
+  .wheel-wrap svg{
+    width:100%;
+    height:100%;
+    display:block;
+  }
+  .pointer{
+    position:absolute;
+    top:-6px;
+    left:50%;
+    transform:translateX(-50%);
+    width:0;height:0;
+    border-left:9px solid transparent;
+    border-right:9px solid transparent;
+    border-top:16px solid var(--brass-bright);
+    filter:drop-shadow(0 2px 3px rgba(0,0,0,.6));
+    z-index:5;
+  }
+  #ball{
+    position:absolute;
+    width:13px;
+    height:13px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff, #cfcfcf 55%, #8f8f8f 100%);
+    box-shadow:0 2px 4px rgba(0,0,0,.6);
+    transform:translate(-50%,-50%);
+    left:200px;top:40px;
+    z-index:6;
+  }
+  .wedge-num{
+    font-family:var(--font-mono);
+    font-weight:600;
+    fill:var(--cream);
+    font-size:13px;
+    text-anchor:middle;
+    pointer-events:none;
+  }
+  .wedge.winning{
+    animation:wedgeGlow 1.1s ease-in-out infinite;
+  }
+  @keyframes wedgeGlow{
+    0%,100%{ filter:drop-shadow(0 0 2px var(--brass-bright)); }
+    50%{ filter:drop-shadow(0 0 10px var(--brass-bright)); }
+  }
 
-.box{
-background:#1d1d1d;
-padding:15px;
-border-radius:12px;
-}
+  #spinBtn{
+    margin-top:20px;
+    font-family:var(--font-display);
+    font-weight:800;
+    font-size:20px;
+    letter-spacing:.12em;
+    padding:14px 46px;
+    border-radius:999px;
+    border:1px solid var(--brass);
+    background:linear-gradient(180deg,var(--red-bright),var(--red) 70%);
+    color:var(--cream);
+    cursor:pointer;
+    box-shadow:0 8px 22px rgba(169,29,51,.4), inset 0 1px 0 rgba(255,255,255,.15);
+    transition:transform .12s ease, box-shadow .12s ease, opacity .2s ease;
+  }
+  #spinBtn:hover:not(:disabled){ transform:translateY(-2px); box-shadow:0 12px 26px rgba(169,29,51,.5), inset 0 1px 0 rgba(255,255,255,.15); }
+  #spinBtn:active:not(:disabled){ transform:translateY(0); }
+  #spinBtn:disabled{ opacity:.45; cursor:not-allowed; }
 
+  .result-banner{
+    margin-top:14px;
+    min-height:26px;
+    font-family:var(--font-mono);
+    font-size:15px;
+    font-weight:600;
+    letter-spacing:.04em;
+    text-align:center;
+  }
+  .result-banner .win{ color:var(--win); }
+  .result-banner .loss{ color:var(--loss); }
 
-.balance{
-font-size:32px;
-color:#00ff99;
-text-align:center;
-}
+  /* ---------- Table layout ---------- */
+  .table-layout{
+    display:grid;
+    grid-template-columns:2.15fr 1fr;
+    gap:22px;
+    align-items:start;
+  }
+  @media (max-width:880px){
+    .table-layout{ grid-template-columns:1fr; }
+  }
 
+  .box{
+    background:linear-gradient(180deg,var(--panel),var(--panel-2));
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:18px;
+    box-shadow:var(--shadow, 0 10px 24px rgba(0,0,0,.4));
+  }
+  .box h3{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--brass);
+    margin:0 0 12px;
+    font-weight:600;
+  }
 
-button{
-padding:12px;
-margin:4px;
-border:none;
-border-radius:8px;
-font-size:16px;
-cursor:pointer;
-color:white;
-}
+  /* ---------- Board ---------- */
+  .board-panel{
+    padding:20px;
+  }
+  .felt{
+    background:
+      radial-gradient(ellipse at 50% 0%, var(--felt-light), var(--felt-deep) 70%);
+    border:2px solid var(--brass-dim);
+    border-radius:12px;
+    padding:14px;
+  }
+  .board-row{
+    display:grid;
+    grid-template-columns:repeat(12,1fr) 62px;
+    gap:4px;
+    margin-bottom:4px;
+  }
+  .cell{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:42px;
+    border-radius:6px;
+    font-family:var(--font-mono);
+    font-weight:600;
+    font-size:14px;
+    color:var(--cream);
+    cursor:pointer;
+    user-select:none;
+    border:1px solid rgba(0,0,0,.35);
+    transition:filter .12s ease, transform .08s ease;
+  }
+  .cell:hover{ filter:brightness(1.22); }
+  .cell:active{ transform:scale(.96); }
+  .cell.zero{ background:linear-gradient(180deg,#0e7a4c,#0a5c39); font-size:13px; }
+  .cell.red{ background:linear-gradient(180deg,var(--red-bright),var(--red)); }
+  .cell.black{ background:linear-gradient(180deg,#262626,var(--black-pocket)); }
+  .cell.side{
+    background:linear-gradient(180deg,#1a2a24,#122019);
+    font-family:var(--font-body);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.04em;
+    color:var(--brass-bright);
+    text-align:center;
+    line-height:1.15;
+  }
+  .cell.dozen{ font-size:11px; letter-spacing:.03em; }
+  .cell.outside-word{ font-size:12px; }
+  .cell.outside-red{ background:linear-gradient(180deg,var(--red-bright),var(--red)); }
+  .cell.outside-black{ background:linear-gradient(180deg,#262626,var(--black-pocket)); }
 
+  .cell.winning-cell{
+    animation:cellPulse 1s ease-in-out infinite;
+    z-index:2;
+  }
+  @keyframes cellPulse{
+    0%,100%{ box-shadow:0 0 0 0 rgba(240,216,150,.7); }
+    50%{ box-shadow:0 0 0 7px rgba(240,216,150,0); }
+  }
 
-.numberGrid{
+  .chip-stack{
+    position:absolute;
+    top:50%;left:50%;
+    width:30px;height:30px;
+    margin:-15px 0 0 -15px;
+    pointer-events:none;
+    z-index:3;
+  }
+  .chip-layer,.chip-top{
+    position:absolute;
+    inset:0;
+    border-radius:50%;
+    background:
+      repeating-conic-gradient(var(--brass-bright) 0deg 18deg, #6e5527 18deg 36deg);
+    border:2px solid var(--cream);
+    box-shadow:0 3px 6px rgba(0,0,0,.55), inset 0 0 0 3px rgba(0,0,0,.35);
+  }
+  .chip-layer{
+    transform:translateY(calc((var(--i) + 1) * -3.5px));
+  }
+  .chip-top{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:var(--font-mono);
+    font-size:9.5px;
+    font-weight:700;
+    color:#3a2c0e;
+    transform:translateY(calc(var(--top-offset,0) * -3.5px)) scale(0);
+  }
+  .chip-stack.show .chip-top{
+    animation:chipPop .28s cubic-bezier(.34,1.56,.64,1) forwards;
+  }
+  .chip-stack.bump .chip-top{
+    animation:chipBump .22s ease;
+  }
+  @keyframes chipPop{
+    0%{ transform:translateY(calc(var(--top-offset,0) * -3.5px)) scale(0); opacity:0; }
+    70%{ transform:translateY(calc(var(--top-offset,0) * -3.5px)) scale(1.18); opacity:1; }
+    100%{ transform:translateY(calc(var(--top-offset,0) * -3.5px)) scale(1); opacity:1; }
+  }
+  @keyframes chipBump{
+    0%{ transform:translateY(calc(var(--top-offset,0) * -3.5px)) scale(1); }
+    40%{ transform:translateY(calc(var(--top-offset,0) * -3.5px)) scale(1.28); }
+    100%{ transform:translateY(calc(var(--top-offset,0) * -3.5px)) scale(1); }
+  }
 
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:5px;
+  .board-scroll{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;
+  }
+  .board-scroll::-webkit-scrollbar{ height:6px; }
+  .board-scroll::-webkit-scrollbar-thumb{ background:var(--brass-dim); border-radius:4px; }
+  .swipe-hint{
+    display:none;
+    text-align:center;
+    font-family:var(--font-mono);
+    font-size:10.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--cream-dim);
+    margin-bottom:8px;
+  }
 
-}
+  .board-footer{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-top:14px;
+    flex-wrap:wrap;
+  }
+  .board-actions{
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  .chip-tag{
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--brass-bright);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .chip-tag .swatch{
+    width:20px;height:20px;
+    border-radius:50%;
+    background:repeating-conic-gradient(var(--brass-bright) 0deg 18deg, #6e5527 18deg 36deg);
+    border:2px solid var(--cream);
+    display:inline-block;
+  }
+  .current-bet{
+    font-family:var(--font-mono);
+    font-size:13px;
+    color:var(--cream-dim);
+  }
+  .current-bet b{ color:var(--brass-bright); }
+  #clearBtn, #repeatBtn{
+    font-family:var(--font-body);
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:.05em;
+    padding:9px 16px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--cream-dim);
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  #clearBtn:hover:not(:disabled), #repeatBtn:hover:not(:disabled){ border-color:var(--brass); color:var(--brass-bright); }
+  #clearBtn:disabled, #repeatBtn:disabled{ opacity:.4; cursor:not-allowed; }
+  #repeatBtn{ border-color:var(--brass-dim); color:var(--brass-bright); }
 
+  /* ---------- Side panel ---------- */
+  .side-panel{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+  .bank-box{ text-align:center; }
+  .bank-label{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:.2em;
+    color:var(--cream-dim);
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  .balance{
+    font-family:var(--font-mono);
+    font-weight:700;
+    font-size:38px;
+    color:var(--brass-bright);
+    letter-spacing:.01em;
+    transition:color .2s ease;
+  }
+  .balance.flash-win{ animation:flashWin .6s ease; }
+  .balance.flash-loss{ animation:flashLoss .6s ease; }
+  @keyframes flashWin{ 0%{color:var(--win);transform:scale(1.08);} 100%{color:var(--brass-bright);transform:scale(1);} }
+  @keyframes flashLoss{ 0%{color:var(--loss);transform:scale(1.08);} 100%{color:var(--brass-bright);transform:scale(1);} }
+  .bank-pl{
+    margin-top:6px;
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--cream-dim);
+  }
+  .bank-pl span{ font-weight:700; }
+  .bank-pl .pos{ color:var(--win); }
+  .bank-pl .neg{ color:var(--loss); }
 
-.number{
-background:#222;
-}
+  .recent-strip{
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    padding-bottom:8px;
+    margin-bottom:10px;
+  }
+  .recent-strip::-webkit-scrollbar{ height:5px; }
+  .recent-strip::-webkit-scrollbar-thumb{ background:var(--brass-dim); border-radius:4px; }
+  .badge{
+    flex:0 0 auto;
+    width:30px;height:30px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);
+    font-size:11px;
+    font-weight:700;
+    color:var(--cream);
+    border:1px solid rgba(255,255,255,.15);
+  }
+  .badge.red{ background:var(--red); }
+  .badge.black{ background:var(--black-pocket); }
+  .badge.green{ background:#0a5c39; }
 
+  .stats-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .stat{
+    background:rgba(0,0,0,.2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px;
+    text-align:center;
+  }
+  .stat .v{
+    font-family:var(--font-mono);
+    font-weight:700;
+    font-size:18px;
+    color:var(--brass-bright);
+  }
+  .stat .k{
+    font-size:10px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--cream-dim);
+    margin-top:2px;
+  }
 
-.red{
-background:#a00000;
-}
+  .toast{
+    position:fixed;
+    bottom:24px;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:#1a1210;
+    border:1px solid var(--loss);
+    color:var(--loss);
+    font-family:var(--font-mono);
+    font-size:13px;
+    padding:10px 18px;
+    border-radius:10px;
+    opacity:0;
+    transition:opacity .25s ease, transform .25s ease;
+    pointer-events:none;
+    z-index:50;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 
+  footer.credits{
+    text-align:center;
+    margin-top:30px;
+    font-size:11px;
+    color:var(--cream-dim);
+    font-family:var(--font-mono);
+  }
 
-.black{
-background:#050505;
-}
+  /* ---------- Mobile ---------- */
+  @media (max-width:820px){
+    .felt{ min-width:640px; }
+    .swipe-hint{ display:block; }
+  }
+  @media (max-width:680px){
+    .app{ padding:18px 12px 44px; }
+    header .eyebrow{ font-size:10px; letter-spacing:.28em; }
+    header h1{ font-size:26px; }
+    header .sub{ font-size:11.5px; }
 
+    .wheel-wrap{ width:88vw; height:88vw; }
+    #spinBtn{ padding:12px 34px; font-size:17px; }
+    .result-banner{ font-size:13px; padding:0 8px; }
 
-.green{
-background:#008000;
-}
+    .box{ padding:14px; border-radius:14px; }
+    .board-panel{ padding:12px; }
+    .felt{ padding:10px; border-radius:10px; }
 
+    .board-footer{ flex-direction:column; align-items:stretch; gap:10px; }
+    .board-actions{ justify-content:space-between; }
+    .board-actions button{ flex:1; }
+    .chip-tag{ justify-content:center; }
+    .current-bet{ text-align:center; }
 
-.outside{
-background:#005577;
-width:100%;
-}
+    .balance{ font-size:30px; }
+    .stats-grid{ gap:8px; }
+    .stat{ padding:8px; }
+    .stat .v{ font-size:16px; }
 
-
-.result{
-font-size:20px;
-line-height:1.6;
-color:#ccc;
-}
-
-
-.win{
-color:#00ff99;
-}
-
-
-.loss{
-color:#ff5555;
-}
-
-
+    .badge{ width:26px; height:26px; font-size:10px; }
+    #historyChart{ max-height:130px; }
+  }
+  @media (max-width:400px){
+    .wheel-wrap{ width:92vw; height:92vw; }
+    header h1{ font-size:23px; }
+    .balance{ font-size:26px; }
+  }
 </style>
-
 </head>
-
 
 <body>
 
+<div class="app">
 
-<h1>
-Simulator
-</h1>
+  <header>
+    <div class="eyebrow">Table Simulator</div>
+    <h1>American Roulette</h1>
+    <div class="sub">0 &amp; 00 · 38 pockets · $10 chips</div>
+  </header>
 
+  <section class="wheel-stage">
+    <div class="wheel-wrap">
+      <div class="pointer"></div>
+      <svg id="wheelSvg" viewBox="0 0 400 400"></svg>
+      <div id="ball"></div>
+    </div>
+    <button id="spinBtn">SPIN</button>
+    <div class="result-banner" id="resultBanner">Place your bets, then spin.</div>
+  </section>
 
+  <main class="table-layout">
 
-<div class="container">
+    <div class="box board-panel">
+      <h3>Table</h3>
+      <div class="swipe-hint">← Swipe to see full table →</div>
+      <div class="board-scroll">
+        <div class="felt" id="board"></div>
+      </div>
 
+      <div class="board-footer">
+        <div class="chip-tag"><span class="swatch"></span> Chip value: $10</div>
+        <div class="current-bet">Current bet: <b id="currentBetTotal">$0</b></div>
+        <div class="board-actions">
+          <button id="repeatBtn" disabled>Repeat Bet</button>
+          <button id="clearBtn">Clear Bets</button>
+        </div>
+      </div>
+    </div>
 
-<div>
+    <aside class="side-panel">
 
+      <div class="box bank-box">
+        <div class="bank-label">Bank Balance</div>
+        <div class="balance" id="balance">$2000</div>
+        <div class="bank-pl">Session P/L: <span id="pl">$0</span></div>
+      </div>
 
-<div class="box">
+      <div class="box">
+        <h3>Spin History</h3>
+        <div class="recent-strip" id="recentStrip"></div>
+        <canvas id="historyChart" height="140"></canvas>
+      </div>
 
-<h3>
-Numbers
-</h3>
+      <div class="box">
+        <h3>Stats</h3>
+        <div class="stats-grid">
+          <div class="stat"><div class="v" id="statSpins">0</div><div class="k">Spins</div></div>
+          <div class="stat"><div class="v" id="statWins">0</div><div class="k">Wins</div></div>
+          <div class="stat"><div class="v" id="statLosses">0</div><div class="k">Losses</div></div>
+          <div class="stat"><div class="v" id="statRate">0%</div><div class="k">Win Rate</div></div>
+        </div>
+      </div>
 
-<div id="numbers" class="numberGrid"></div>
+    </aside>
 
-</div>
+  </main>
 
-
-
-<div class="box">
-
-<h3>
-Outside Bets
-</h3>
-
-
-<button class="outside" onclick="placeOutside('RED')">
-RED 1:1
-</button>
-
-
-<button class="outside" onclick="placeOutside('BLACK')">
-BLACK 1:1
-</button>
-
-
-<button class="outside" onclick="placeOutside('ODD')">
-ODD 1:1
-</button>
-
-
-<button class="outside" onclick="placeOutside('EVEN')">
-EVEN 1:1
-</button>
-
-
-<button class="outside" onclick="placeOutside('LOW')">
-1-18 1:1
-</button>
-
-
-<button class="outside" onclick="placeOutside('HIGH')">
-19-36 1:1
-</button>
-
-
-<button class="outside" onclick="placeOutside('D1')">
-DOZEN 1 2:1
-</button>
-
-
-<button class="outside" onclick="placeOutside('D2')">
-DOZEN 2 2:1
-</button>
-
-
-<button class="outside" onclick="placeOutside('D3')">
-DOZEN 3 2:1
-</button>
-
-
-<button class="outside" onclick="placeOutside('C1')">
-COLUMN 1 2:1
-</button>
-
-
-<button class="outside" onclick="placeOutside('C2')">
-COLUMN 2 2:1
-</button>
-
-
-<button class="outside" onclick="placeOutside('C3')">
-COLUMN 3 2:1
-</button>
-
-
-<br>
-
-<button onclick="clearBets()">
-CLEAR BETS
-</button>
-
-
-<div id="bet">
-Current Bet: $0
-</div>
-
+  <footer class="credits">Simulated odds — American double-zero wheel. For entertainment only.</footer>
 
 </div>
 
-</div>
-
-
-
-
-
-<div class="box result">
-
-
-<h3>
-Session
-</h3>
-
-
-<div id="balance" class="balance">
-$2000
-</div>
-
-
-<br>
-
-
-<div id="message">
-Waiting for spin...
-</div>
-
-
-<br>
-
-
-<h3>
-Spin History
-</h3>
-
-
-<div id="history">
---
-</div>
-
-
-<br>
-
-
-<h3>
-Stats
-</h3>
-
-
-<div id="stats">
-
-Spins:0<br>
-Wins:0<br>
-Losses:0
-
-</div>
-
-<button onclick="randomSpin()">
-RANDOM SPIN
-</button>
-
-
-</div>
-
-
-
-</div>
-
-
+<div class="toast" id="toast"></div>
 
 <script>
-
-
-const CHIP=10;
-
-
-let balance=2000;
-
-
-let bets=[];
-
-
-let history=[];
-
-
-let spins=0;
-
-let wins=0;
-
-let losses=0;
-
-
-
-const RED=[
-
-1,3,5,7,9,
-12,14,16,18,
-19,21,23,25,27,
-30,32,34,36
-
-];
-
-
-
-function color(n){
-
-if(n===0 || n==="00")
-return "green";
-
-return RED.includes(n)
-?"red"
-:"black";
-
-}
-
-
-
-function createNumbers(){
-
-
-let area=document.getElementById("numbers");
-
-
-let nums=["00",0];
-
-
-for(let i=1;i<=36;i++)
-nums.push(i);
-
-
-
-nums.forEach(n=>{
-
-
-let b=document.createElement("button");
-
-
-b.innerHTML=n;
-
-
-b.className="number "+color(n);
-
-
-b.onclick=()=>placeNumber(n);
-
-
-area.appendChild(b);
-
-
-});
-
-
-}
-
-
-
-function addBet(type,amount){
-
-
-if(balance<amount){
-
-alert("Insufficient balance");
-
-return;
-
-}
-
-
-balance-=amount;
-
-
-bets.push({
-
-type:type,
-
-amount:amount
-
-});
-
-
-update();
-
-
-}
-
-
-
-function placeNumber(n){
-
-addBet("N"+n,CHIP);
-
-}
-
-
-
-function placeOutside(type){
-
-addBet(type,CHIP);
-
-}
-
-
-
-
-function clearBets(){
-
-let refund=0;
-
-
-bets.forEach(b=>{
-
-refund+=b.amount;
-
-});
-
-
-balance+=refund;
-
-
-bets=[];
-
-
-update();
-
-
-}
-
-
-
-
-function dozen(n){
-
-if(n>=1&&n<=12)
-return "D1";
-
-if(n>=13&&n<=24)
-return "D2";
-
-if(n>=25&&n<=36)
-return "D3";
-
-return null;
-
-}
-
-
-
-function column(n){
-
-if(n<1)
-return null;
-
-
-let c=((n-1)%3)+1;
-
-
-return "C"+c;
-
-}
-
-
-
-
-function winBet(bet,result){
-
-
-let n=parseInt(result);
-
-
-if(bet.type.startsWith("N")){
-
-
-return bet.type==="N"+result
-?bet.amount*36:0;
-
-
-}
-
-
-if(result==="00" || result===0)
-return 0;
-
-
-
-if(bet.type==="RED" && color(n)==="red")
-return bet.amount*2;
-
-
-if(bet.type==="BLACK" && color(n)==="black")
-return bet.amount*2;
-
-
-
-if(bet.type==="ODD" && n%2===1)
-return bet.amount*2;
-
-
-if(bet.type==="EVEN" && n%2===0)
-return bet.amount*2;
-
-
-
-if(bet.type==="LOW" && n<=18)
-return bet.amount*2;
-
-
-if(bet.type==="HIGH" && n>=19)
-return bet.amount*2;
-
-
-
-if(bet.type===dozen(n))
-return bet.amount*3;
-
-
-
-if(bet.type===column(n))
-return bet.amount*3;
-
-
-
-return 0;
-
-
-}
-
-
-
-
-function spin(){
-
-
-let input=prompt(
-"Enter spin result (0,00-36)"
-);
-
-
-if(input===null)
-return;
-
-
-
-let result=input==="00"
-?"00"
-:parseInt(input);
-
-
-
-let payout=0;
-
-
-bets.forEach(b=>{
-
-payout+=winBet(b,result);
-
-});
-
-
-
-if(payout>0){
-
-wins++;
-
-balance+=payout;
-
-
-document.getElementById("message")
-.innerHTML=
-"<span class='win'>WIN: "+result+"</span>";
-
-
-}
-else{
-
-losses++;
-
-
-document.getElementById("message")
-.innerHTML=
-"<span class='loss'>LOSS: "+result+"</span>";
-
-}
-
-
-
-spins++;
-
-
-history.unshift(result);
-
-
-if(history.length>20)
-history.pop();
-
-
-
-bets=[];
-
-
-update();
-
-
-}
-
-
-
-function randomSpin(){
-
-    let result;
-
-    let roll = Math.floor(Math.random()*38);
-
-    if(roll===37){
-        result="00";
-    }
-    else{
-        result=roll;
-    }
-
-
-    let payout=0;
-
-
-    bets.forEach(b=>{
-
-        payout += winBet(b,result);
-
+window.addEventListener('DOMContentLoaded', function(){
+  "use strict";
+
+  /* ============ Config ============ */
+  const CHIP = 10;
+  const STARTING_BALANCE = 2000;
+  const WHEEL_ORDER = [0,28,9,26,30,11,7,20,32,17,5,22,34,15,3,24,36,13,1,'00',27,10,25,29,12,8,19,31,18,6,21,33,16,4,23,35,14,2];
+  const RED_NUMBERS = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+  const SECTOR_ANGLE = 360 / WHEEL_ORDER.length;
+
+  /* ============ State ============ */
+  let balance = STARTING_BALANCE;
+  let bets = {};              // betType -> amount
+  let lastBets = {};          // betType -> amount (from the previous resolved spin, for Repeat Bet)
+  let chipEls = {};           // betType -> chip-stack DOM element
+  let spins = 0, wins = 0, losses = 0;
+  let colorCounts = { red:0, black:0, green:0 };
+  let recent = [];
+  let isSpinning = false;
+  let ballAngle = 0;
+
+  /* ============ Helpers ============ */
+  function colorOf(n){
+    if(n === 0 || n === '00') return 'green';
+    return RED_NUMBERS.includes(n) ? 'red' : 'black';
+  }
+  function dozenOf(n){
+    if(typeof n !== 'number') return null;
+    if(n>=1 && n<=12) return 'D1';
+    if(n>=13 && n<=24) return 'D2';
+    if(n>=25 && n<=36) return 'D3';
+    return null;
+  }
+  function columnOf(n){
+    if(typeof n !== 'number' || n < 1) return null;
+    return 'C' + (((n-1) % 3) + 1);
+  }
+  function fmt(v){
+    const sign = v < 0 ? '-' : '';
+    return sign + '$' + Math.abs(v);
+  }
+  function polar(cx,cy,r,angleDeg){
+    const rad = (angleDeg) * Math.PI / 180;
+    return { x: cx + r * Math.sin(rad), y: cy - r * Math.cos(rad) };
+  }
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(showToast._h);
+    showToast._h = setTimeout(()=> t.classList.remove('show'), 2200);
+  }
+
+  /* ============ Build wheel ============ */
+  const svg = document.getElementById('wheelSvg');
+  const NS = 'http://www.w3.org/2000/svg';
+
+  function buildWheel(){
+    const cx=200, cy=200, outer=190, inner=108, hub=78;
+
+    // outer rim
+    const rim = document.createElementNS(NS,'circle');
+    rim.setAttribute('cx',cx); rim.setAttribute('cy',cy); rim.setAttribute('r',196);
+    rim.setAttribute('fill','none'); rim.setAttribute('stroke','#c9a961'); rim.setAttribute('stroke-width','4');
+    svg.appendChild(rim);
+
+    WHEEL_ORDER.forEach((num, i)=>{
+      const a0 = i * SECTOR_ANGLE;
+      const a1 = (i+1) * SECTOR_ANGLE;
+      const mid = a0 + SECTOR_ANGLE/2;
+
+      const pO0 = polar(cx,cy,outer,a0);
+      const pO1 = polar(cx,cy,outer,a1);
+      const pI0 = polar(cx,cy,inner,a0);
+      const pI1 = polar(cx,cy,inner,a1);
+
+      const d = [
+        'M', pI0.x, pI0.y,
+        'L', pO0.x, pO0.y,
+        'A', outer, outer, 0, 0, 1, pO1.x, pO1.y,
+        'L', pI1.x, pI1.y,
+        'A', inner, inner, 0, 0, 0, pI0.x, pI0.y,
+        'Z'
+      ].join(' ');
+
+      const path = document.createElementNS(NS,'path');
+      path.setAttribute('d', d);
+      const c = colorOf(num);
+      const fill = c === 'green' ? '#0a5c39' : (c === 'red' ? '#a91d33' : '#161616');
+      path.setAttribute('fill', fill);
+      path.setAttribute('stroke', '#050907');
+      path.setAttribute('stroke-width', '1');
+      path.classList.add('wedge');
+      path.dataset.index = i;
+      svg.appendChild(path);
+
+      const txt = document.createElementNS(NS,'text');
+      const tp = polar(cx,cy,(outer+inner)/2 + 6, mid);
+      txt.setAttribute('x', 200);
+      txt.setAttribute('y', 200-((outer+inner)/2+6));
+      txt.setAttribute('transform', `rotate(${mid} 200 200)`);
+      txt.setAttribute('class','wedge-num');
+      txt.textContent = num;
+      svg.appendChild(txt);
     });
 
+    // hub
+    const hubCircle = document.createElementNS(NS,'circle');
+    hubCircle.setAttribute('cx',cx); hubCircle.setAttribute('cy',cy); hubCircle.setAttribute('r',hub);
+    hubCircle.setAttribute('fill','#0e2019');
+    hubCircle.setAttribute('stroke','#c9a961');
+    hubCircle.setAttribute('stroke-width','3');
+    svg.appendChild(hubCircle);
 
-
-    if(payout>0){
-
-        wins++;
-
-        balance += payout;
-
-
-        document.getElementById("message")
-        .innerHTML =
-        "<span class='win'>WIN: "+result+
-        " | Payout $"+payout+
-        "</span>";
-
-
-    }
-    else{
-
-
-        losses++;
-
-
-        document.getElementById("message")
-        .innerHTML =
-        "<span class='loss'>LOSS: "+result+
-        "</span>";
-
+    for(let i=0;i<8;i++){
+      const ang = i * 45;
+      const p1 = polar(cx,cy,hub-8,ang);
+      const p2 = polar(cx,cy,inner-4,ang);
+      const spoke = document.createElementNS(NS,'line');
+      spoke.setAttribute('x1',p1.x); spoke.setAttribute('y1',p1.y);
+      spoke.setAttribute('x2',p2.x); spoke.setAttribute('y2',p2.y);
+      spoke.setAttribute('stroke','#c9a961');
+      spoke.setAttribute('stroke-width','1.5');
+      spoke.setAttribute('opacity','0.55');
+      svg.appendChild(spoke);
     }
 
+    const hubCap = document.createElementNS(NS,'circle');
+    hubCap.setAttribute('cx',cx); hubCap.setAttribute('cy',cy); hubCap.setAttribute('r',16);
+    hubCap.setAttribute('fill','#c9a961');
+    svg.appendChild(hubCap);
+  }
+  buildWheel();
+
+  const ball = document.getElementById('ball');
+
+  function positionBallStatic(index){
+    const mid = index*SECTOR_ANGLE + SECTOR_ANGLE/2;
+    const p = polar(200,200,142,mid);
+    ball.style.left = p.x+'px';
+    ball.style.top = p.y+'px';
+    ballAngle = mid;
+  }
+  positionBallStatic(0);
+
+  function animateBall(targetIndex, onDone){
+    const duration = 3200;
+    const startAngle = ballAngle % 360;
+    const targetAngle = targetIndex*SECTOR_ANGLE + SECTOR_ANGLE/2;
+    const fullSpins = 6;
+    const delta = fullSpins*360 + ((targetAngle - startAngle) % 360 + 360) % 360;
+    const startTime = performance.now();
+    const outerR = 160, innerR = 142;
+
+    function frame(now){
+      const t = Math.min((now-startTime)/duration, 1);
+      const eased = 1 - Math.pow(1-t, 3);
+      const angle = startAngle + delta*eased;
+      const radius = eased < 0.72 ? outerR : outerR - (outerR-innerR) * ((eased-0.72)/0.28);
+      const p = polar(200,200,radius,angle);
+      ball.style.left = p.x+'px';
+      ball.style.top = p.y+'px';
+      if(t < 1){
+        requestAnimationFrame(frame);
+      } else {
+        ballAngle = targetAngle;
+        onDone();
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ============ Build board ============ */
+  const board = document.getElementById('board');
+
+  function makeCell(cls, label, betType, extra){
+    const el = document.createElement('div');
+    el.className = 'cell ' + cls;
+    el.innerHTML = label;
+    el.dataset.bet = betType;
+    if(extra) Object.keys(extra).forEach(k => el.style[k] = extra[k]);
+    el.addEventListener('click', ()=> placeBet(betType));
+    return el;
+  }
+
+  function buildBoard(){
+    // Zero row
+    const zeroRow = document.createElement('div');
+    zeroRow.className = 'board-row';
+    zeroRow.style.gridTemplateColumns = 'repeat(12,1fr) 62px';
+    const zero = makeCell('zero','0','N0');
+    zero.style.gridColumn = '1 / 7';
+    const dzero = makeCell('zero','00','N00');
+    dzero.style.gridColumn = '7 / 13';
+    const spacer0 = document.createElement('div');
+    spacer0.style.gridColumn = '13 / 14';
+    zeroRow.appendChild(zero);
+    zeroRow.appendChild(dzero);
+    zeroRow.appendChild(spacer0);
+    board.appendChild(zeroRow);
+
+    // Number rows: top->3,6..36 (C3) | mid->2,5..35 (C2) | bottom->1,4..34 (C1)
+    const rowsDef = [
+      { nums:[3,6,9,12,15,18,21,24,27,30,33,36], colBet:'C3' },
+      { nums:[2,5,8,11,14,17,20,23,26,29,32,35], colBet:'C2' },
+      { nums:[1,4,7,10,13,16,19,22,25,28,31,34], colBet:'C1' }
+    ];
+    rowsDef.forEach(def=>{
+      const row = document.createElement('div');
+      row.className = 'board-row';
+      def.nums.forEach(n=>{
+        const c = colorOf(n);
+        row.appendChild(makeCell(c, n, 'N'+n));
+      });
+      const colBtn = makeCell('side', '2 to 1', def.colBet);
+      row.appendChild(colBtn);
+      board.appendChild(row);
+    });
+
+    // Dozens row
+    const dozRow = document.createElement('div');
+    dozRow.className = 'board-row';
+    const d1 = makeCell('side dozen','1st 12','D1'); d1.style.gridColumn = '1 / 5';
+    const d2 = makeCell('side dozen','2nd 12','D2'); d2.style.gridColumn = '5 / 9';
+    const d3 = makeCell('side dozen','3rd 12','D3'); d3.style.gridColumn = '9 / 13';
+    const spacerD = document.createElement('div'); spacerD.style.gridColumn = '13 / 14';
+    dozRow.appendChild(d1); dozRow.appendChild(d2); dozRow.appendChild(d3); dozRow.appendChild(spacerD);
+    board.appendChild(dozRow);
+
+    // Outside bets row
+    const outRow = document.createElement('div');
+    outRow.className = 'board-row';
+    const low = makeCell('side outside-word','1–18','LOW'); low.style.gridColumn = '1 / 3';
+    const even = makeCell('side outside-word','EVEN','EVEN'); even.style.gridColumn = '3 / 5';
+    const red = makeCell('outside-red outside-word','RED','RED'); red.style.gridColumn = '5 / 7';
+    const black = makeCell('outside-black outside-word','BLACK','BLACK'); black.style.gridColumn = '7 / 9';
+    const odd = makeCell('side outside-word','ODD','ODD'); odd.style.gridColumn = '9 / 11';
+    const high = makeCell('side outside-word','19–36','HIGH'); high.style.gridColumn = '11 / 13';
+    const spacerO = document.createElement('div'); spacerO.style.gridColumn = '13 / 14';
+    [low,even,red,black,odd,high,spacerO].forEach(el=>outRow.appendChild(el));
+    board.appendChild(outRow);
+  }
+  buildBoard();
+
+  /* ============ Betting ============ */
+  const balanceEl = document.getElementById('balance');
+  const plEl = document.getElementById('pl');
+  const currentBetEl = document.getElementById('currentBetTotal');
+  const spinBtn = document.getElementById('spinBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const repeatBtn = document.getElementById('repeatBtn');
+  const resultBanner = document.getElementById('resultBanner');
+
+  const MAX_CHIP_LAYERS = 5; // visual cap so stacks don't overflow the cell
+
+  function renderChipStack(type, amount, animate){
+    const cell = board.querySelector(`.cell[data-bet="${type}"]`);
+    if(!cell) return;
+
+    let stack = chipEls[type];
+    if(!stack){
+      stack = document.createElement('div');
+      stack.className = 'chip-stack';
+      cell.appendChild(stack);
+      chipEls[type] = stack;
+    }
+
+    const layerCount = Math.min(Math.floor(amount / CHIP), MAX_CHIP_LAYERS);
+    stack.innerHTML = '';
+    for(let i = 0; i < layerCount - 1; i++){
+      const layer = document.createElement('div');
+      layer.className = 'chip-layer';
+      layer.style.setProperty('--i', i);
+      stack.appendChild(layer);
+    }
+    const top = document.createElement('div');
+    top.className = 'chip-top';
+    top.style.setProperty('--top-offset', layerCount - 1);
+    top.textContent = '$' + amount;
+    stack.appendChild(top);
+
+    if(animate === 'new'){
+      stack.classList.add('show');
+    } else if(animate === 'bump'){
+      stack.classList.remove('bump');
+      void stack.offsetWidth;
+      stack.classList.add('bump');
+    }
+  }
+
+  function applyBet(type, amount){
+    const cell = board.querySelector(`.cell[data-bet="${type}"]`);
+    if(!cell) return false;
+    const isNew = !bets[type];
+    bets[type] = (bets[type] || 0) + amount;
+    renderChipStack(type, bets[type], isNew ? 'new' : 'bump');
+    return true;
+  }
+
+  function placeBet(type){
+    if(isSpinning) return;
+    if(balance < CHIP){
+      showToast("Insufficient balance for another chip.");
+      return;
+    }
+    balance -= CHIP;
+    applyBet(type, CHIP);
+    updateBalanceUI(false);
+    updateBetTotal();
+  }
+
+  function clearBets(){
+    if(isSpinning) return;
+    const refund = Object.values(bets).reduce((a,b)=>a+b,0);
+    balance += refund;
+    bets = {};
+    Object.values(chipEls).forEach(c => c.remove());
+    chipEls = {};
+    updateBalanceUI(false);
+    updateBetTotal();
+  }
+  clearBtn.addEventListener('click', clearBets);
+
+  function repeatBet(){
+    if(isSpinning) return;
+    const keys = Object.keys(lastBets);
+    if(keys.length === 0){
+      showToast("No previous bet to repeat.");
+      return;
+    }
+    const total = Object.values(lastBets).reduce((a,b)=>a+b,0);
+    if(balance < total){
+      showToast("Insufficient balance to repeat that bet.");
+      return;
+    }
+    balance -= total;
+    keys.forEach(type => applyBet(type, lastBets[type]));
+    updateBalanceUI(false);
+    updateBetTotal();
+  }
+  repeatBtn.addEventListener('click', repeatBet);
+
+  function updateBetTotal(){
+    const total = Object.values(bets).reduce((a,b)=>a+b,0);
+    currentBetEl.textContent = '$' + total;
+  }
+
+  function updateBalanceUI(flash){
+    balanceEl.textContent = '$' + balance;
+    const p = balance - STARTING_BALANCE;
+    plEl.textContent = fmt(p);
+    plEl.className = p > 0 ? 'pos' : (p < 0 ? 'neg' : '');
+    if(flash){
+      balanceEl.classList.remove('flash-win','flash-loss');
+      void balanceEl.offsetWidth;
+      balanceEl.classList.add(flash === 'win' ? 'flash-win' : 'flash-loss');
+    }
+  }
 
 
+  /* ============ Payout logic ============ */
+  function winBet(type, amount, result){
+    if(type.startsWith('N')){
+      const target = type.slice(1);
+      return (String(result) === target) ? amount * 36 : 0;
+    }
+    if(result === 0 || result === '00') return 0;
+    const n = result;
+    switch(type){
+      case 'RED':   return colorOf(n)==='red' ? amount*2 : 0;
+      case 'BLACK': return colorOf(n)==='black' ? amount*2 : 0;
+      case 'ODD':   return (n%2===1) ? amount*2 : 0;
+      case 'EVEN':  return (n%2===0) ? amount*2 : 0;
+      case 'LOW':   return (n<=18) ? amount*2 : 0;
+      case 'HIGH':  return (n>=19) ? amount*2 : 0;
+      case 'D1': case 'D2': case 'D3':
+        return (dozenOf(n)===type) ? amount*3 : 0;
+      case 'C1': case 'C2': case 'C3':
+        return (columnOf(n)===type) ? amount*3 : 0;
+      default: return 0;
+    }
+  }
+
+  /* ============ Chart (optional — degrades gracefully if the CDN is blocked) ============ */
+  let chart = null;
+  try{
+    if(typeof Chart !== 'undefined'){
+      const ctx = document.getElementById('historyChart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Red','Black','Green'],
+          datasets: [{
+            data: [0,0,0],
+            backgroundColor: ['#c9293f','#3a3a3a','#0e7a4c'],
+            borderRadius: 6,
+            maxBarThickness: 44
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display:false } },
+          scales: {
+            x: { ticks:{ color:'#a9a294', font:{ family:'IBM Plex Mono', size:11 } }, grid:{ display:false } },
+            y: { beginAtZero:true, ticks:{ color:'#a9a294', stepSize:1, font:{ family:'IBM Plex Mono', size:10 } }, grid:{ color:'rgba(201,169,97,0.08)' } }
+          }
+        }
+      });
+    } else {
+      document.getElementById('historyChart').style.display = 'none';
+    }
+  } catch(e){
+    console.warn('Chart.js unavailable, continuing without the history chart.', e);
+  }
+
+  function pushRecent(result){
+    const c = colorOf(result);
+    const badge = document.createElement('div');
+    badge.className = 'badge ' + c;
+    badge.textContent = result;
+    const strip = document.getElementById('recentStrip');
+    strip.insertBefore(badge, strip.firstChild);
+    recent.unshift(result);
+    if(recent.length > 20){
+      recent.pop();
+      if(strip.children.length > 20) strip.removeChild(strip.lastChild);
+    }
+  }
+
+  /* ============ Stats ============ */
+  function updateStats(){
+    document.getElementById('statSpins').textContent = spins;
+    document.getElementById('statWins').textContent = wins;
+    document.getElementById('statLosses').textContent = losses;
+    const rate = spins ? Math.round((wins/spins)*100) : 0;
+    document.getElementById('statRate').textContent = rate + '%';
+  }
+
+  /* ============ Highlight winning cell ============ */
+  let lastWinningCell = null;
+  let lastWinningWedge = null;
+  function clearHighlights(){
+    if(lastWinningCell){ lastWinningCell.classList.remove('winning-cell'); lastWinningCell=null; }
+    if(lastWinningWedge){ lastWinningWedge.classList.remove('winning'); lastWinningWedge=null; }
+  }
+  function highlightWinner(result, index){
+    const cell = board.querySelector(`.cell[data-bet="N${result}"]`);
+    if(cell){ cell.classList.add('winning-cell'); lastWinningCell = cell; }
+    const wedge = svg.querySelector(`.wedge[data-index="${index}"]`);
+    if(wedge){ wedge.classList.add('winning'); lastWinningWedge = wedge; }
+  }
+
+  /* ============ Spin ============ */
+  function setSpinningState(state){
+    isSpinning = state;
+    spinBtn.disabled = state;
+    clearBtn.disabled = state;
+    repeatBtn.disabled = state ? true : (Object.keys(lastBets).length === 0);
+    board.style.pointerEvents = state ? 'none' : 'auto';
+    board.style.opacity = state ? '0.85' : '1';
+  }
+
+  function spin(){
+    if(isSpinning) return;
+    clearHighlights();
+    setSpinningState(true);
+    resultBanner.textContent = 'Spinning…';
+    resultBanner.className = 'result-banner';
+
+    const winIndex = Math.floor(Math.random() * WHEEL_ORDER.length);
+    const result = WHEEL_ORDER[winIndex];
+
+    animateBall(winIndex, ()=> resolveSpin(result, winIndex));
+  }
+  spinBtn.addEventListener('click', spin);
+
+  function resolveSpin(result, index){
+    let payout = 0;
+    Object.keys(bets).forEach(type=>{
+      payout += winBet(type, bets[type], result);
+    });
+
+    balance += payout;
     spins++;
 
+    const c = colorOf(result);
+    colorCounts[c]++;
 
-    history.unshift(result);
+    if(payout > 0){
+      wins++;
+      resultBanner.innerHTML = `<span class="win">WIN — ${result} (${c.toUpperCase()}) · payout ${fmt(payout)}</span>`;
+      updateBalanceUI('win');
+    } else {
+      losses++;
+      resultBanner.innerHTML = `<span class="loss">${result} (${c.toUpperCase()}) — no winning bets</span>`;
+      updateBalanceUI(Object.keys(bets).length ? 'loss' : false);
+    }
 
+    pushRecent(result);
+    if(chart){
+      chart.data.datasets[0].data = [colorCounts.red, colorCounts.black, colorCounts.green];
+      chart.update();
+    }
+    updateStats();
+    highlightWinner(result, index);
 
-    if(history.length>20)
-        history.pop();
+    if(Object.keys(bets).length > 0){
+      lastBets = { ...bets };
+      repeatBtn.disabled = false;
+    }
 
+    bets = {};
+    Object.values(chipEls).forEach(c => c.remove());
+    chipEls = {};
+    updateBetTotal();
 
+    setSpinningState(false);
+  }
 
-    bets=[];
+  /* ============ Init ============ */
+  updateBalanceUI(false);
+  updateBetTotal();
+  updateStats();
 
-
-    update();
-
-}
-
-
-
-
-function update(){
-
-
-document.getElementById("balance")
-.innerHTML="$"+balance;
-
-
-let total=0;
-
-bets.forEach(b=>{
-total+=b.amount;
 });
-
-
-document.getElementById("bet")
-.innerHTML=
-"Current Bet: $"+total;
-
-
-
-document.getElementById("history")
-.innerHTML=
-history.join(", ");
-
-
-
-document.getElementById("stats")
-.innerHTML=
-
-"Spins: "+spins+
-"<br>Wins: "+wins+
-"<br>Losses: "+losses;
-
-
-}
-
-
-
-createNumbers();
-
-
-update();
-
-
 </script>
 
-
-<br>
-
-<div style="text-align:center">
-<button onclick="spin()">
-SPIN RESULT
-</button>
-</div>
-
-
 </body>
-
 </html>
