@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geometry Progression - Pinwheel</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;}
+body{background:#101820;color:white;padding:20px;}
+.container{max-width:700px;margin:auto;}
+.card{background:#1d2938;border-radius:18px;padding:20px;margin-top:20px;box-shadow:0 8px 30px rgba(0,0,0,.35);}
+h1{text-align:center;margin-bottom:10px;}
+.subtitle{text-align:center;color:#8fa6c3;}
+.bet{font-size:26px;margin:20px 0;text-align:center;font-weight:bold;}
+.step{font-size:20px;color:#7dd3fc;text-align:center;}
+.entry{display:flex;gap:10px;margin-top:15px;}
+input[type=text], input[type=number]{
+  flex:1;padding:14px;border-radius:12px;border:none;font-size:18px;text-align:center;
+  background:#0f172a;color:white;
+}
+label{font-size:13px;color:#8fa6c3;display:block;margin-top:10px;}
+button{border:none;padding:16px;border-radius:12px;font-size:18px;margin-top:12px;cursor:pointer;transition:.2s;color:white;}
+.submit{background:#2563eb;width:100%;}
+.reset{background:#374151;width:100%;}
+.win-tag{color:#10b981;font-weight:bold;}
+.loss-tag{color:#ef4444;font-weight:bold;}
+.info{margin-top:20px;line-height:1.6;color:#cbd5e1;}
+.history{margin-top:15px;background:#0f172a;padding:15px;border-radius:12px;max-height:220px;overflow-y:auto;font-size:14px;}
+.history div{padding:4px 0;border-bottom:1px solid #1d2938;}
+.note{margin-top:20px;font-size:13px;color:#8fa6c3;line-height:1.5;border-top:1px solid #2b3a4d;padding-top:12px;}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>🎯 Geometry Progression</h1>
+<div class="subtitle">Pinwheel Version — Martingale</div>
+
+<div class="card">
+
+  <label for="baseBet">Base bet per dozen/column ($)</label>
+  <input type="number" id="baseBet" value="100" min="1" oninput="renderRecommendation()">
+
+  <div class="step" id="stepLabel">STEP 1</div>
+  <div class="bet" id="betDisplay"></div>
+
+  <label for="spinNumber">Enter winning number (0-36, or 00)</label>
+  <div class="entry">
+    <input type="text" id="spinNumber" placeholder="e.g. 17, 0, 00">
+    <button class="submit" onclick="submitSpin()">Submit Spin</button>
+  </div>
+
+  <button class="reset" onclick="resetGame()">RESET PROGRESSION</button>
+
+  <div class="info">
+    Current Rotation:
+    <div id="rotation"></div>
+  </div>
+
+  <div class="history" id="history"><div>No spins yet.</div></div>
+
+</div>
+</div>
+
+<script>
+// Rotation definitions: which two dozens / which two columns are covered at each stage of the pinwheel
+const rotations=[
+  { dozens:[1,2], dozenLabel:"First + Second Dozen", columns:[2,3], columnLabel:"Middle + Right Columns" },
+  { dozens:[2,3], dozenLabel:"Second + Third Dozen", columns:[1,2], columnLabel:"Left + Middle Columns" },
+  { dozens:[3,1], dozenLabel:"Third + First Dozen", columns:[3,1], columnLabel:"Right + Left Columns" }
+];
+
+let rotation=0;
+let step=1; // 1 = dozens bet, 2 = columns recovery bet
+
+function getBaseBet(){
+  const v=parseFloat(document.getElementById("baseBet").value);
+  return isNaN(v)||v<=0 ? 100 : v;
+}
+
+function getDozen(n){
+  if(n>=1 && n<=12) return 1;
+  if(n>=13 && n<=24) return 2;
+  if(n>=25 && n<=36) return 3;
+  return 0; // 0 or 00
+}
+
+function getColumn(n){
+  if(n<1 || n>36) return 0; // 0 or 00
+  const m=n%3;
+  if(m===1) return 1;
+  if(m===2) return 2;
+  return 3;
+}
+
+function parseSpin(raw){
+  const t=raw.trim();
+  if(t==="00") return {value:0, label:"00", isZeroZero:true};
+  const n=parseInt(t,10);
+  if(isNaN(n) || n<0 || n>36) return null;
+  return {value:n, label:String(n), isZeroZero:false};
+}
+
+function currentStepAmount(){
+  const base=getBaseBet();
+  return step===1 ? base : base*3;
+}
+
+function renderRecommendation(){
+  const r=rotations[rotation];
+  document.getElementById("rotation").innerHTML=
+    "<b>"+r.dozenLabel+"</b> → "+r.columnLabel;
+
+  const base=getBaseBet();
+
+  if(step===1){
+    document.getElementById("stepLabel").innerHTML="STEP 1 — Dozens";
+    document.getElementById("betDisplay").innerHTML=
+      "$"+base+" on each of<br>"+r.dozenLabel;
+  }else{
+    document.getElementById("stepLabel").innerHTML="STEP 2 — Column Recovery";
+    document.getElementById("betDisplay").innerHTML=
+      "$"+(base*3)+" on<br>"+r.columnLabel;
+  }
+}
+
+function logHistory(html){
+  const box=document.getElementById("history");
+  if(box.firstChild && box.firstChild.textContent==="No spins yet."){
+    box.innerHTML="";
+  }
+  const entry=document.createElement("div");
+  entry.innerHTML=html;
+  box.insertBefore(entry, box.firstChild);
+}
+
+function submitSpin(){
+  const raw=document.getElementById("spinNumber").value;
+  const spin=parseSpin(raw);
+
+  if(!spin){
+    logHistory("⚠️ Invalid entry — enter 0–36 or 00.");
+    return;
+  }
+
+  const r=rotations[rotation];
+  let won=false;
+
+  if(spin.isZeroZero || spin.value===0){
+    won=false; // 0/00 loses dozens and columns bets in this system
+  }else if(step===1){
+    won = r.dozens.includes(getDozen(spin.value));
+  }else{
+    won = r.columns.includes(getColumn(spin.value));
+  }
+
+  const amount=currentStepAmount();
+  const stepName= step===1 ? "Step 1 (Dozens)" : "Step 2 (Columns)";
+
+  if(won){
+    if(step===1){
+      logHistory("Number <b>"+spin.label+"</b> — "+stepName+" — <span class='win-tag'>WIN</span> ($"+amount+"). Progression reset.");
+    }else{
+      logHistory("Number <b>"+spin.label+"</b> — "+stepName+" — <span class='win-tag'>WIN</span> ($"+amount+"). Recovered — advancing pinwheel.");
+      rotation=(rotation+1)%rotations.length;
+    }
+    step=1;
+  }else{
+    if(step===1){
+      logHistory("Number <b>"+spin.label+"</b> — "+stepName+" — <span class='loss-tag'>LOSS</span> ($"+amount+"). Moving to column recovery.");
+      step=2;
+    }else{
+      logHistory("Number <b>"+spin.label+"</b> — "+stepName+" — <span class='loss-tag'>LOSS</span> ($"+amount+"). Advancing pinwheel, back to Step 1.");
+      rotation=(rotation+1)%rotations.length;
+      step=1;
+    }
+  }
+
+  document.getElementById("spinNumber").value="";
+  renderRecommendation();
+}
+
+function resetGame(){
+  rotation=0;
+  step=1;
+  renderRecommendation();
+  logHistory("<b>Progression manually reset.</b>");
+}
+
+renderRecommendation();
+</script>
+
+</body>
+</html>
