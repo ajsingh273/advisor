@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Geometry Progression - Pinwheel</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+    background:#101820;
+    color:white;
+    padding:20px;
+}
+
+.container{
+    max-width:700px;
+    margin:auto;
+}
+
+.card{
+    background:#1d2938;
+    border-radius:18px;
+    padding:20px;
+    margin-top:20px;
+    box-shadow:0 8px 30px rgba(0,0,0,.35);
+}
+
+h1{
+    text-align:center;
+    margin-bottom:10px;
+}
+
+.subtitle{
+    text-align:center;
+    color:#8fa6c3;
+}
+
+.bet{
+    font-size:28px;
+    margin:20px 0;
+    text-align:center;
+    font-weight:bold;
+}
+
+.step{
+    font-size:20px;
+    color:#7dd3fc;
+    text-align:center;
+}
+
+button{
+    width:100%;
+    border:none;
+    padding:18px;
+    border-radius:12px;
+    font-size:20px;
+    margin-top:15px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.win{
+    background:#10b981;
+    color:white;
+}
+
+.loss{
+    background:#ef4444;
+    color:white;
+}
+
+.reset{
+    background:#374151;
+    color:white;
+}
+
+.info{
+    margin-top:20px;
+    line-height:1.6;
+    color:#cbd5e1;
+}
+
+.history{
+    margin-top:15px;
+    background:#0f172a;
+    padding:15px;
+    border-radius:12px;
+    min-height:80px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🎯 Geometry Progression</h1>
+<div class="subtitle">
+Pinwheel Version
+</div>
+
+<div class="card">
+
+<div class="step" id="stepLabel">
+Step 1
+</div>
+
+<div class="bet" id="betDisplay">
+
+$100 First Dozen<br>
+$100 Second Dozen
+
+</div>
+
+<button class="win" onclick="win()">
+WIN
+</button>
+
+<button class="loss" onclick="loss()">
+LOSS
+</button>
+
+<button class="reset" onclick="resetGame()">
+RESET
+</button>
+
+<div class="info">
+
+Current Rotation:
+
+<div id="rotation"></div>
+
+</div>
+
+<div class="history" id="history">
+
+No spins yet.
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const rotations=[
+
+{
+dozens:"First + Second Dozen",
+columns:"Middle + Right Columns"
+},
+
+{
+dozens:"Second + Third Dozen",
+columns:"Left + Middle Columns"
+},
+
+{
+dozens:"Third + First Dozen",
+columns:"Right + Left Columns"
+}
+
+];
+
+let rotation=0;
+let step=1;
+
+update();
+
+function update(){
+
+document.getElementById("rotation").innerHTML=
+"<b>"+rotations[rotation].dozens+
+"</b> → "+
+rotations[rotation].columns;
+
+if(step===1){
+
+document.getElementById("stepLabel").innerHTML="STEP 1";
+
+document.getElementById("betDisplay").innerHTML=
+"$100<br>"+rotations[rotation].dozens;
+
+}else{
+
+document.getElementById("stepLabel").innerHTML="STEP 2";
+
+document.getElementById("betDisplay").innerHTML=
+"$300<br>"+rotations[rotation].columns;
+
+}
+
+}
+
+function win(){
+
+if(step===1){
+
+history("✅ Won Step 1<br>Resetting progression.");
+
+}else{
+
+history("✅ Recovered on Step 2<br>Advance Pinwheel Rotation.");
+
+rotation++;
+
+if(rotation>=rotations.length)
+rotation=0;
+
+}
+
+step=1;
+
+update();
+
+}
+
+function loss(){
+
+if(step===1){
+
+step=2;
+
+history("❌ Lost Step 1<br>Move to Column Recovery.");
+
+}else{
+
+history("❌ Lost Step 2<br>Advance Pinwheel.");
+
+rotation++;
+
+if(rotation>=rotations.length)
+rotation=0;
+
+step=1;
+
+}
+
+update();
+
+}
+
+function history(text){
+
+document.getElementById("history").innerHTML=text;
+
+}
+
+function resetGame(){
+
+rotation=0;
+step=1;
+update();
+
+history("Progression Reset.");
+
+}
+
+</script>
+
+</body>
+</html>
