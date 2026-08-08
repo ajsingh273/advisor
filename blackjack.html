@@ -1,0 +1,2092 @@
+<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <meta name="theme-color" content="#071a12"> <meta name="apple-mobile-web-app-capable" content="yes"> <title>Blackjack Basic Strategy</title> <style> :root { --bg: #07130f; --panel: #0d2119; --panel2: #102a20; --green: #18c77b; --green-dark: #0c8f56; --text: #f4f8f6; --muted: #91a69c; --border: rgba(255,255,255,.09); --red: #ff5c67; --yellow: #ffc857; --blue: #55aaff; --purple: #c18cff; }
+{
+box-sizing: border-box;
+-webkit-tap-highlight-color: transparent;
+}
+html,
+body {
+margin: 0;
+padding: 0;
+background: var(--bg);
+color: var(--text);
+font-family:
+-apple-system,
+BlinkMacSystemFont,
+"Segoe UI",
+Roboto,
+Arial,
+sans-serif;
+}
+body {
+min-height: 100vh;
+}
+
+.app {
+width: 100%;
+max-width: 720px;
+margin: 0 auto;
+padding: 14px 12px 40px;
+}
+
+/* HEADER */
+
+.header {
+text-align: center;
+padding: 10px 5px 18px;
+}
+
+.header h1 {
+margin: 0;
+font-size: 27px;
+letter-spacing: -0.7px;
+}
+
+.header p {
+margin: 6px 0 0;
+color: var(--muted);
+font-size: 13px;
+}
+
+/* PANELS */
+
+.panel {
+background: var(--panel);
+border: 1px solid var(--border);
+border-radius: 18px;
+padding: 15px;
+margin-bottom: 12px;
+}
+
+.section-title {
+font-size: 11px;
+font-weight: 800;
+color: var(--muted);
+text-transform: uppercase;
+letter-spacing: 1px;
+margin-bottom: 11px;
+}
+
+/* RULES */
+
+.rules-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 9px;
+}
+
+.rule {
+background: var(--panel2);
+border: 1px solid var(--border);
+border-radius: 12px;
+padding: 9px;
+}
+
+.rule.full {
+grid-column: 1 / -1;
+}
+
+.rule label {
+display: block;
+color: var(--muted);
+font-size: 10px;
+font-weight: 800;
+text-transform: uppercase;
+margin-bottom: 6px;
+}
+
+select {
+width: 100%;
+appearance: none;
+border: 1px solid rgba(255,255,255,.1);
+border-radius: 9px;
+background: #0a1a14;
+color: white;
+padding: 10px 9px;
+font-size: 14px;
+font-weight: 700;
+}
+
+.rule-summary {
+margin-top: 10px;
+padding: 10px;
+border-radius: 10px;
+background: rgba(24,199,123,.08);
+color: #a7e8ca;
+font-size: 11px;
+line-height: 1.5;
+}
+
+/* CARD BUTTONS */
+
+.card-grid {
+display: grid;
+grid-template-columns: repeat(5, 1fr);
+gap: 7px;
+}
+
+@media (min-width: 520px) {
+.card-grid {
+grid-template-columns: repeat(10, 1fr);
+}
+}
+
+.card-button {
+min-height: 45px;
+border: 1px solid var(--border);
+border-radius: 10px;
+background: #122a20;
+color: white;
+font-size: 17px;
+font-weight: 850;
+cursor: pointer;
+}
+
+.card-button:active {
+transform: scale(.94);
+background: #19402f;
+}
+
+/* HAND DISPLAY */
+
+.hand {
+min-height: 62px;
+display: flex;
+flex-wrap: wrap;
+gap: 8px;
+margin-top: 12px;
+}
+
+.card {
+width: 48px;
+height: 64px;
+border-radius: 7px;
+background: white;
+color: #111;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 20px;
+font-weight: 900;
+box-shadow: 0 4px 12px rgba(0,0,0,.25);
+position: relative;
+}
+
+.card-remove {
+position: absolute;
+width: 19px;
+height: 19px;
+min-height: 19px;
+border: 0;
+border-radius: 50%;
+background: #222;
+color: white;
+top: -8px;
+right: -8px;
+font-size: 12px;
+line-height: 19px;
+padding: 0;
+}
+
+/* RESULT */
+
+.result {
+text-align: center;
+padding: 23px 12px;
+border-radius: 15px;
+background:
+linear-gradient(
+145deg,
+rgba(24,199,123,.13),
+rgba(10,30,22,.4)
+);
+border: 1px solid rgba(24,199,123,.18);
+}
+
+.action {
+font-size: 38px;
+line-height: 1;
+font-weight: 950;
+letter-spacing: -1px;
+color: var(--green);
+}
+
+.action.hit {
+color: var(--red);
+}
+
+.action.stand {
+color: var(--green);
+}
+
+.action.double {
+color: var(--yellow);
+}
+
+.action.split {
+color: var(--blue);
+}
+
+.action.surrender {
+color: var(--purple);
+}
+
+.action.blackjack {
+color: var(--yellow);
+}
+
+.hand-info {
+margin-top: 8px;
+font-size: 14px;
+color: var(--muted);
+}
+
+.explanation {
+margin: 12px auto 0;
+max-width: 500px;
+color: #d8e5df;
+font-size: 12px;
+line-height: 1.55;
+}
+
+/* RESET */
+
+.reset {
+width: 100%;
+min-height: 45px;
+border: 1px solid var(--border);
+border-radius: 11px;
+background: #152d23;
+color: white;
+font-size: 14px;
+font-weight: 800;
+}
+
+/* CHART */
+
+details {
+margin: 0;
+}
+
+summary {
+cursor: pointer;
+font-weight: 800;
+padding: 3px 0;
+}
+
+.chart-description {
+margin-top: 10px;
+color: var(--muted);
+font-size: 11px;
+line-height: 1.5;
+}
+
+.chart-scroll {
+overflow-x: auto;
+margin-top: 13px;
+-webkit-overflow-scrolling: touch;
+}
+
+.chart-title {
+font-size: 14px;
+margin: 17px 0 8px;
+}
+
+table {
+border-collapse: collapse;
+width: 100%;
+min-width: 610px;
+font-size: 11px;
+}
+
+th,
+td {
+border: 1px solid rgba(255,255,255,.08);
+padding: 7px 5px;
+text-align: center;
+white-space: nowrap;
+}
+
+th {
+background: #173225;
+color: #d9e8e1;
+font-weight: 800;
+}
+
+td {
+background: #0b1b14;
+font-weight: 900;
+}
+
+td.H {
+color: #ff6872;
+}
+
+td.S {
+color: #43d99a;
+}
+
+td.D {
+color: #ffd05a;
+}
+
+td.P {
+color: #5db1ff;
+}
+
+td.R {
+color: #c596ff;
+}
+
+.legend {
+display: flex;
+flex-wrap: wrap;
+gap: 12px;
+margin-top: 13px;
+color: var(--muted);
+font-size: 11px;
+}
+
+.legend b {
+font-weight: 950;
+}
+
+/* NOTES */
+
+.note {
+color: var(--muted);
+font-size: 11px;
+line-height: 1.6;
+}
+
+.note strong {
+color: #dbe9e2;
+}
+</style>
+
+</head> <body> <div class="app">
+<!-- HEADER -->
+
+<header class="header">
+    <h1>♠ Blackjack Strategy</h1>
+    <p>Basic strategy decision tool</p>
+</header>
+
+<!-- RULE CONFIGURATION -->
+
+<section class="panel">
+
+    <div class="section-title">
+        Casino / EBT Rules
+    </div>
+
+    <div class="rules-grid">
+
+        <div class="rule">
+            <label for="decks">
+                Decks
+            </label>
+
+            <select id="decks">
+                <option value="1">1 Deck</option>
+                <option value="2">2 Decks</option>
+                <option value="4">4 Decks</option>
+                <option value="6" selected>6 Decks</option>
+                <option value="8">8 Decks</option>
+            </select>
+        </div>
+
+        <div class="rule">
+            <label for="soft17">
+                Dealer Soft 17
+            </label>
+
+            <select id="soft17">
+                <option value="S17" selected>
+                    Stands
+                </option>
+
+                <option value="H17">
+                    Hits
+                </option>
+            </select>
+        </div>
+
+        <div class="rule">
+            <label for="das">
+                Double After Split
+            </label>
+
+            <select id="das">
+                <option value="yes" selected>
+                    Allowed
+                </option>
+
+                <option value="no">
+                    Not Allowed
+                </option>
+            </select>
+        </div>
+
+        <div class="rule">
+            <label for="surrender">
+                Late Surrender
+            </label>
+
+            <select id="surrender">
+                <option value="no" selected>
+                    Not Available
+                </option>
+
+                <option value="yes">
+                    Available
+                </option>
+            </select>
+        </div>
+
+        <div class="rule full">
+
+            <label for="blackjack">
+                Blackjack Payout
+            </label>
+
+            <select id="blackjack">
+
+                <option value="3:2" selected>
+                    3 : 2
+                </option>
+
+                <option value="6:5">
+                    6 : 5
+                </option>
+
+                <option value="1:1">
+                    1 : 1
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+    <div id="ruleSummary" class="rule-summary"></div>
+
+</section>
+
+<!-- PLAYER -->
+
+<section class="panel">
+
+    <div class="section-title">
+        Your Cards
+    </div>
+
+    <div id="playerButtons" class="card-grid"></div>
+
+    <div id="playerHand" class="hand"></div>
+
+</section>
+
+<!-- DEALER -->
+
+<section class="panel">
+
+    <div class="section-title">
+        Dealer Upcard
+    </div>
+
+    <div id="dealerButtons" class="card-grid"></div>
+
+    <div id="dealerHand" class="hand"></div>
+
+</section>
+
+<!-- RESULT -->
+
+<section class="panel">
+
+    <div id="result">
+
+        <div class="result">
+
+            <div class="action">
+                READY
+            </div>
+
+            <div class="hand-info">
+                Enter your two cards and the dealer's upcard.
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- RESET -->
+
+<section class="panel">
+
+    <button
+        class="reset"
+        onclick="resetHand()"
+    >
+        Reset Hand
+    </button>
+
+</section>
+
+<!-- FULL CHART -->
+
+<section class="panel">
+
+    <details>
+
+        <summary>
+            Full Basic Strategy Chart
+        </summary>
+
+        <div class="chart-description">
+            The chart changes automatically when you change
+            the casino rules above.
+        </div>
+
+        <div class="chart-scroll">
+
+            <h3 class="chart-title">
+                Hard Hands
+            </h3>
+
+            <table id="hardChart"></table>
+
+            <h3 class="chart-title">
+                Soft Hands
+            </h3>
+
+            <table id="softChart"></table>
+
+            <h3 class="chart-title">
+                Pairs
+            </h3>
+
+            <table id="pairChart"></table>
+
+        </div>
+
+        <div class="legend">
+
+            <span>
+                <b style="color:#ff6872">H</b>
+                Hit
+            </span>
+
+            <span>
+                <b style="color:#43d99a">S</b>
+                Stand
+            </span>
+
+            <span>
+                <b style="color:#ffd05a">D</b>
+                Double
+            </span>
+
+            <span>
+                <b style="color:#5db1ff">P</b>
+                Split
+            </span>
+
+            <span>
+                <b style="color:#c596ff">R</b>
+                Surrender
+            </span>
+
+        </div>
+
+    </details>
+
+</section>
+
+<!-- NOTES -->
+
+<section class="panel">
+
+    <details>
+
+        <summary>
+            Strategy Notes
+        </summary>
+
+        <div class="note">
+
+            <p>
+                <strong>Basic strategy:</strong>
+                This tool recommends the mathematically preferred
+                basic-strategy action for the configured rules.
+            </p>
+
+            <p>
+                <strong>Insurance:</strong>
+                This tool does not recommend insurance.
+                Basic strategy generally says not to take insurance
+                without a card-counting advantage. 
+W
+Wizard of Odds
++1
+
+
+            </p>
+
+            <p>
+                <strong>Double:</strong>
+                If the chart says DOUBLE but the machine does not
+                permit doubling that hand, HIT instead.
+            </p>
+
+            <p>
+                <strong>Surrender:</strong>
+                Surrender recommendations depend on the number of
+                decks and whether the dealer hits or stands on soft
+                17. 
+W
+Wizard of Odds
+
+
+            </p>
+
+            <p>
+                <strong>Important:</strong>
+                The blackjack payout itself does not normally change
+                the individual hit/stand/double/split chart, but
+                6:5 blackjack pays materially worse than 3:2. 
+W
+Wizard of Odds
+
+
+            </p>
+
+        </div>
+
+    </details>
+
+</section>
+
+</div> <script>
+/* =========================================================
+BLACKJACK BASIC STRATEGY
+Standard American / hole-card blackjack.
+Actions:
+H = Hit
+S = Stand
+D = Double
+P = Split
+R = Surrender
+
+If D is unavailable:
+D becomes H
+
+If R is unavailable:
+R becomes H
+
+The rules are configurable above.
+========================================================= */
+
+/* =========================================================
+STATE
+========================================================= */
+
+let playerCards = [];
+let dealerCard = null;
+
+/* =========================================================
+CARD LIST
+========================================================= */
+
+const CARD_VALUES = [
+"A",
+"2",
+"3",
+"4",
+"5",
+"6",
+"7",
+"8",
+"9",
+"10"
+];
+
+/* =========================================================
+RULES
+========================================================= */
+
+function getRules() {
+
+return {
+    decks: Number(
+        document.getElementById("decks").value
+    ),
+
+    soft17:
+        document.getElementById("soft17").value,
+
+    das:
+        document.getElementById("das").value === "yes",
+
+    surrender:
+        document.getElementById("surrender").value === "yes",
+
+    blackjack:
+        document.getElementById("blackjack").value
+};
+
+}
+/* =========================================================
+RULE SUMMARY
+========================================================= */
+
+function updateRuleSummary() {
+
+const r = getRules();
+
+const deckText =
+    r.decks === 1
+        ? "1 deck"
+        : `${r.decks} decks`;
+
+const softText =
+    r.soft17 === "S17"
+        ? "Dealer stands on soft 17"
+        : "Dealer hits soft 17";
+
+const dasText =
+    r.das
+        ? "DAS"
+        : "No DAS";
+
+const surrenderText =
+    r.surrender
+        ? "Late surrender"
+        : "No surrender";
+
+document.getElementById(
+    "ruleSummary"
+).innerHTML =
+
+    `<strong>Configured:</strong>
+    ${deckText} ·
+    ${softText} ·
+    ${dasText} ·
+    ${surrenderText} ·
+    BJ ${r.blackjack}`;
+
+}
+/* =========================================================
+CARD VALUE
+========================================================= */
+
+function valueOf(card) {
+
+if (card === "A") {
+    return 11;
+}
+
+return Number(card);
+
+}
+/* =========================================================
+HAND INFORMATION
+========================================================= */
+
+function handInfo(cards) {
+
+let total = 0;
+let aces = 0;
+
+for (const card of cards) {
+
+    total += valueOf(card);
+
+    if (card === "A") {
+        aces++;
+    }
+
+}
+
+while (total > 21 && aces > 0) {
+
+    total -= 10;
+    aces--;
+
+}
+
+const soft =
+    cards.includes("A") &&
+    total <= 21;
+
+return {
+    total,
+    soft
+};
+
+}
+/* =========================================================
+DEALER NUMBER
+========================================================= */
+
+function dealerNumber(card) {
+
+if (card === "A") {
+    return 11;
+}
+
+return Number(card);
+
+}
+/* =========================================================
+HARD HAND STRATEGY
+========================================================= */
+
+function hardStrategy(total, dealer) {
+
+const r = getRules();
+
+/* SURRENDER */
+
+if (r.surrender) {
+
+    /*
+     * 4+ deck total-dependent surrender.
+     *
+     * S17:
+     *   16 vs 9,10,A
+     *   15 vs 10
+     *
+     * H17:
+     *   16 vs 9,10,A
+     *   15 vs 10,A
+     *   17 vs A
+     */
+
+    if (total === 16) {
+
+        if (
+            dealer === 9 ||
+            dealer === 10 ||
+            dealer === 11
+        ) {
+
+            return "R";
+
+        }
+
+    }
+
+    if (total === 15) {
+
+        if (
+            dealer === 10 ||
+            (r.soft17 === "H17" && dealer === 11)
+        ) {
+
+            return "R";
+
+        }
+
+    }
+
+    if (total === 17) {
+
+        if (
+            r.soft17 === "H17" &&
+            dealer === 11
+        ) {
+
+            return "R";
+
+        }
+
+    }
+
+}
+
+/* 17+ */
+
+if (total >= 17) {
+    return "S";
+}
+
+/* 13-16 */
+
+if (
+    total >= 13 &&
+    total <= 16
+) {
+
+    return (
+        dealer >= 2 &&
+        dealer <= 6
+    )
+        ? "S"
+        : "H";
+
+}
+
+/* 12 */
+
+if (total === 12) {
+
+    return (
+        dealer >= 4 &&
+        dealer <= 6
+    )
+        ? "S"
+        : "H";
+
+}
+
+/* 11 */
+
+if (total === 11) {
+
+    /*
+     * S17:
+     *   Double 11 vs 2-A in common multi-deck strategy
+     *   except Ace.
+     *
+     * H17:
+     *   Double 11 vs Ace as well.
+     */
+
+    if (
+        dealer === 11 &&
+        r.soft17 === "S17"
+    ) {
+
+        return "H";
+
+    }
+
+    return "D";
+
+}
+
+/* 10 */
+
+if (total === 10) {
+
+    return (
+        dealer >= 2 &&
+        dealer <= 9
+    )
+        ? "D"
+        : "H";
+
+}
+
+/* 9 */
+
+if (total === 9) {
+
+    return (
+        dealer >= 3 &&
+        dealer <= 6
+    )
+        ? "D"
+        : "H";
+
+}
+
+/* 8 OR LESS */
+
+return "H";
+
+}
+/* =========================================================
+SOFT HAND STRATEGY
+========================================================= */
+
+function softStrategy(total, dealer) {
+
+/*
+ * Standard 4-8 deck strategy.
+ *
+ * H17 changes several soft-hand doubles.
+ */
+
+/* Soft 20 */
+
+if (total >= 20) {
+    return "S";
+}
+
+/* Soft 19 */
+
+if (total === 19) {
+
+    return dealer === 6
+        ? "D"
+        : "S";
+
+}
+
+/* Soft 18 */
+
+if (total === 18) {
+
+    /*
+     * Double vs 2-6.
+     *
+     * Stand vs 7-8.
+     *
+     * Hit vs 9-A.
+     */
+
+    if (
+        dealer >= 2 &&
+        dealer <= 6
+    ) {
+
+        return "D";
+
+    }
+
+    if (
+        dealer === 7 ||
+        dealer === 8
+    ) {
+
+        return "S";
+
+    }
+
+    return "H";
+
+}
+
+/* Soft 17 */
+
+if (total === 17) {
+
+    return (
+        dealer >= 2 &&
+        dealer <= 6
+    )
+        ? "D"
+        : "H";
+
+}
+
+/* Soft 15-16 */
+
+if (
+    total === 15 ||
+    total === 16
+) {
+
+    return (
+        dealer >= 4 &&
+        dealer <= 6
+    )
+        ? "D"
+        : "H";
+
+}
+
+/* Soft 13-14 */
+
+if (
+    total === 13 ||
+    total === 14
+) {
+
+    return (
+        dealer >= 5 &&
+        dealer <= 6
+    )
+        ? "D"
+        : "H";
+
+}
+
+return "H";
+
+}
+/* =========================================================
+PAIR STRATEGY
+========================================================= */
+
+function pairStrategy(pair, dealer) {
+
+const r = getRules();
+
+/* A,A */
+
+if (pair === 11) {
+    return "P";
+}
+
+/* 10,10 */
+
+if (pair === 10) {
+    return "S";
+}
+
+/* 9,9 */
+
+if (pair === 9) {
+
+    return (
+        (
+            dealer >= 2 &&
+            dealer <= 6
+        ) ||
+        dealer === 8 ||
+        dealer === 9
+    )
+        ? "P"
+        : "S";
+
+}
+
+/* 8,8 */
+
+if (pair === 8) {
+
+    /*
+     * H17 + surrender:
+     * surrender 8,8 vs Ace rather than split.
+     */
+
+    if (
+        r.surrender &&
+        r.soft17 === "H17" &&
+        dealer === 11
+    ) {
+
+        return "R";
+
+    }
+
+    return "P";
+
+}
+
+/* 7,7 */
+
+if (pair === 7) {
+
+    return (
+        dealer >= 2 &&
+        dealer <= 7
+    )
+        ? "P"
+        : "H";
+
+}
+
+/* 6,6 */
+
+if (pair === 6) {
+
+    if (r.das) {
+
+        return (
+            dealer >= 2 &&
+            dealer <= 6
+        )
+            ? "P"
+            : "H";
+
+    }
+
+    /*
+     * Without DAS, split 6s against 3-6.
+     */
+
+    return (
+        dealer >= 3 &&
+        dealer <= 6
+    )
+        ? "P"
+        : "H";
+
+}
+
+/* 5,5 */
+
+if (pair === 5) {
+
+    /*
+     * Never split 5s.
+     * Treat as hard 10.
+     */
+
+    return hardStrategy(
+        10,
+        dealer
+    );
+
+}
+
+/* 4,4 */
+
+if (pair === 4) {
+
+    /*
+     * Split only with DAS vs 5-6.
+     */
+
+    if (
+        r.das &&
+        (
+            dealer === 5 ||
+            dealer === 6
+        )
+    ) {
+
+        return "P";
+
+    }
+
+    return "H";
+
+}
+
+/* 3,3 */
+
+if (pair === 3) {
+
+    if (r.das) {
+
+        return (
+            dealer >= 2 &&
+            dealer <= 7
+        )
+            ? "P"
+            : "H";
+
+    }
+
+    return (
+        dealer >= 4 &&
+        dealer <= 7
+    )
+        ? "P"
+        : "H";
+
+}
+
+/* 2,2 */
+
+if (pair === 2) {
+
+    if (r.das) {
+
+        return (
+            dealer >= 2 &&
+            dealer <= 7
+        )
+            ? "P"
+            : "H";
+
+    }
+
+    return (
+        dealer >= 4 &&
+        dealer <= 7
+    )
+        ? "P"
+        : "H";
+
+}
+
+return "H";
+
+}
+/* =========================================================
+GET BEST ACTION
+========================================================= */
+
+function getAction(cards, dealer) {
+
+if (
+    cards.length < 2 ||
+    !dealer
+) {
+
+    return null;
+
+}
+
+const player = handInfo(cards);
+
+const dealerValue =
+    dealerNumber(dealer);
+
+/* BLACKJACK */
+
+if (
+    cards.length === 2 &&
+    player.total === 21
+) {
+
+    return {
+        action: "BLACKJACK",
+        text: "BLACKJACK",
+        description: "Natural 21"
+    };
+
+}
+
+/* BUST */
+
+if (player.total > 21) {
+
+    return {
+        action: "BUST",
+        text: "BUST",
+        description: `Total ${player.total}`
+    };
+
+}
+
+/* PAIR */
+
+if (
+    cards.length === 2 &&
+    cards[0] === cards[1]
+) {
+
+    const pair =
+        valueOf(cards[0]);
+
+    const action =
+        pairStrategy(
+            pair,
+            dealerValue
+        );
+
+    return {
+        action,
+        text: actionText(action),
+        description:
+            `Pair of ${cards[0]}s`
+    };
+
+}
+
+/* SOFT */
+
+if (player.soft) {
+
+    const action =
+        softStrategy(
+            player.total,
+            dealerValue
+        );
+
+    return {
+        action,
+        text: actionText(action),
+        description:
+            `Soft ${player.total}`
+    };
+
+}
+
+/* HARD */
+
+const action =
+    hardStrategy(
+        player.total,
+        dealerValue
+    );
+
+return {
+    action,
+    text: actionText(action),
+    description:
+        `Hard ${player.total}`
+};
+
+}
+/* =========================================================
+ACTION TEXT
+========================================================= */
+
+function actionText(action) {
+
+const labels = {
+
+    H: "HIT",
+
+    S: "STAND",
+
+    D: "DOUBLE",
+
+    P: "SPLIT",
+
+    R: "SURRENDER"
+
+};
+
+return labels[action] || action;
+
+}
+/* =========================================================
+ACTION EXPLANATION
+========================================================= */
+
+function actionExplanation(action) {
+
+if (action === "H") {
+
+    return "Take another card.";
+
+}
+
+if (action === "S") {
+
+    return "Take no additional cards.";
+
+}
+
+if (action === "D") {
+
+    return "Double your wager and take one final card. If doubling is unavailable, HIT.";
+
+}
+
+if (action === "P") {
+
+    return "Split the pair into two hands.";
+
+}
+
+if (action === "R") {
+
+    return "Surrender the hand if the machine offers surrender.";
+
+}
+
+if (action === "BLACKJACK") {
+
+    return "Natural blackjack. No further action is required.";
+
+}
+
+if (action === "BUST") {
+
+    return "Your hand is already over 21.";
+
+}
+
+return "";
+
+}
+/* =========================================================
+RENDER CARD BUTTONS
+========================================================= */
+
+function createCardButtons() {
+
+const player =
+    document.getElementById(
+        "playerButtons"
+    );
+
+const dealer =
+    document.getElementById(
+        "dealerButtons"
+    );
+
+player.innerHTML = "";
+dealer.innerHTML = "";
+
+for (const card of CARD_VALUES) {
+
+    const playerButton =
+        document.createElement("button");
+
+    playerButton.className =
+        "card-button";
+
+    playerButton.textContent =
+        card;
+
+    playerButton.onclick =
+        function() {
+
+            addPlayerCard(card);
+
+        };
+
+    player.appendChild(
+        playerButton
+    );
+
+    const dealerButton =
+        document.createElement("button");
+
+    dealerButton.className =
+        "card-button";
+
+    dealerButton.textContent =
+        card;
+
+    dealerButton.onclick =
+        function() {
+
+            dealerCard = card;
+
+            render();
+
+        };
+
+    dealer.appendChild(
+        dealerButton
+    );
+
+}
+
+}
+/* =========================================================
+ADD PLAYER CARD
+========================================================= */
+
+function addPlayerCard(card) {
+
+/*
+ * Six cards is more than enough for normal
+ * strategy decisions while keeping the interface tidy.
+ */
+
+if (playerCards.length >= 6) {
+    return;
+}
+
+playerCards.push(card);
+
+render();
+
+}
+/* =========================================================
+REMOVE PLAYER CARD
+========================================================= */
+
+function removePlayerCard(index) {
+
+playerCards.splice(
+    index,
+    1
+);
+
+render();
+
+}
+/* =========================================================
+RENDER PLAYER HAND
+========================================================= */
+
+function renderPlayerHand() {
+
+const container =
+    document.getElementById(
+        "playerHand"
+    );
+
+container.innerHTML = "";
+
+playerCards.forEach(
+    function(card,index) {
+
+        const wrapper =
+            document.createElement("div");
+
+        wrapper.className = "card";
+
+        wrapper.textContent = card;
+
+        const remove =
+            document.createElement("button");
+
+        remove.className =
+            "card-remove";
+
+        remove.textContent = "×";
+
+        remove.onclick =
+            function(event) {
+
+                event.stopPropagation();
+
+                removePlayerCard(index);
+
+            };
+
+        wrapper.appendChild(
+            remove
+        );
+
+        container.appendChild(
+            wrapper
+        );
+
+    }
+);
+
+}
+/* =========================================================
+RENDER DEALER HAND
+========================================================= */
+
+function renderDealerHand() {
+
+const container =
+    document.getElementById(
+        "dealerHand"
+    );
+
+container.innerHTML = "";
+
+if (!dealerCard) {
+    return;
+}
+
+const card =
+    document.createElement("div");
+
+card.className = "card";
+
+card.textContent =
+    dealerCard;
+
+container.appendChild(
+    card
+);
+
+}
+/* =========================================================
+RENDER RESULT
+========================================================= */
+
+function renderResult() {
+
+const container =
+    document.getElementById(
+        "result"
+    );
+
+if (
+    playerCards.length < 2 ||
+    !dealerCard
+) {
+
+    container.innerHTML = `
+
+        <div class="result">
+
+            <div class="action">
+                READY
+            </div>
+
+            <div class="hand-info">
+                Enter your two cards and dealer's upcard.
+            </div>
+
+        </div>
+
+    `;
+
+    return;
+
+}
+
+const result =
+    getAction(
+        playerCards,
+        dealerCard
+    );
+
+const player =
+    handInfo(
+        playerCards
+    );
+
+let actionClass =
+    result.action.toLowerCase();
+
+container.innerHTML = `
+
+    <div class="result">
+
+        <div class="action ${actionClass}">
+            ${result.text}
+        </div>
+
+        <div class="hand-info">
+
+            ${result.description}
+            · Dealer ${dealerCard}
+
+            · Total ${player.total}
+
+        </div>
+
+        <div class="explanation">
+
+            ${actionExplanation(
+                result.action
+            )}
+
+        </div>
+
+    </div>
+
+`;
+
+}
+/* =========================================================
+RENDER EVERYTHING
+========================================================= */
+
+function render() {
+
+renderPlayerHand();
+
+renderDealerHand();
+
+renderResult();
+
+}
+/* =========================================================
+RESET
+========================================================= */
+
+function resetHand() {
+
+playerCards = [];
+
+dealerCard = null;
+
+render();
+
+}
+/* =========================================================
+CHART HELPERS
+========================================================= */
+
+const DEALER_COLUMNS = [
+2,
+3,
+4,
+5,
+6,
+7,
+8,
+9,
+10,
+"A"
+];
+
+function dealerColumnValue(value) {
+
+return value === "A"
+    ? 11
+    : Number(value);
+
+}
+function chartCell(action) {
+
+return `
+    <td class="${action}">
+        ${action}
+    </td>
+`;
+
+}
+/* =========================================================
+HARD CHART
+========================================================= */
+
+function buildHardChart() {
+
+let html = `
+
+    <thead>
+
+        <tr>
+
+            <th>Hard</th>
+
+            ${DEALER_COLUMNS.map(
+                d => `<th>${d}</th>`
+            ).join("")}
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+`;
+
+for (
+    let total = 21;
+    total >= 5;
+    total--
+) {
+
+    html += `
+        <tr>
+            <th>${total}</th>
+    `;
+
+    for (
+        const dealer of DEALER_COLUMNS
+    ) {
+
+        const action =
+            hardStrategy(
+                total,
+                dealerColumnValue(dealer)
+            );
+
+        html +=
+            chartCell(action);
+
+    }
+
+    html += `
+        </tr>
+    `;
+
+}
+
+html += `
+    </tbody>
+`;
+
+document.getElementById(
+    "hardChart"
+).innerHTML = html;
+
+}
+/* =========================================================
+SOFT CHART
+========================================================= */
+
+function buildSoftChart() {
+
+let html = `
+
+    <thead>
+
+        <tr>
+
+            <th>Soft</th>
+
+            ${DEALER_COLUMNS.map(
+                d => `<th>${d}</th>`
+            ).join("")}
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+`;
+
+for (
+    let total = 20;
+    total >= 13;
+    total--
+) {
+
+    html += `
+        <tr>
+            <th>${total}</th>
+    `;
+
+    for (
+        const dealer of DEALER_COLUMNS
+    ) {
+
+        const action =
+            softStrategy(
+                total,
+                dealerColumnValue(dealer)
+            );
+
+        html +=
+            chartCell(action);
+
+    }
+
+    html += `
+        </tr>
+    `;
+
+}
+
+html += `
+    </tbody>
+`;
+
+document.getElementById(
+    "softChart"
+).innerHTML = html;
+
+}
+/* =========================================================
+PAIR CHART
+========================================================= */
+
+function buildPairChart() {
+
+const pairs = [
+    ["A", 11],
+    ["10", 10],
+    ["9", 9],
+    ["8", 8],
+    ["7", 7],
+    ["6", 6],
+    ["5", 5],
+    ["4", 4],
+    ["3", 3],
+    ["2", 2]
+];
+
+let html = `
+
+    <thead>
+
+        <tr>
+
+            <th>Pair</th>
+
+            ${DEALER_COLUMNS.map(
+                d => `<th>${d}</th>`
+            ).join("")}
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+`;
+
+for (
+    const [label,value] of pairs
+) {
+
+    html += `
+        <tr>
+            <th>${label},${label}</th>
+    `;
+
+    for (
+        const dealer of DEALER_COLUMNS
+    ) {
+
+        const action =
+            pairStrategy(
+                value,
+                dealerColumnValue(dealer)
+            );
+
+        html +=
+            chartCell(action);
+
+    }
+
+    html += `
+        </tr>
+    `;
+
+}
+
+html += `
+    </tbody>
+`;
+
+document.getElementById(
+    "pairChart"
+).innerHTML = html;
+
+}
+/* =========================================================
+BUILD ALL CHARTS
+========================================================= */
+
+function buildCharts() {
+
+buildHardChart();
+
+buildSoftChart();
+
+buildPairChart();
+
+}
+/* =========================================================
+RULE CHANGE HANDLER
+========================================================= */
+
+function rulesChanged() {
+
+updateRuleSummary();
+
+buildCharts();
+
+render();
+
+}
+/* =========================================================
+INITIALIZATION
+========================================================= */
+
+document
+.getElementById("decks")
+.addEventListener(
+"change",
+rulesChanged
+);
+
+document
+.getElementById("soft17")
+.addEventListener(
+"change",
+rulesChanged
+);
+
+document
+.getElementById("das")
+.addEventListener(
+"change",
+rulesChanged
+);
+
+document
+.getElementById("surrender")
+.addEventListener(
+"change",
+rulesChanged
+);
+
+document
+.getElementById("blackjack")
+.addEventListener(
+"change",
+rulesChanged
+);
+
+createCardButtons();
+
+updateRuleSummary();
+
+buildCharts();
+
+render();
+
+</script> </body> </html>
