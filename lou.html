@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Labouchère Roulette Progression</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+    background:#101820;
+    color:white;
+    padding:20px;
+}
+
+.container{
+    max-width:700px;
+    margin:auto;
+}
+
+.card{
+    background:#1d2938;
+    border-radius:18px;
+    padding:20px;
+    margin-top:20px;
+    box-shadow:0 8px 30px rgba(0,0,0,.35);
+}
+
+h1{
+    text-align:center;
+    margin-bottom:10px;
+}
+
+.subtitle{
+    text-align:center;
+    color:#8fa6c3;
+    margin-bottom:5px;
+}
+
+.settings{
+    margin-top:20px;
+    background:#162231;
+    padding:15px;
+    border-radius:12px;
+}
+
+.settings label{
+    display:block;
+    color:#cbd5e1;
+    margin-bottom:8px;
+    font-size:16px;
+}
+
+.settings input{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:10px;
+    background:#0f172a;
+    color:white;
+    font-size:20px;
+    outline:none;
+}
+
+.step{
+    font-size:20px;
+    color:#7dd3fc;
+    text-align:center;
+    margin-top:20px;
+}
+
+.bet{
+    font-size:32px;
+    margin:15px 0 5px 0;
+    text-align:center;
+    font-weight:bold;
+}
+
+.betUnits{
+    text-align:center;
+    color:#8fa6c3;
+    font-size:16px;
+}
+
+.sequenceTitle{
+    margin-top:25px;
+    text-align:center;
+    color:#cbd5e1;
+    font-size:16px;
+}
+
+.sequence{
+    margin-top:10px;
+    background:#0f172a;
+    padding:18px;
+    border-radius:12px;
+    text-align:center;
+    font-size:28px;
+    font-weight:bold;
+    color:#7dd3fc;
+    letter-spacing:3px;
+}
+
+.next{
+    margin-top:15px;
+    background:#162231;
+    padding:15px;
+    border-radius:12px;
+    text-align:center;
+    line-height:1.6;
+}
+
+.nextLabel{
+    color:#8fa6c3;
+    font-size:15px;
+}
+
+.nextBet{
+    font-size:24px;
+    font-weight:bold;
+    color:#fbbf24;
+}
+
+button{
+    width:100%;
+    border:none;
+    padding:18px;
+    border-radius:12px;
+    font-size:20px;
+    margin-top:15px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+button:hover{
+    filter:brightness(1.1);
+    transform:translateY(-1px);
+}
+
+.win{
+    background:#10b981;
+    color:white;
+}
+
+.loss{
+    background:#ef4444;
+    color:white;
+}
+
+.reset{
+    background:#374151;
+    color:white;
+}
+
+.info{
+    margin-top:20px;
+    line-height:1.6;
+    color:#cbd5e1;
+}
+
+.history{
+    margin-top:15px;
+    background:#0f172a;
+    padding:15px;
+    border-radius:12px;
+    min-height:80px;
+    line-height:1.7;
+}
+
+.complete{
+    color:#10b981;
+    font-size:24px;
+    font-weight:bold;
+    text-align:center;
+}
+
+.disabled{
+    opacity:.5;
+    cursor:not-allowed;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🎯 Labouchère Roulette</h1>
+
+<div class="subtitle">
+American Roulette • Even-Money Bets
+</div>
+
+<div class="card">
+
+<!-- UNIT SETTING -->
+
+<div class="settings">
+
+<label for="unitAmount">
+Unit Amount
+</label>
+
+<input
+    type="number"
+    id="unitAmount"
+    value="10"
+    min="0.01"
+    step="0.01"
+    oninput="update()"
+>
+
+</div>
+
+
+<!-- CURRENT STEP -->
+
+<div class="step" id="stepLabel">
+STEP 1
+</div>
+
+
+<!-- CURRENT BET -->
+
+<div class="bet" id="betDisplay">
+$50.00
+</div>
+
+<div class="betUnits" id="betUnits">
+5 units — First + Last
+</div>
+
+
+<!-- CURRENT SEQUENCE -->
+
+<div class="sequenceTitle">
+Current Sequence
+</div>
+
+<div class="sequence" id="sequenceDisplay">
+1 - 2 - 3 - 4
+</div>
+
+
+<!-- NEXT BET -->
+
+<div class="next">
+
+<div class="nextLabel">
+BET INSTRUCTIONS
+</div>
+
+<div id="instructions">
+Bet the first number + the last number.
+</div>
+
+</div>
+
+
+<!-- RESULT BUTTONS -->
+
+<button class="win" id="winButton" onclick="win()">
+WIN
+</button>
+
+<button class="loss" id="lossButton" onclick="loss()">
+LOSS
+</button>
+
+<button class="reset" onclick="resetGame()">
+RESET
+</button>
+
+
+<!-- INFORMATION -->
+
+<div class="info">
+
+<b>How Labouchère works:</b><br>
+
+WIN → Remove the first and last numbers.<br>
+
+LOSS → Add the amount wagered to the end of the sequence.<br>
+
+Your next bet is always the first number + last number.
+
+</div>
+
+
+<!-- HISTORY -->
+
+<div class="history" id="history">
+No spins yet.
+</div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   LABOUCHÈRE PROGRESSION
+   Starting sequence: 1 - 2 - 3 - 4
+===================================================== */
+
+const startingSequence = [1, 2, 3, 4];
+
+let sequence = [...startingSequence];
+
+let step = 1;
+
+let lastResult = null;
+
+
+/* =====================================================
+   FORMAT MONEY
+===================================================== */
+
+function money(amount){
+
+    return new Intl.NumberFormat('en-US', {
+        style:'currency',
+        currency:'USD'
+    }).format(amount);
+
+}
+
+
+/* =====================================================
+   GET UNIT AMOUNT
+===================================================== */
+
+function getUnit(){
+
+    let value = parseFloat(
+        document.getElementById("unitAmount").value
+    );
+
+    if(isNaN(value) || value <= 0){
+        return 0;
+    }
+
+    return value;
+
+}
+
+
+/* =====================================================
+   CALCULATE CURRENT BET
+===================================================== */
+
+function getBetUnits(){
+
+    if(sequence.length === 0){
+        return 0;
+    }
+
+    /*
+       One number remaining:
+       Bet that single number.
+
+       Two or more numbers:
+       Bet first + last.
+    */
+
+    if(sequence.length === 1){
+
+        return sequence[0];
+
+    }
+
+    return sequence[0] + sequence[sequence.length - 1];
+
+}
+
+
+/* =====================================================
+   UPDATE DISPLAY
+===================================================== */
+
+function update(){
+
+    const unit = getUnit();
+
+    const sequenceDisplay =
+        document.getElementById("sequenceDisplay");
+
+    const betDisplay =
+        document.getElementById("betDisplay");
+
+    const betUnits =
+        document.getElementById("betUnits");
+
+    const instructions =
+        document.getElementById("instructions");
+
+    const stepLabel =
+        document.getElementById("stepLabel");
+
+    const winButton =
+        document.getElementById("winButton");
+
+    const lossButton =
+        document.getElementById("lossButton");
+
+
+    /* STEP */
+
+    stepLabel.innerHTML = "STEP " + step;
+
+
+    /* COMPLETED */
+
+    if(sequence.length === 0){
+
+        sequenceDisplay.innerHTML =
+            '<span class="complete">COMPLETE ✓</span>';
+
+        betDisplay.innerHTML =
+            "Progression Complete";
+
+        betUnits.innerHTML =
+            "All numbers have been removed.";
+
+        instructions.innerHTML =
+            "You have completed the entire Labouchère sequence.";
+
+        winButton.disabled = true;
+        lossButton.disabled = true;
+
+        winButton.classList.add("disabled");
+        lossButton.classList.add("disabled");
+
+        return;
+
+    }
+
+
+    /* ENABLE BUTTONS */
+
+    winButton.disabled = false;
+    lossButton.disabled = false;
+
+    winButton.classList.remove("disabled");
+    lossButton.classList.remove("disabled");
+
+
+    /* SEQUENCE */
+
+    sequenceDisplay.innerHTML =
+        sequence.join(" - ");
+
+
+    /* CURRENT BET */
+
+    const betUnitsValue = getBetUnits();
+
+    const dollarBet = betUnitsValue * unit;
+
+
+    betDisplay.innerHTML =
+        money(dollarBet);
+
+    betUnits.innerHTML =
+        betUnitsValue +
+        " unit" +
+        (betUnitsValue === 1 ? "" : "s") +
+        " — " +
+        getBetDescription();
+
+
+    /* INSTRUCTIONS */
+
+    if(sequence.length === 1){
+
+        instructions.innerHTML =
+            "Only one number remains. Bet " +
+            sequence[0] +
+            " unit.";
+
+    }else{
+
+        instructions.innerHTML =
+            "Bet the first number (" +
+            sequence[0] +
+            ") + last number (" +
+            sequence[sequence.length - 1] +
+            ") = <b>" +
+            betUnitsValue +
+            " units</b>.";
+
+    }
+
+}
+
+
+/* =====================================================
+   BET DESCRIPTION
+===================================================== */
+
+function getBetDescription(){
+
+    if(sequence.length === 1){
+
+        return "Last Number";
+
+    }
+
+    return "First + Last";
+
+}
+
+
+/* =====================================================
+   WIN
+===================================================== */
+
+function win(){
+
+    if(sequence.length === 0){
+        return;
+    }
+
+
+    const unit = getUnit();
+
+    const oldSequence = [...sequence];
+
+    const betUnitsValue = getBetUnits();
+
+    const dollarBet = betUnitsValue * unit;
+
+
+    /*
+       WIN:
+       Remove first and last numbers.
+    */
+
+    if(sequence.length === 1){
+
+        sequence.splice(0, 1);
+
+    }else{
+
+        sequence.shift();
+        sequence.pop();
+
+    }
+
+
+    lastResult = "WIN";
+
+
+    let message =
+        "✅ <b>WIN</b><br>" +
+        "Bet: " +
+        money(dollarBet) +
+        " (" +
+        betUnitsValue +
+        " units)<br><br>" +
+
+        "Previous sequence: " +
+        oldSequence.join(" - ") +
+        "<br>" +
+
+        "Removed outer numbers.";
+
+
+    if(sequence.length === 0){
+
+        message +=
+            "<br><br>" +
+            "🎉 <b>Sequence completed!</b>";
+
+    }else{
+
+        message +=
+            "<br>" +
+            "New sequence: " +
+            sequence.join(" - ");
+
+    }
+
+
+    step++;
+
+    history(message);
+
+    update();
+
+}
+
+
+/* =====================================================
+   LOSS
+===================================================== */
+
+function loss(){
+
+    if(sequence.length === 0){
+        return;
+    }
+
+
+    const unit = getUnit();
+
+    const oldSequence = [...sequence];
+
+    const betUnitsValue = getBetUnits();
+
+    const dollarBet = betUnitsValue * unit;
+
+
+    /*
+       LOSS:
+       Add the amount wagered to the end
+       of the sequence.
+
+       Example:
+
+       1-2-3-4
+
+       Bet 1+4 = 5
+
+       LOSS
+
+       New sequence:
+
+       1-2-3-4-5
+    */
+
+    sequence.push(betUnitsValue);
+
+
+    lastResult = "LOSS";
+
+
+    let message =
+        "❌ <b>LOSS</b><br>" +
+        "Bet: " +
+        money(dollarBet) +
+        " (" +
+        betUnitsValue +
+        " units)<br><br>" +
+
+        "Previous sequence: " +
+        oldSequence.join(" - ") +
+        "<br>" +
+
+        "Added " +
+        betUnitsValue +
+        " to the end." +
+        "<br><br>" +
+
+        "New sequence: " +
+        sequence.join(" - ");
+
+
+    step++;
+
+    history(message);
+
+    update();
+
+}
+
+
+/* =====================================================
+   HISTORY
+===================================================== */
+
+function history(text){
+
+    document.getElementById("history").innerHTML = text;
+
+}
+
+
+/* =====================================================
+   RESET
+===================================================== */
+
+function resetGame(){
+
+    sequence = [...startingSequence];
+
+    step = 1;
+
+    lastResult = null;
+
+    history(
+        "Progression reset.<br>" +
+        "Starting sequence: " +
+        startingSequence.join(" - ")
+    );
+
+    update();
+
+}
+
+
+/* =====================================================
+   INITIAL DISPLAY
+===================================================== */
+
+update();
+
+</script>
+
+</body>
+</html>
