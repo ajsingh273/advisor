@@ -1,0 +1,2629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Roulette Super Human Decider</title>
+
+<style>
+:root {
+    --bg: #090b0f;
+    --card: #15181e;
+    --card2: #1d2129;
+    --border: #303641;
+    --text: #f5f7fa;
+    --muted: #9299a5;
+    --red: #e53935;
+    --red-dark: #9f2523;
+    --black: #050505;
+    --green: #20a464;
+    --gold: #f4c95d;
+    --blue: #4da3ff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background:
+        radial-gradient(circle at top, #1a1f28 0%, #090b0f 45%);
+    color: var(--text);
+    font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
+
+.app {
+    width: min(760px, 100%);
+    margin: auto;
+    padding: 14px;
+}
+
+header {
+    text-align: center;
+    padding: 12px 0 20px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.65rem;
+}
+
+header p {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: .88rem;
+}
+
+.card {
+    background: rgba(21,24,30,.96);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 17px;
+    margin-bottom: 13px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.20);
+}
+
+h2 {
+    margin: 0 0 13px;
+    font-size: 1rem;
+}
+
+h3 {
+    margin: 0 0 8px;
+    font-size: .92rem;
+}
+
+.input-row {
+    display: flex;
+    gap: 8px;
+}
+
+.number-input {
+    flex: 1;
+    min-width: 0;
+    background: #0d0f13;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: white;
+    font-size: 1.2rem;
+    padding: 13px;
+    outline: none;
+}
+
+.number-input:focus {
+    border-color: var(--gold);
+}
+
+.add-btn {
+    background: var(--gold);
+    color: #111;
+    border: none;
+    border-radius: 12px;
+    padding: 0 20px;
+    font-weight: 900;
+    font-size: 1rem;
+}
+
+.bulk {
+    width: 100%;
+    min-height: 90px;
+    margin-top: 10px;
+    background: #0d0f13;
+    color: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    resize: vertical;
+    font-family: monospace;
+    outline: none;
+}
+
+.bulk:focus {
+    border-color: var(--gold);
+}
+
+.bulk-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+button {
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.secondary {
+    background: var(--card2);
+    color: white;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    padding: 11px;
+    font-weight: 700;
+}
+
+.secondary:active,
+.add-btn:active {
+    transform: scale(.97);
+}
+
+.message {
+    min-height: 20px;
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: .8rem;
+}
+
+.message.error {
+    color: #ff7777;
+}
+
+.message.success {
+    color: #65d69b;
+}
+
+/* HISTORY */
+
+.history {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    max-height: 190px;
+    overflow-y: auto;
+}
+
+.ball {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: .72rem;
+    font-weight: 900;
+}
+
+.ball.red {
+    background: var(--red);
+}
+
+.ball.black {
+    background: #020202;
+    border: 1px solid #555;
+}
+
+.ball.green {
+    background: var(--green);
+}
+
+.ball-number {
+    font-size: .68rem;
+}
+
+/* HERO */
+
+.hero {
+    text-align: center;
+    padding: 22px 12px;
+    background:
+        linear-gradient(145deg, #202630, #14171d);
+    border-radius: 16px;
+    border: 1px solid #3b424d;
+}
+
+.hero-label {
+    font-size: .72rem;
+    color: var(--gold);
+    letter-spacing: .14em;
+    font-weight: 800;
+}
+
+.hero-pick {
+    font-size: 3rem;
+    line-height: 1;
+    font-weight: 1000;
+    margin: 10px 0 8px;
+}
+
+.hero-pick.red {
+    color: var(--red);
+}
+
+.hero-pick.black {
+    color: white;
+}
+
+.hero-pick.green {
+    color: var(--green);
+}
+
+.hero-pick.none {
+    color: var(--muted);
+    font-size: 1.5rem;
+}
+
+.hero-number {
+    color: var(--muted);
+    font-size: .8rem;
+}
+
+.confidence {
+    margin: 17px auto 0;
+    max-width: 430px;
+}
+
+.confidence-bar {
+    height: 9px;
+    background: #0b0d10;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.confidence-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--gold), #ff8f4d);
+    transition: width .35s ease;
+}
+
+.confidence-text {
+    margin-top: 7px;
+    color: var(--muted);
+    font-size: .75rem;
+}
+
+/* MODEL GRID */
+
+.models {
+    display: grid;
+    gap: 8px;
+}
+
+.model {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.model-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.model-name {
+    font-weight: 800;
+    font-size: .82rem;
+}
+
+.model-pick {
+    font-weight: 900;
+    font-size: .82rem;
+}
+
+.model-description {
+    color: var(--muted);
+    font-size: .72rem;
+    line-height: 1.45;
+    margin-top: 4px;
+}
+
+.model-bar {
+    height: 5px;
+    background: #0d0f13;
+    border-radius: 5px;
+    margin-top: 9px;
+    overflow: hidden;
+}
+
+.model-bar-fill {
+    height: 100%;
+    width: 50%;
+    background: var(--blue);
+}
+
+/* STATS */
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 7px;
+}
+
+.stat {
+    background: var(--card2);
+    border-radius: 11px;
+    text-align: center;
+    padding: 10px 4px;
+}
+
+.stat-value {
+    font-weight: 900;
+    font-size: 1.1rem;
+}
+
+.stat-label {
+    color: var(--muted);
+    font-size: .65rem;
+    margin-top: 3px;
+}
+
+/* TABLE */
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .78rem;
+}
+
+th,
+td {
+    border: 1px solid var(--border);
+    padding: 9px 5px;
+    text-align: center;
+}
+
+th {
+    background: var(--card2);
+}
+
+.red-text {
+    color: var(--red);
+    font-weight: 900;
+}
+
+.black-text {
+    color: white;
+    font-weight: 900;
+}
+
+.green-text {
+    color: var(--green);
+    font-weight: 900;
+}
+
+.small {
+    color: var(--muted);
+    font-size: .68rem;
+}
+
+/* STREAK */
+
+.streak-box {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.streak {
+    background: var(--card2);
+    border-radius: 11px;
+    padding: 12px;
+}
+
+.streak strong {
+    display: block;
+    font-size: 1.15rem;
+    margin-top: 3px;
+}
+
+.note {
+    color: var(--muted);
+    font-size: .72rem;
+    line-height: 1.55;
+    text-align: center;
+    margin-top: 12px;
+}
+
+.actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.clear {
+    color: #ff7d7d;
+}
+
+@media (max-width: 430px) {
+    .app {
+        padding: 10px;
+    }
+
+    .card {
+        padding: 14px;
+    }
+
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .hero-pick {
+        font-size: 2.6rem;
+    }
+}
+
+#passwordModal{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100vw;
+    height:100vh;
+
+    background:#101820;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    z-index:999999;
+
+    padding:20px;
+}
+
+.password-box{
+    width:100%;
+    max-width:420px;
+
+    background:#1d2938;
+
+    border-radius:18px;
+
+    padding:30px 25px;
+
+    box-shadow:0 8px 40px rgba(0,0,0,.6);
+
+    text-align:center;
+}
+
+.password-box h2{
+    margin-bottom:10px;
+    color:white;
+}
+
+.password-box p{
+    color:#8fa6c3;
+    margin-bottom:25px;
+}
+
+.password-box input{
+    width:100%;
+
+    padding:16px;
+
+    border:none;
+    border-radius:12px;
+
+    background:#0f172a;
+    color:white;
+
+    font-size:20px;
+
+    text-align:center;
+
+    outline:none;
+}
+
+.password-box input:focus{
+    box-shadow:0 0 0 2px #7dd3fc;
+}
+
+.password-box button{
+    width:100%;
+
+    border:none;
+    padding:16px;
+
+    border-radius:12px;
+
+    font-size:20px;
+
+    margin-top:15px;
+
+    cursor:pointer;
+
+    background:#10b981;
+    color:white;
+}
+
+.password-box button:hover{
+    filter:brightness(1.1);
+}
+
+#passwordError{
+    color:#f87171;
+
+    margin-top:15px;
+
+    min-height:24px;
+
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+<div id="passwordModal">
+
+    <div class="password-box">
+
+        <h2>🔒 Protected App</h2>
+
+        <p>
+            Enter password to continue
+        </p>
+
+        <input
+            type="password"
+            id="appPassword"
+            placeholder="Enter Password"
+            autocomplete="off"
+        >
+
+        <button onclick="checkPassword()">
+            UNLOCK
+        </button>
+
+        <div id="passwordError"></div>
+
+    </div>
+
+</div>
+<div class="app">
+
+<header>
+    <h1>🎰 Roulette Super Human Decider</h1>
+    <p>American Roulette • Number-Based Pattern Intelligence</p>
+</header>
+
+
+<!-- INPUT -->
+
+<div class="card">
+
+    <h2>Enter Roulette Number</h2>
+
+    <div class="input-row">
+
+        <input
+            id="numberInput"
+            class="number-input"
+            inputmode="numeric"
+            autocomplete="off"
+            placeholder="0–36 or 00"
+        >
+
+        <button
+            class="add-btn"
+            onclick="addNumber()"
+        >
+            ADD
+        </button>
+
+    </div>
+
+    <textarea
+        id="bulkInput"
+        class="bulk"
+        placeholder="Or paste hundreds of results here.
+
+Examples:
+12 35 7 7 22 0 14 31 19 00
+
+You can also paste:
+12,35,7,7,22,0,14,31,19,00"
+    ></textarea>
+
+    <div class="bulk-buttons">
+
+        <button
+            class="secondary"
+            onclick="importBulk()"
+        >
+            Import Numbers
+        </button>
+
+        <button
+            class="secondary"
+            onclick="undoNumber()"
+        >
+            ↩ Undo Last
+        </button>
+
+    </div>
+
+    <div id="message" class="message"></div>
+
+</div>
+
+
+<!-- HERO DECISION -->
+
+<div class="card">
+
+    <div class="hero">
+
+        <div class="hero-label">
+            SUPER HUMAN DECIDER
+        </div>
+
+        <div
+            id="heroPick"
+            class="hero-pick none"
+        >
+            NEED 10 SPINS
+        </div>
+
+        <div
+            id="heroNumber"
+            class="hero-number"
+        >
+            Enter at least 10 actual roulette numbers.
+        </div>
+
+        <div class="confidence">
+
+            <div class="confidence-bar">
+                <div
+                    id="confidenceFill"
+                    class="confidence-fill"
+                ></div>
+            </div>
+
+            <div
+                id="confidenceText"
+                class="confidence-text"
+            >
+                No decision yet.
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- HISTORY -->
+
+<div class="card">
+
+    <h2>Number History</h2>
+
+    <div
+        id="history"
+        class="history"
+    >
+        <div class="small">
+            No spins entered.
+        </div>
+    </div>
+
+</div>
+
+
+<!-- MODELS -->
+
+<div class="card">
+
+    <h2>Intelligence Panel</h2>
+
+    <div
+        id="models"
+        class="models"
+    ></div>
+
+</div>
+
+
+<!-- BASIC STATS -->
+
+<div class="card">
+
+    <h2>Observed Statistics</h2>
+
+    <div class="stats">
+
+        <div class="stat">
+            <div
+                id="totalCount"
+                class="stat-value"
+            >0</div>
+            <div class="stat-label">SPINS</div>
+        </div>
+
+        <div class="stat">
+            <div
+                id="redCount"
+                class="stat-value red-text"
+            >0</div>
+            <div class="stat-label">RED</div>
+        </div>
+
+        <div class="stat">
+            <div
+                id="blackCount"
+                class="stat-value black-text"
+            >0</div>
+            <div class="stat-label">BLACK</div>
+        </div>
+
+        <div class="stat">
+            <div
+                id="greenCount"
+                class="stat-value green-text"
+            >0</div>
+            <div class="stat-label">GREEN</div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- TRANSITION MATRIX -->
+
+<div class="card">
+
+    <h2>Color Transition Matrix</h2>
+
+    <div class="table-wrap">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>FROM ↓ / TO →</th>
+                    <th class="red-text">RED</th>
+                    <th class="black-text">BLACK</th>
+                    <th class="green-text">GREEN</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr>
+                    <th class="red-text">RED</th>
+                    <td id="RR">0</td>
+                    <td id="RB">0</td>
+                    <td id="RG">0</td>
+                </tr>
+
+                <tr>
+                    <th class="black-text">BLACK</th>
+                    <td id="BR">0</td>
+                    <td id="BB">0</td>
+                    <td id="BG">0</td>
+                </tr>
+
+                <tr>
+                    <th class="green-text">GREEN</th>
+                    <td id="GR">0</td>
+                    <td id="GB">0</td>
+                    <td id="GG">0</td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- STREAK -->
+
+<div class="card">
+
+    <h2>Current Streak</h2>
+
+    <div class="streak-box">
+
+        <div class="streak">
+            Current
+            <strong id="currentStreak">—</strong>
+        </div>
+
+        <div class="streak">
+            Length
+            <strong id="streakLength">0</strong>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ACTIONS -->
+
+<div class="card">
+
+    <div class="actions">
+
+        <button
+            class="secondary"
+            onclick="saveData()"
+        >
+            💾 Save Data
+        </button>
+
+        <button
+            class="secondary clear"
+            onclick="clearAll()"
+        >
+            🗑 Clear Everything
+        </button>
+
+    </div>
+
+    <div class="note">
+        Save Data downloads your current spin history as a text file.
+    </div>
+
+</div>
+
+
+<div class="note">
+    This is a pattern-analysis experiment, not a claim that historical
+    roulette data can overcome the mathematical house edge. The models
+    become more meaningful as your dataset grows.
+</div>
+
+</div>
+
+
+<script>
+
+const APP_PASSWORD = "YOURPASSW0RD";
+
+function checkPassword(){
+
+    const entered =
+        document.getElementById("appPassword").value;
+
+    if(entered === APP_PASSWORD){
+
+        document.getElementById("passwordModal").style.display = "none";
+
+    }else{
+
+        document.getElementById("passwordError").textContent =
+            "Incorrect password.";
+
+        document.getElementById("appPassword").value = "";
+
+        document.getElementById("appPassword").focus();
+
+    }
+
+}
+
+
+/* Allow ENTER key to submit */
+
+document.getElementById("appPassword").addEventListener(
+    "keydown",
+    function(event){
+
+        if(event.key === "Enter"){
+            checkPassword();
+        }
+
+    }
+);
+
+
+/* Automatically place cursor in password field */
+
+window.addEventListener("load", function(){
+
+    document.getElementById("appPassword").focus();
+
+});
+
+</script>
+
+
+<script>
+
+/*
+=========================================================
+ROULETTE SUPER HUMAN DECIDER
+=========================================================
+
+American Roulette:
+
+0 and 00 = GREEN
+
+RED:
+1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36
+
+BLACK:
+2,4,6,8,10,11,13,15,17,20,22,24,26,28,29,31,33,35
+
+The program intentionally separates:
+
+1. Actual observed data
+2. Statistical models
+3. Heuristic models
+4. Final consensus
+
+No model is presented as guaranteed prediction.
+=========================================================
+*/
+
+
+// ------------------------------------------------------
+// ROULETTE DATA
+// ------------------------------------------------------
+
+const RED_NUMBERS = new Set([
+    1,3,5,7,9,
+    12,14,16,18,
+    19,21,23,25,27,
+    30,32,34,36
+]);
+
+const BLACK_NUMBERS = new Set([
+    2,4,6,8,10,
+    11,13,15,17,
+    20,22,24,26,
+    28,29,31,33,35
+]);
+
+let numbers = [];
+
+
+// ------------------------------------------------------
+// NUMBER → COLOR
+// ------------------------------------------------------
+
+function getColor(number) {
+
+    if (number === "00") {
+        return "G";
+    }
+
+    const n = Number(number);
+
+    if (n === 0) {
+        return "G";
+    }
+
+    if (RED_NUMBERS.has(n)) {
+        return "R";
+    }
+
+    if (BLACK_NUMBERS.has(n)) {
+        return "B";
+    }
+
+    return null;
+}
+
+
+// ------------------------------------------------------
+// COLOR NAME
+// ------------------------------------------------------
+
+function colorName(color) {
+
+    if (color === "R") return "RED";
+    if (color === "B") return "BLACK";
+    return "GREEN";
+}
+
+
+// ------------------------------------------------------
+// ADD SINGLE NUMBER
+// ------------------------------------------------------
+
+function addNumber() {
+
+    const input =
+        document.getElementById("numberInput");
+
+    let value =
+        input.value.trim();
+
+    if (value === "") {
+        return;
+    }
+
+    value = normalizeNumber(value);
+
+    if (!isValidNumber(value)) {
+
+        showMessage(
+            "Enter a number from 0–36 or 00.",
+            "error"
+        );
+
+        return;
+    }
+
+    numbers.push(value);
+
+    input.value = "";
+
+    showMessage(
+        "Added " + value + " (" +
+        colorName(getColor(value)) +
+        ")",
+        "success"
+    );
+
+    update();
+
+    input.focus();
+}
+
+
+// ------------------------------------------------------
+// NORMALIZE
+// ------------------------------------------------------
+
+function normalizeNumber(value) {
+
+    value = value.trim().toUpperCase();
+
+    if (
+        value === "00" ||
+        value === "0"
+    ) {
+        return value;
+    }
+
+    if (/^\d+$/.test(value)) {
+
+        return String(
+            parseInt(value, 10)
+        );
+    }
+
+    return value;
+}
+
+
+// ------------------------------------------------------
+// VALIDATE
+// ------------------------------------------------------
+
+function isValidNumber(value) {
+
+    if (value === "00") {
+        return true;
+    }
+
+    if (!/^\d+$/.test(value)) {
+        return false;
+    }
+
+    const n = Number(value);
+
+    return n >= 0 && n <= 36;
+}
+
+
+// ------------------------------------------------------
+// BULK IMPORT
+// ------------------------------------------------------
+
+function importBulk() {
+
+    const textarea =
+        document.getElementById("bulkInput");
+
+    const text =
+        textarea.value.trim();
+
+    if (!text) {
+        return;
+    }
+
+    /*
+       Accept:
+
+       1 2 3 4
+       1,2,3,4
+       1-2-3-4
+       1|2|3|4
+       newline separated
+    */
+
+    const tokens =
+        text.split(/[\s,;|]+/);
+
+    let added = 0;
+    let rejected = 0;
+
+    tokens.forEach(token => {
+
+        let value =
+            normalizeNumber(token);
+
+        if (isValidNumber(value)) {
+
+            numbers.push(value);
+
+            added++;
+
+        } else if (token !== "") {
+
+            rejected++;
+
+        }
+
+    });
+
+    textarea.value = "";
+
+    showMessage(
+        "Imported " + added +
+        " spins" +
+        (rejected
+            ? " • Ignored " + rejected + " invalid entries."
+            : "."),
+        rejected ? "error" : "success"
+    );
+
+    update();
+}
+
+
+// ------------------------------------------------------
+// UNDO
+// ------------------------------------------------------
+
+function undoNumber() {
+
+    if (numbers.length === 0) {
+        return;
+    }
+
+    numbers.pop();
+
+    update();
+
+    showMessage(
+        "Last spin removed.",
+        "success"
+    );
+}
+
+
+// ------------------------------------------------------
+// CLEAR
+// ------------------------------------------------------
+
+function clearAll() {
+
+    if (numbers.length === 0) {
+        return;
+    }
+
+    if (!confirm(
+        "Clear the entire roulette history?"
+    )) {
+        return;
+    }
+
+    numbers = [];
+
+    update();
+
+    showMessage(
+        "History cleared.",
+        "success"
+    );
+}
+
+
+// ------------------------------------------------------
+// MESSAGE
+// ------------------------------------------------------
+
+function showMessage(text, type) {
+
+    const el =
+        document.getElementById("message");
+
+    el.textContent = text;
+
+    el.className =
+        "message " + (type || "");
+
+    setTimeout(() => {
+
+        el.textContent = "";
+
+    }, 3000);
+}
+
+
+// ------------------------------------------------------
+// GET COLORS
+// ------------------------------------------------------
+
+function getColors() {
+
+    return numbers.map(
+        number => getColor(number)
+    );
+}
+
+
+// ------------------------------------------------------
+// UPDATE APP
+// ------------------------------------------------------
+
+function update() {
+
+    displayHistory();
+
+    displayStats();
+
+    displayMatrix();
+
+    displayStreak();
+
+    calculateModels();
+
+}
+
+
+// ------------------------------------------------------
+// HISTORY
+// ------------------------------------------------------
+
+function displayHistory() {
+
+    const container =
+        document.getElementById("history");
+
+    container.innerHTML = "";
+
+    if (numbers.length === 0) {
+
+        container.innerHTML =
+            '<div class="small">No spins entered.</div>';
+
+        return;
+    }
+
+    numbers.forEach((number, index) => {
+
+        const color =
+            getColor(number);
+
+        const div =
+            document.createElement("div");
+
+        div.className =
+            "ball " +
+            (
+                color === "R"
+                    ? "red"
+                    : color === "B"
+                    ? "black"
+                    : "green"
+            );
+
+        div.title =
+            "Spin " + (index + 1);
+
+        div.innerHTML =
+            '<span class="ball-number">' +
+            number +
+            '</span>';
+
+        container.appendChild(div);
+
+    });
+}
+
+
+// ------------------------------------------------------
+// BASIC STATS
+// ------------------------------------------------------
+
+function displayStats() {
+
+    const colors =
+        getColors();
+
+    const red =
+        colors.filter(c => c === "R").length;
+
+    const black =
+        colors.filter(c => c === "B").length;
+
+    const green =
+        colors.filter(c => c === "G").length;
+
+    document.getElementById(
+        "totalCount"
+    ).textContent = numbers.length;
+
+    document.getElementById(
+        "redCount"
+    ).textContent = red;
+
+    document.getElementById(
+        "blackCount"
+    ).textContent = black;
+
+    document.getElementById(
+        "greenCount"
+    ).textContent = green;
+}
+
+
+// ------------------------------------------------------
+// TRANSITION MATRIX
+// ------------------------------------------------------
+
+function buildTransitionMatrix() {
+
+    const matrix = {
+
+        R: {R:0, B:0, G:0},
+        B: {R:0, B:0, G:0},
+        G: {R:0, B:0, G:0}
+
+    };
+
+    const colors =
+        getColors();
+
+    for (
+        let i = 0;
+        i < colors.length - 1;
+        i++
+    ) {
+
+        matrix[
+            colors[i]
+        ][
+            colors[i + 1]
+        ]++;
+
+    }
+
+    return matrix;
+}
+
+
+// ------------------------------------------------------
+// DISPLAY MATRIX
+// ------------------------------------------------------
+
+function displayMatrix() {
+
+    const matrix =
+        buildTransitionMatrix();
+
+    const rows = ["R","B","G"];
+
+    rows.forEach(from => {
+
+        const total =
+            matrix[from].R +
+            matrix[from].B +
+            matrix[from].G;
+
+        rows.forEach(to => {
+
+            const count =
+                matrix[from][to];
+
+            const percentage =
+                total
+                    ? (count / total * 100).toFixed(1)
+                    : "0.0";
+
+            document.getElementById(
+                from + to
+            ).innerHTML =
+                count +
+                '<span class="small">' +
+                '<br>' +
+                percentage +
+                '%</span>';
+
+        });
+
+    });
+}
+
+
+// ------------------------------------------------------
+// CURRENT STREAK
+// ------------------------------------------------------
+
+function displayStreak() {
+
+    const colors =
+        getColors();
+
+    if (colors.length === 0) {
+
+        document.getElementById(
+            "currentStreak"
+        ).textContent = "—";
+
+        document.getElementById(
+            "streakLength"
+        ).textContent = "0";
+
+        return;
+    }
+
+    const last =
+        colors[colors.length - 1];
+
+    let length = 1;
+
+    for (
+        let i = colors.length - 2;
+        i >= 0;
+        i--
+    ) {
+
+        if (colors[i] === last) {
+            length++;
+        } else {
+            break;
+        }
+
+    }
+
+    document.getElementById(
+        "currentStreak"
+    ).textContent =
+        colorName(last);
+
+    document.getElementById(
+        "streakLength"
+    ).textContent =
+        length;
+}
+
+
+// ------------------------------------------------------
+// MODEL HELPER
+// ------------------------------------------------------
+
+function modelResult(
+    name,
+    pick,
+    strength,
+    description
+) {
+
+    return {
+        name,
+        pick,
+        strength,
+        description
+    };
+}
+
+
+// ------------------------------------------------------
+// MODEL 1:
+// LAST-SPIN TRANSITION
+// ------------------------------------------------------
+
+function transitionModel(colors) {
+
+    if (colors.length < 2) {
+        return modelResult(
+            "Transition Matrix",
+            null,
+            0,
+            "Not enough transitions."
+        );
+    }
+
+    const matrix =
+        buildTransitionMatrix();
+
+    const last =
+        colors[colors.length - 1];
+
+    const row =
+        matrix[last];
+
+    const total =
+        row.R + row.B + row.G;
+
+    if (!total) {
+        return modelResult(
+            "Transition Matrix",
+            null,
+            0,
+            "No historical transition from the last color."
+        );
+    }
+
+    const candidates = [
+        ["R", row.R],
+        ["B", row.B]
+    ];
+
+    candidates.sort(
+        (a,b) => b[1] - a[1]
+    );
+
+    const pick =
+        candidates[0][0];
+
+    const probability =
+        candidates[0][1] / total;
+
+    return modelResult(
+        "Transition Matrix",
+        pick,
+        probability,
+        "After " +
+        colorName(last) +
+        ", the historical Red/Black transition was " +
+        (probability * 100).toFixed(1) +
+        "%."
+    );
+}
+
+
+// ------------------------------------------------------
+// MODEL 2:
+// LAST 3 COLORS
+// ------------------------------------------------------
+
+function threeColorModel(colors) {
+
+    if (colors.length < 4) {
+
+        return modelResult(
+            "3-Color Pattern",
+            null,
+            0,
+            "Need more history."
+        );
+    }
+
+    const pattern =
+        colors.slice(-3).join("");
+
+    const followers = {
+        R: 0,
+        B: 0
+    };
+
+    let occurrences = 0;
+
+    for (
+        let i = 0;
+        i <= colors.length - 4;
+        i++
+    ) {
+
+        const observed =
+            colors
+                .slice(i, i + 3)
+                .join("");
+
+        if (observed === pattern) {
+
+            const next =
+                colors[i + 3];
+
+            if (
+                next === "R" ||
+                next === "B"
+            ) {
+
+                followers[next]++;
+
+            }
+
+            occurrences++;
+        }
+    }
+
+    const total =
+        followers.R +
+        followers.B;
+
+    if (!total) {
+
+        return modelResult(
+            "3-Color Pattern",
+            null,
+            0,
+            "The last 3-color sequence has not produced enough historical Red/Black followers."
+        );
+    }
+
+    const pick =
+        followers.R >= followers.B
+            ? "R"
+            : "B";
+
+    const probability =
+        followers[pick] / total;
+
+    return modelResult(
+        "3-Color Pattern",
+        pick,
+        probability,
+        "Pattern " +
+        pattern +
+        " occurred " +
+        occurrences +
+        " times; its strongest Red/Black follower was " +
+        (probability * 100).toFixed(1) +
+        "%."
+    );
+}
+
+
+// ------------------------------------------------------
+// MODEL 3:
+// LAST 2 COLORS
+// ------------------------------------------------------
+
+function twoColorModel(colors) {
+
+    if (colors.length < 3) {
+
+        return modelResult(
+            "2-Color Pattern",
+            null,
+            0,
+            "Need more history."
+        );
+    }
+
+    const pattern =
+        colors.slice(-2).join("");
+
+    const followers = {
+        R: 0,
+        B: 0
+    };
+
+    for (
+        let i = 0;
+        i <= colors.length - 3;
+        i++
+    ) {
+
+        if (
+            colors.slice(i, i + 2).join("")
+            === pattern
+        ) {
+
+            const next =
+                colors[i + 2];
+
+            if (
+                next === "R" ||
+                next === "B"
+            ) {
+
+                followers[next]++;
+
+            }
+
+        }
+    }
+
+    const total =
+        followers.R +
+        followers.B;
+
+    if (!total) {
+
+        return modelResult(
+            "2-Color Pattern",
+            null,
+            0,
+            "No usable historical pattern."
+        );
+    }
+
+    const pick =
+        followers.R >= followers.B
+            ? "R"
+            : "B";
+
+    const probability =
+        followers[pick] / total;
+
+    return modelResult(
+        "2-Color Pattern",
+        pick,
+        probability,
+        "After " +
+        pattern +
+        ", the stronger historical Red/Black follower was " +
+        (probability * 100).toFixed(1) +
+        "%."
+    );
+}
+
+
+// ------------------------------------------------------
+// MODEL 4:
+// MOMENTUM
+// ------------------------------------------------------
+
+function momentumModel(colors) {
+
+    const windowSize =
+        Math.min(12, colors.length);
+
+    if (windowSize < 3) {
+
+        return modelResult(
+            "Momentum",
+            null,
+            0,
+            "Need more history."
+        );
+    }
+
+    const recent =
+        colors.slice(-windowSize);
+
+    const red =
+        recent.filter(c => c === "R").length;
+
+    const black =
+        recent.filter(c => c === "B").length;
+
+    const total =
+        red + black;
+
+    if (!total) {
+
+        return modelResult(
+            "Momentum",
+            null,
+            0,
+            "No Red/Black observations."
+        );
+    }
+
+    const pick =
+        red >= black ? "R" : "B";
+
+    const strength =
+        Math.max(red, black) / total;
+
+    return modelResult(
+        "Momentum",
+        pick,
+        strength,
+        "In the last " +
+        windowSize +
+        " spins, " +
+        colorName(pick) +
+        " appeared " +
+        Math.max(red, black) +
+        " times."
+    );
+}
+
+
+// ------------------------------------------------------
+// MODEL 5:
+// MEAN REVERSION
+// ------------------------------------------------------
+
+function reversionModel(colors) {
+
+    const windowSize =
+        Math.min(18, colors.length);
+
+    if (windowSize < 4) {
+
+        return modelResult(
+            "Mean Reversion",
+            null,
+            0,
+            "Need more history."
+        );
+    }
+
+    const recent =
+        colors.slice(-windowSize);
+
+    const red =
+        recent.filter(c => c === "R").length;
+
+    const black =
+        recent.filter(c => c === "B").length;
+
+    if (red === black) {
+
+        return modelResult(
+            "Mean Reversion",
+            null,
+            0,
+            "Recent Red/Black counts are balanced."
+        );
+    }
+
+    /*
+       Deliberately conservative:
+
+       If one color dominates recent history,
+       this model chooses the other color.
+    */
+
+    const pick =
+        red > black ? "B" : "R";
+
+    const difference =
+        Math.abs(red - black);
+
+    const total =
+        red + black;
+
+    const strength =
+        Math.min(
+            .85,
+            .5 + (difference / total) * .5
+        );
+
+    return modelResult(
+        "Mean Reversion",
+        pick,
+        strength,
+        "The recent window favors " +
+        colorName(
+            red > black ? "R" : "B"
+        ) +
+        " by " +
+        difference +
+        " observations, so this model selects the opposite color."
+    );
+}
+
+
+// ------------------------------------------------------
+// MODEL 6:
+// LONG HISTORY FREQUENCY
+// ------------------------------------------------------
+
+function longFrequencyModel(colors) {
+
+    if (colors.length < 10) {
+
+        return modelResult(
+            "Long-History Frequency",
+            null,
+            0,
+            "Need at least 10 spins."
+        );
+    }
+
+    const red =
+        colors.filter(c => c === "R").length;
+
+    const black =
+        colors.filter(c => c === "B").length;
+
+    if (red === black) {
+
+        return modelResult(
+            "Long-History Frequency",
+            null,
+            0,
+            "Long-run Red/Black counts are equal."
+        );
+    }
+
+    /*
+       This model intentionally follows
+       the historically less frequent color.
+    */
+
+    const pick =
+        red < black ? "R" : "B";
+
+    const total =
+        red + black;
+
+    const difference =
+        Math.abs(red - black);
+
+    const strength =
+        .5 +
+        Math.min(
+            .35,
+            difference / total
+        );
+
+    return modelResult(
+        "Long-History Frequency",
+        pick,
+        strength,
+        "Historical Red/Black counts are " +
+        red +
+        " Red versus " +
+        black +
+        " Black; this model follows the less frequent color."
+    );
+}
+
+
+// ------------------------------------------------------
+// MODEL 7:
+// STREAK BREAKER
+// ------------------------------------------------------
+
+function streakModel(colors) {
+
+    if (colors.length < 4) {
+
+        return modelResult(
+            "Streak Breaker",
+            null,
+            0,
+            "Need more history."
+        );
+    }
+
+    const last =
+        colors[colors.length - 1];
+
+    let streak = 1;
+
+    for (
+        let i = colors.length - 2;
+        i >= 0;
+        i--
+    ) {
+
+        if (colors[i] === last) {
+            streak++;
+        } else {
+            break;
+        }
+
+    }
+
+    if (
+        last === "G" ||
+        streak < 3
+    ) {
+
+        return modelResult(
+            "Streak Breaker",
+            null,
+            0,
+            "No significant Red/Black streak to evaluate."
+        );
+    }
+
+    const pick =
+        last === "R" ? "B" : "R";
+
+    const strength =
+        Math.min(
+            .85,
+            .5 + streak * .07
+        );
+
+    return modelResult(
+        "Streak Breaker",
+        pick,
+        strength,
+        colorName(last) +
+        " has appeared " +
+        streak +
+        " times consecutively; this model selects the opposite color."
+    );
+}
+
+
+// ------------------------------------------------------
+// MODEL 8:
+// NUMBER PARITY / NUMBER BEHAVIOR
+// ------------------------------------------------------
+
+function numberModel() {
+
+    if (numbers.length < 10) {
+
+        return modelResult(
+            "Number Structure",
+            null,
+            0,
+            "Need at least 10 numbers."
+        );
+    }
+
+    /*
+       This is intentionally weak.
+
+       It looks at whether recently observed
+       numbers tend to be associated with one
+       color relative to the historical color
+       distribution.
+
+       It is NOT claiming number parity causes
+       the next color.
+    */
+
+    const recent =
+        numbers.slice(-12);
+
+    let red = 0;
+    let black = 0;
+
+    recent.forEach(n => {
+
+        const c = getColor(n);
+
+        if (c === "R") red++;
+        if (c === "B") black++;
+
+    });
+
+    if (red === black) {
+
+        return modelResult(
+            "Number Structure",
+            null,
+            0,
+            "Recent number-derived colors are balanced."
+        );
+    }
+
+    const pick =
+        red > black ? "R" : "B";
+
+    const total =
+        red + black;
+
+    const strength =
+        Math.max(red, black) / total;
+
+    return modelResult(
+        "Number Structure",
+        pick,
+        strength,
+        "The recent number set contains " +
+        red +
+        " Red and " +
+        black +
+        " Black results."
+    );
+}
+
+
+// ------------------------------------------------------
+// "PHYSICIST" LENS
+// ------------------------------------------------------
+
+function physicistModel() {
+
+    /*
+       We cannot infer actual wheel physics
+       from roulette numbers.
+
+       Therefore this model is deliberately
+       NEUTRAL rather than pretending that
+       physics has been detected.
+    */
+
+    return modelResult(
+        "Physicist",
+        null,
+        0,
+        "Neutral: actual wheel speed, ball speed, rotor direction, release timing and landing behavior would be needed for a genuine physical model."
+    );
+}
+
+
+// ------------------------------------------------------
+// "ASTROLOGER" LENS
+// ------------------------------------------------------
+
+function astrologerModel() {
+
+    /*
+       There is no demonstrated causal relationship
+       between astrology and roulette outcomes.
+
+       We therefore keep this lens neutral rather
+       than fabricating astronomical predictions.
+    */
+
+    return modelResult(
+        "Astrologer",
+        null,
+        0,
+        "Neutral: no astronomical variable is treated as a demonstrated predictor of roulette color."
+    );
+}
+
+
+// ------------------------------------------------------
+// "PSYCHIC / ORACLE" LENS
+// ------------------------------------------------------
+
+function oracleModel(colors) {
+
+    /*
+       Instead of pretending to have psychic ability,
+       this lens uses a deterministic pseudo-random
+       oracle based on the recent numerical history.
+
+       This gives you an independent tie-breaker.
+    */
+
+    if (colors.length < 10) {
+
+        return modelResult(
+            "Oracle",
+            null,
+            0,
+            "Need at least 10 spins."
+        );
+    }
+
+    let hash = 0;
+
+    numbers
+        .slice(-20)
+        .forEach(value => {
+
+            for (
+                let i = 0;
+                i < value.length;
+                i++
+            ) {
+
+                hash =
+                    (
+                        hash * 31 +
+                        value.charCodeAt(i)
+                    ) >>> 0;
+
+            }
+
+        });
+
+    const pick =
+        hash % 2 === 0
+            ? "R"
+            : "B";
+
+    return modelResult(
+        "Oracle",
+        pick,
+        .5,
+        "Independent deterministic tie-breaker based on the recent numerical sequence."
+    );
+}
+
+
+// ------------------------------------------------------
+// CALCULATE ALL MODELS
+// ------------------------------------------------------
+
+function calculateModels() {
+
+    const colors =
+        getColors();
+
+    const models = [
+
+        transitionModel(colors),
+
+        threeColorModel(colors),
+
+        twoColorModel(colors),
+
+        momentumModel(colors),
+
+        reversionModel(colors),
+
+        longFrequencyModel(colors),
+
+        streakModel(colors),
+
+        numberModel(),
+
+        physicistModel(),
+
+        astrologerModel(),
+
+        oracleModel(colors)
+
+    ];
+
+    displayModels(models);
+
+    calculateConsensus(models);
+
+}
+
+
+// ------------------------------------------------------
+// DISPLAY MODELS
+// ------------------------------------------------------
+
+function displayModels(models) {
+
+    const container =
+        document.getElementById("models");
+
+    container.innerHTML = "";
+
+    models.forEach(model => {
+
+        const div =
+            document.createElement("div");
+
+        div.className = "model";
+
+        let pickText =
+            model.pick
+                ? colorName(model.pick)
+                : "NEUTRAL";
+
+        let pickClass = "";
+
+        if (model.pick === "R") {
+            pickClass = "red-text";
+        }
+
+        if (model.pick === "B") {
+            pickClass = "black-text";
+        }
+
+        div.innerHTML = `
+
+            <div class="model-top">
+
+                <div class="model-name">
+                    ${model.name}
+                </div>
+
+                <div class="model-pick ${pickClass}">
+                    ${pickText}
+                </div>
+
+            </div>
+
+            <div class="model-description">
+                ${model.description}
+            </div>
+
+            <div class="model-bar">
+                <div
+                    class="model-bar-fill"
+                    style="width:${model.strength * 100}%"
+                ></div>
+            </div>
+
+        `;
+
+        container.appendChild(div);
+
+    });
+}
+
+
+// ------------------------------------------------------
+// CONSENSUS ENGINE
+// ------------------------------------------------------
+
+function calculateConsensus(models) {
+
+    const hero =
+        document.getElementById("heroPick");
+
+    const heroNumber =
+        document.getElementById("heroNumber");
+
+    const confidenceFill =
+        document.getElementById(
+            "confidenceFill"
+        );
+
+    const confidenceText =
+        document.getElementById(
+            "confidenceText"
+        );
+
+
+    if (numbers.length < 10) {
+
+        hero.textContent =
+            "NEED 10 SPINS";
+
+        hero.className =
+            "hero-pick none";
+
+        heroNumber.textContent =
+            "Enter at least 10 actual roulette numbers.";
+
+        confidenceFill.style.width =
+            "0%";
+
+        confidenceText.textContent =
+            "No decision yet.";
+
+        return;
+    }
+
+
+    /*
+       Each model receives a weight.
+
+       More specific pattern models get
+       more influence than generic heuristics.
+
+       Physicist and astrologer are intentionally
+       excluded from the vote because we have no
+       relevant physical/astronomical data.
+
+       The oracle gets a small weight.
+    */
+
+    const weights = {
+
+        "Transition Matrix": 1.30,
+
+        "3-Color Pattern": 1.60,
+
+        "2-Color Pattern": 1.25,
+
+        "Momentum": 0.85,
+
+        "Mean Reversion": 0.85,
+
+        "Long-History Frequency": 0.75,
+
+        "Streak Breaker": 0.80,
+
+        "Number Structure": 0.55,
+
+        "Oracle": 0.25
+
+    };
+
+
+    let redScore = 0;
+    let blackScore = 0;
+
+    let activeModels = 0;
+
+
+    models.forEach(model => {
+
+        if (
+            !model.pick ||
+            !weights[model.name]
+        ) {
+            return;
+        }
+
+        const weight =
+            weights[model.name];
+
+        const contribution =
+            weight *
+            Math.max(
+                .05,
+                model.strength
+            );
+
+        if (model.pick === "R") {
+
+            redScore += contribution;
+
+        } else if (model.pick === "B") {
+
+            blackScore += contribution;
+
+        }
+
+        activeModels++;
+
+    });
+
+
+    if (activeModels === 0) {
+
+        hero.textContent =
+            "NO DECISION";
+
+        hero.className =
+            "hero-pick none";
+
+        return;
+    }
+
+
+    const total =
+        redScore + blackScore;
+
+
+    const redShare =
+        redScore / total;
+
+    const blackShare =
+        blackScore / total;
+
+
+    const pick =
+        redScore >= blackScore
+            ? "R"
+            : "B";
+
+
+    const winnerShare =
+        Math.max(
+            redShare,
+            blackShare
+        );
+
+
+    /*
+       Convert consensus strength into
+       a readable 50–95% "model agreement"
+       score.
+
+       This is NOT the actual probability of
+       winning the roulette spin.
+
+       It represents agreement between the
+       analytical models.
+    */
+
+    const agreement =
+        Math.round(
+            50 +
+            Math.abs(
+                redShare -
+                blackShare
+            ) * 45
+        );
+
+
+    hero.textContent =
+        colorName(pick);
+
+    hero.className =
+        "hero-pick " +
+        (
+            pick === "R"
+                ? "red"
+                : "black"
+        );
+
+
+    heroNumber.textContent =
+        "Model score: " +
+        (pick === "R"
+            ? redScore.toFixed(2)
+            : blackScore.toFixed(2)) +
+        " • " +
+        activeModels +
+        " active models";
+
+
+    confidenceFill.style.width =
+        agreement + "%";
+
+
+    confidenceText.textContent =
+        agreement +
+        "% model agreement • " +
+        "This is agreement strength, NOT roulette win probability.";
+
+}
+
+
+// ------------------------------------------------------
+// SAVE DATA
+// ------------------------------------------------------
+
+function saveData() {
+
+    if (numbers.length === 0) {
+
+        showMessage(
+            "There is no data to save.",
+            "error"
+        );
+
+        return;
+    }
+
+    const text =
+        numbers.join(" ");
+
+    const blob =
+        new Blob(
+            [text],
+            {type: "text/plain"}
+        );
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const a =
+        document.createElement("a");
+
+    a.href = url;
+
+    a.download =
+        "roulette-history.txt";
+
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+    showMessage(
+        "Spin history downloaded.",
+        "success"
+    );
+}
+
+
+// ------------------------------------------------------
+// ENTER KEY
+// ------------------------------------------------------
+
+document
+    .getElementById("numberInput")
+    .addEventListener(
+        "keydown",
+        function(event) {
+
+            if (event.key === "Enter") {
+
+                event.preventDefault();
+
+                addNumber();
+
+            }
+
+        }
+    );
+
+
+// ------------------------------------------------------
+// INITIALIZE
+// ------------------------------------------------------
+
+update();
+
+</script>
+
+</body>
+</html>
