@@ -284,6 +284,64 @@ button:hover{
 
     font-weight:bold;
 }
+
+.progressBoard{
+    margin-top:20px;
+    background:#162231;
+    padding:14px 16px;
+    border-radius:12px;
+    border:1px solid rgba(125,211,252,.12);
+}
+
+.progressHeader{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:9px;
+    gap:12px;
+}
+
+.progressTitle{
+    color:#cbd5e1;
+    font-size:14px;
+    font-weight:bold;
+    letter-spacing:.4px;
+}
+
+.progressCount{
+    color:#7dd3fc;
+    font-size:15px;
+    font-weight:bold;
+    white-space:nowrap;
+}
+
+.progressTrack{
+    width:100%;
+    height:12px;
+    background:#0f172a;
+    border-radius:999px;
+    overflow:hidden;
+    box-shadow:inset 0 1px 3px rgba(0,0,0,.45);
+}
+
+.progressFill{
+    width:0%;
+    height:100%;
+    border-radius:999px;
+    background:linear-gradient(90deg,#10b981,#7dd3fc);
+    box-shadow:0 0 10px rgba(125,211,252,.35);
+    transition:width:.35s ease;
+}
+
+.progressMessage{
+    margin-top:8px;
+    text-align:right;
+    color:#8fa6c3;
+    font-size:12px;
+}
+
+
+
 </style>
 </head>
 
@@ -345,6 +403,22 @@ Unit Amount
 
 
 <!-- CURRENT STEP -->
+
+
+<div class="progressBoard">
+    <div class="progressHeader">
+        <div class="progressTitle">🏆 100 CYCLE SCOREBOARD</div>
+        <div class="progressCount" id="cycleCount">0 / 100</div>
+    </div>
+
+    <div class="progressTrack">
+        <div class="progressFill" id="progressFill"></div>
+    </div>
+
+    <div class="progressMessage" id="progressMessage">
+        100 cycles. One session at a time.
+    </div>
+</div>
 
 <div class="step" id="stepLabel">
 STEP 1
@@ -493,6 +567,8 @@ let step = 1;
 
 let lastResult = null;
 
+let completedCycles = 0;
+
 
 /* =====================================================
    FORMAT MONEY
@@ -560,7 +636,50 @@ function getBetUnits(){
    UPDATE DISPLAY
 ===================================================== */
 
+function updateProgress(){
+
+    const cycleCount =
+        document.getElementById("cycleCount");
+
+    const progressFill =
+        document.getElementById("progressFill");
+
+    const progressMessage =
+        document.getElementById("progressMessage");
+
+    const percentage =
+        Math.min(completedCycles, 100);
+
+    cycleCount.innerHTML =
+        completedCycles + " / 100";
+
+    progressFill.style.width =
+        percentage + "%";
+
+    if(completedCycles >= 100){
+
+        progressMessage.innerHTML =
+            "🏆 100 cycles completed!";
+
+    }else if(completedCycles === 0){
+
+        progressMessage.innerHTML =
+            "100 cycles. One session at a time.";
+
+    }else{
+
+        progressMessage.innerHTML =
+            (100 - completedCycles) +
+            " cycles remaining.";
+
+    }
+
+}
+
+
 function update(){
+
+    updateProgress();
 
     const unit = getUnit();
 
@@ -750,9 +869,15 @@ function win(){
 
     if(sequence.length === 0){
 
+        completedCycles++;
+
         message +=
             "<br><br>" +
-            "🎉 <b>Sequence completed!</b>";
+            "🎉 <b>Sequence completed!</b>" +
+            "<br>" +
+            "🏆 <b>Cycles completed: " +
+            completedCycles +
+            " / 100</b>";
 
     }else{
 
