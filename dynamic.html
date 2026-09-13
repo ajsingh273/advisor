@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dynamic 18 — Wheel Intelligence</title>
+<style>
+:root{
+  --bg:#08111f;--panel:#101c2e;--panel2:#14243a;--text:#edf4ff;--muted:#8fa4bf;
+  --line:#263a55;--good:#55e39a;--warn:#ffc857;--bad:#ff6b7a;--accent:#69a7ff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at top,#142945 0,#08111f 48%);color:var(--text);
+font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+.wrap{max-width:1180px;margin:auto;padding:24px}
+header{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:20px}
+h1{margin:0;font-size:clamp(28px,5vw,48px);letter-spacing:-1.8px}
+.sub{color:var(--muted);max-width:720px;margin-top:7px;line-height:1.5}
+.badge{border:1px solid var(--line);background:#0d192a;padding:9px 12px;border-radius:999px;color:#bcd0e8;font-size:12px}
+.grid{display:grid;grid-template-columns:1.05fr .95fr;gap:16px}
+.card{background:rgba(16,28,46,.88);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 16px 50px rgba(0,0,0,.18)}
+.card h2{font-size:15px;margin:0 0 12px;text-transform:uppercase;letter-spacing:.9px;color:#cfe0f5}
+textarea{width:100%;min-height:150px;background:#091523;border:1px solid #2b405d;border-radius:12px;color:var(--text);
+padding:13px;font:14px ui-monospace,SFMono-Regular,Menlo,monospace;resize:vertical;outline:none}
+textarea:focus{border-color:var(--accent)}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+button{border:0;border-radius:11px;padding:11px 15px;font-weight:800;cursor:pointer;background:#1d3150;color:#eaf3ff}
+button.primary{background:linear-gradient(135deg,#4f91ff,#765cff);box-shadow:0 8px 24px rgba(80,120,255,.25)}
+button:hover{filter:brightness(1.1)}
+.help{font-size:12px;color:var(--muted);margin-top:9px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kpi{background:#0b1727;border:1px solid var(--line);border-radius:13px;padding:12px}
+.kpi b{display:block;font-size:22px;margin-top:4px}.kpi span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.recommend{margin-top:14px;border:1px solid rgba(85,227,154,.35);background:linear-gradient(145deg,rgba(33,83,69,.42),rgba(14,28,43,.65));
+border-radius:16px;padding:18px}
+.recname{font-size:28px;font-weight:900;letter-spacing:-.8px}.score{font-size:46px;font-weight:950;line-height:1;margin:6px 0}
+.tag{display:inline-block;padding:5px 8px;border-radius:999px;font-size:11px;font-weight:800;background:#183127;color:#76efae}
+.pockets{display:flex;flex-wrap:wrap;gap:5px;margin-top:13px}
+.pocket{width:31px;height:31px;border-radius:50%;display:grid;place-items:center;background:#1a2b43;border:1px solid #355071;font-size:11px;font-weight:800}
+.pocket.anchor{outline:2px solid var(--warn);outline-offset:1px}
+.pocket.zero{background:#274b36}
+.bars{margin-top:14px;display:grid;gap:9px}
+.barrow{display:grid;grid-template-columns:155px 1fr 45px;gap:8px;align-items:center;font-size:12px}
+.bar{height:9px;background:#091522;border-radius:99px;overflow:hidden}.fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#4d8cff,#69d6ff)}
+.cluster{border:1px solid var(--line);background:#0c1828;border-radius:14px;padding:14px;margin-top:10px}
+.cluster.selected{border-color:rgba(85,227,154,.65);box-shadow:0 0 0 1px rgba(85,227,154,.12)}
+.clusterhead{display:flex;justify-content:space-between;gap:10px}.clustername{font-weight:900}.clusterScore{font-weight:900;color:var(--good)}
+.small{font-size:12px;color:var(--muted);line-height:1.45;margin-top:5px}
+.note{margin-top:14px;padding:12px;border-radius:12px;background:#0a1625;border:1px solid var(--line);font-size:12px;color:#a9bbd0;line-height:1.5}
+footer{color:#7288a2;font-size:11px;text-align:center;margin:18px 0}
+@media(max-width:850px){.grid{grid-template-columns:1fr}header{align-items:start;flex-direction:column}.kpis{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1>Dynamic 18</h1>
+    <div class="sub">Wheel Intelligence Engine — evaluates three deliberately overlapping 18-pocket sectors built from the same 38-pocket American Roulette wheel.</div>
+  </div>
+  <div class="badge">AMERICAN WHEEL · 38 POCKETS</div>
+</header>
+
+<div class="grid">
+<section>
+<div class="card">
+<h2>1 · Enter spin history</h2>
+<textarea id="history" placeholder="Paste spins newest last, separated by spaces, commas, or line breaks.
+Example:
+17, 32, 15, 19, 21, 2, 25, 0, 13, 36"></textarea>
+<div class="controls">
+<button class="primary" onclick="analyze()">Analyze Wheel</button>
+<button onclick="addDemo()">Load Demo</button>
+<button onclick="clearAll()">Clear</button>
+</div>
+<div class="help">Use 0 and 00. The engine needs at least 8 spins, uses up to the latest 60, and ranks three overlapping 18-pocket wheel sectors.</div>
+</div>
+
+<div class="card" style="margin-top:16px">
+<h2>Wheel intelligence</h2>
+<div class="kpis">
+<div class="kpi"><span>Spins analyzed</span><b id="nSpins">0</b></div>
+<div class="kpi"><span>Last hit</span><b id="lastHit">—</b></div>
+<div class="kpi"><span>Best score</span><b id="bestScore">—</b></div>
+<div class="kpi"><span>Sector hits</span><b id="sectorHits">—</b></div>
+<div class="kpi"><span>Recent density</span><b id="density">—</b></div>
+<div class="kpi"><span>Confidence</span><b id="confidence">—</b></div>
+</div>
+<div class="note" id="diagnostic">Enter a history to begin. Scores are comparative rankings, not probabilities of a future spin.</div>
+</div>
+</section>
+
+<section>
+<div class="card">
+<h2>2 · Three private wealth sectors</h2>
+<div id="recommendation" class="recommend">
+  <span class="tag">WAITING FOR DATA</span>
+  <div class="recname">Choose a history</div>
+  <div class="small">The engine will compare Legacy Capital, Private Equity and Sovereign Wealth.</div>
+</div>
+<div id="clusters"></div>
+</div>
+</section>
+</div>
+
+<footer>Educational analysis tool. Roulette outcomes remain random; a higher score does not create a mathematical edge or guarantee a win.</footer>
+</div>
+
+<script>
+/* Standard American Roulette wheel order, clockwise from 0. */
+const WHEEL=["0","28","9","26","30","11","7","20","32","17","5","22","34","15","3","24","36","13","1","00","27","10","25","29","12","8","19","31","18","6","21","33","16","4","23","35","14","2"];
+
+const IDX=Object.fromEntries(WHEEL.map((v,i)=>[v,i]));
+const RED=new Set(["1","3","5","7","9","12","14","16","18","19","21","23","25","27","30","32","34","36"]);
+
+function parseHistory(){
+  const raw=document.getElementById("history").value.trim();
+  const vals=raw.split(/[\s,;|]+/).filter(Boolean).map(x=>x.trim());
+  const normalized=vals.map(v=>v==="00"?"00":String(Number(v))).filter(v=>IDX[v]!==undefined);
+  return normalized.slice(-60);
+}
+function circularDistance(a,b){
+  const d=Math.abs(a-b); return Math.min(d,WHEEL.length-d);
+}
+function windowAt(center,width=18){
+  const start=(center-Math.floor(width/2)+WHEEL.length)%WHEEL.length;
+  return Array.from({length:width},(_,k)=>WHEEL[(start+k)%WHEEL.length]);
+}
+function sectorScore(sector, spins){
+  const set=new Set(sector), N=spins.length;
+  let density=0, recency=0, edge=0;
+  spins.forEach((v,i)=>{
+    const age=N-1-i, weight=Math.pow(.94,age);
+    if(set.has(v)){ density+=weight; recency+=1/(1+age); }
+  });
+  // Local clustering: reward consecutive hits inside the candidate, especially recent ones.
+  let local=0;
+  for(let i=1;i<spins.length;i++){
+    if(set.has(spins[i]) && set.has(spins[i-1])){
+      local += Math.pow(.92,N-1-i);
+    }
+  }
+  // Reward concentration near the most recent hit, but don't let it dominate.
+  const last=IDX[spins[N-1]];
+  const center=IDX[sector[Math.floor(sector.length/2)]];
+  const anchorProximity=1/(1+circularDistance(last,center));
+  // Coverage of the candidate by distinct recent pockets.
+  const distinct=new Set(spins.slice(-20).filter(v=>set.has(v))).size;
+  // Recent runs inside the sector.
+  let run=0;
+  for(let i=N-1;i>=0 && set.has(spins[i]);i--) run++;
+  const runBonus=Math.min(run,5)*0.55;
+
+  return {density,recency,local,anchorProximity,distinct,runBonus};
+}
+function normScores(features, key){
+  const vals=features.map(f=>f[key]); const min=Math.min(...vals),max=Math.max(...vals);
+  return features.map(f=>max===min?.5:(f[key]-min)/(max-min));
+}
+function makeCandidate(type, spins){
+  const last=IDX[spins[spins.length-1]];
+  let center;
+  if(type==="anchor") center=last;
+  if(type==="momentum"){
+    // Pick the center whose 18-pocket window has the strongest weighted density.
+    let best={v:-1,c:0};
+    for(let c=0;c<38;c++){
+      const s=windowAt(c), f=sectorScore(s,spins);
+      if(f.density>best.v) best={v:f.density,c};
+    }
+    center=best.c;
+  }
+  if(type==="persistence"){
+    // Center on the strongest recent local cluster: weighted pair proximity.
+    let best={v:-1,c:last};
+    for(let c=0;c<38;c++){
+      const s=windowAt(c), f=sectorScore(s,spins);
+      const v=f.local*1.5+f.distinct*.18+f.density*.25;
+      if(v>best.v) best={v,c};
+    }
+    center=best.c;
+  }
+  return windowAt(center);
+}
+function evaluateCandidates(spins){
+  /*
+    IMPORTANT:
+    The three recommendations are now three fixed, overlapping 18-pocket
+    windows on the SAME 38-pocket American wheel.
+
+    They are spaced around the wheel so that each neighboring pair shares
+    17 pockets. In other words, the engine is choosing among three adjacent
+    "wealth bands", not three unrelated 18-pocket searches.
+  */
+  const last=IDX[spins[spins.length-1]];
+
+  // Start with the latest hit, then place the other two sectors 12 pockets
+  // away. Three 18-pocket windows centered 12 pockets apart naturally overlap.
+  const centers=[
+    (last-12+38)%38,
+    last,
+    (last+12)%38
+  ];
+
+  const defs=[
+    {
+      key:"legacy",
+      name:"Legacy Capital",
+      desc:"North-side wealth band — one of three deliberately overlapping 18-pocket sectors."
+    },
+    {
+      key:"private",
+      name:"Private Equity",
+      desc:"Core wealth band — centered on the latest wheel result and shares 17 pockets with each neighbor."
+    },
+    {
+      key:"sovereign",
+      name:"Sovereign Wealth",
+      desc:"South-side wealth band — the third overlapping 18-pocket sector."
+    }
+  ];
+
+  const candidates=defs.map((d,i)=>({
+    ...d,
+    center:centers[i],
+    sector:windowAt(centers[i])
+  }));
+
+  const feats=candidates.map(c=>sectorScore(c.sector,spins));
+  const keys=["density","recency","local","anchorProximity","distinct","runBonus"];
+  const ns={}; keys.forEach(k=>ns[k]=normScores(feats,k));
+
+  candidates.forEach((c,i)=>{
+    c.parts={
+      density:ns.density[i],
+      recency:ns.recency[i],
+      local:ns.local[i],
+      anchor:ns.anchorProximity[i],
+      distinct:ns.distinct[i],
+      run:ns.runBonus[i]
+    };
+
+    // Recent evidence is weighted more heavily than the anchor.
+    c.score=100*(
+      .32*c.parts.density+
+      .20*c.parts.local+
+      .16*c.parts.recency+
+      .12*c.parts.distinct+
+      .10*c.parts.anchor+
+      .10*c.parts.run
+    );
+
+    c.score=Math.max(0,Math.min(100,c.score));
+    c.raw=feats[i];
+
+    // Helpful structural metadata.
+    c.overlapLeft=17;
+    c.overlapRight=17;
+  });
+
+  candidates.sort((a,b)=>b.score-a.score);
+  return candidates;
+}
+function hitStats(sector,spins){
+  const set=new Set(sector), recent=spins.slice(-20);
+  const hits=recent.filter(v=>set.has(v)).length;
+  return {hits,rate:recent.length?hits/recent.length:0};
+}
+function pocketHTML(sector,last){
+  return sector.map(v=>`<span class="pocket ${v==="0"||v==="00"?"zero":""} ${v===last?"anchor":""}" title="${v===last?"Latest hit":""}">${v}</span>`).join("");
+}
+function analyze(){
+  const spins=parseHistory();
+  if(spins.length<8){alert("Please enter at least 8 valid American Roulette spins.");return;}
+  const candidates=evaluateCandidates(spins), best=candidates[0], last=spins[spins.length-1];
+  const hs=hitStats(best.sector,spins);
+  document.getElementById("nSpins").textContent=spins.length;
+  document.getElementById("lastHit").textContent=last;
+  document.getElementById("bestScore").textContent=best.score.toFixed(1);
+  document.getElementById("sectorHits").textContent=`${hs.hits}/20`;
+  document.getElementById("density").textContent=(best.raw.density).toFixed(1);
+  const gap=candidates[0].score-candidates[1].score;
+  const conf=Math.max(0,Math.min(99,50+gap*2.4));
+  document.getElementById("confidence").textContent=Math.round(conf)+"%";
+  document.getElementById("recommendation").innerHTML=`
+    <span class="tag">HIGHEST SCORE · ${best.score.toFixed(1)}/100</span>
+    <div class="recname">${best.name}</div>
+    <div class="score">${best.score.toFixed(1)}</div>
+    <div class="small">${best.desc} This is the engine's strongest of the three models for the supplied history.</div>
+    <div class="pockets">${pocketHTML(best.sector,last)}</div>`;
+  document.getElementById("clusters").innerHTML=candidates.map((c,i)=>`
+    <div class="cluster ${i===0?"selected":""}">
+      <div class="clusterhead"><div class="clustername">${i+1}. ${c.name}</div><div class="clusterScore">${c.score.toFixed(1)}</div></div>
+      <div class="small">${c.desc}</div>
+      <div class="pockets">${pocketHTML(c.sector,last)}</div>
+      <div class="bars">
+        ${bar("Recent density",c.parts.density)}
+        ${bar("Local clustering",c.parts.local)}
+        ${bar("Recency",c.parts.recency)}
+        ${bar("Distinct coverage",c.parts.distinct)}
+        ${bar("Anchor proximity",c.parts.anchor)}
+      </div>
+    </div>`).join("");
+  const warning=hs.rate>=.5?"The selected wealth sector has strong recent coverage, but this is descriptive rather than predictive."
+    :"Recent coverage is below 50%; consider this a weak signal rather than a forced bet.";
+  document.getElementById("diagnostic").textContent=warning;
+}
+function bar(label,val){
+  return `<div class="barrow"><span>${label}</span><div class="bar"><div class="fill" style="width:${(val*100).toFixed(0)}%"></div></div><b>${Math.round(val*100)}</b></div>`;
+}
+function addDemo(){
+  const demo=[17,32,15,19,21,2,25,0,13,36,11,24,17,20,32,5,22,34,15,3,24,36,13,1,27,10,25,29,12,8,19,31,18,6,21,33,16,4,23,35,14,2,17,32,9,26,30,11,7,20];
+  document.getElementById("history").value=demo.join(", ");
+  analyze();
+}
+function clearAll(){
+  document.getElementById("history").value="";
+  ["nSpins","lastHit","bestScore","sectorHits","density","confidence"].forEach(id=>document.getElementById(id).textContent="0");
+  document.getElementById("recommendation").innerHTML='<span class="tag">WAITING FOR DATA</span><div class="recname">Choose a history</div><div class="small">The engine will compare Legacy Capital, Private Equity and Sovereign Wealth.</div>';
+  document.getElementById("clusters").innerHTML="";
+  document.getElementById("diagnostic").textContent="Enter a history to begin. Scores are comparative rankings, not probabilities of a future spin.";
+}
+</script>
+</body>
+</html>
