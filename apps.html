@@ -1,4 +1,136 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <meta name="theme-color" content="#07130f"> <meta name="apple-mobile-web-app-capable" content="yes"> <title>My Table Games</title> <style> :root { --bg: #07130f; --panel: #0d2119; --panel2: #112a20; --border: rgba(255,255,255,.08); --green: #18c77b; --green2: #0d9c5e; --text: #f5f8f6; --muted: #8fa69b; } * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; } html, body { margin: 0; padding: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; } body { min-height: 100vh; } .app { width: 100%; max-width: 760px; margin: 0 auto; padding: 20px 15px 40px; } /* ========================================= HEADER ========================================= */ .header { padding: 12px 5px 24px; } .header h1 { margin: 0; font-size: 30px; line-height: 1.1; letter-spacing: -1px; } .header p { margin: 8px 0 0; color: var(--muted); font-size: 14px; } /* ========================================= APP GRID ========================================= */ .app-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } /* ========================================= APP TILE ========================================= */ .app-tile { position: relative; min-height: 145px; padding: 18px; border-radius: 20px; background: linear-gradient( 145deg, var(--panel2), var(--panel) ); border: 1px solid var(--border); color: var(--text); text-decoration: none; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; transition: transform .12s ease, border-color .12s ease, background .12s ease; } .app-tile::after { content: ""; position: absolute; width: 90px; height: 90px; right: -30px; bottom: -35px; border-radius: 50%; background: rgba(24,199,123,.08); } .app-tile:active { transform: scale(.97); border-color: rgba(24,199,123,.35); background: linear-gradient( 145deg, #163b2c, #10251c ); } /* ========================================= ICON ========================================= */ .app-icon { width: 46px; height: 46px; border-radius: 13px; display: flex; align-items: center; justify-content: center; background: rgba(24,199,123,.12); border: 1px solid rgba(24,199,123,.16); font-size: 23px; } /* ========================================= TILE TEXT ========================================= */ .app-name { margin-top: 15px; font-size: 16px; font-weight: 850; letter-spacing: -.2px; } .app-description { margin-top: 5px; color: var(--muted); font-size: 11px; line-height: 1.35; } /* ========================================= FOOTER ========================================= */ .footer { text-align: center; margin-top: 25px; color: #53675f; font-size: 10px; } /* ========================================= DESKTOP ========================================= */ @media (min-width: 600px) { .app { padding-top: 35px; } .app-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } } </style> </head> <body> <div class="app">
+<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <meta name="theme-color" content="#07130f"> <meta name="apple-mobile-web-app-capable" content="yes"> <title>My Table Games</title> <style> :root { --bg: #07130f; --panel: #0d2119; --panel2: #112a20; --border: rgba(255,255,255,.08); --green: #18c77b; --green2: #0d9c5e; --text: #f5f8f6; --muted: #8fa69b; } * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; } html, body { margin: 0; padding: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; } body { min-height: 100vh; } .app { width: 100%; max-width: 760px; margin: 0 auto; padding: 20px 15px 40px; } /* ========================================= HEADER ========================================= */ .header { padding: 12px 5px 24px; } .header h1 { margin: 0; font-size: 30px; line-height: 1.1; letter-spacing: -1px; } .header p { margin: 8px 0 0; color: var(--muted); font-size: 14px; } /* ========================================= APP GRID ========================================= */ .app-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } /* ========================================= APP TILE ========================================= */ .app-tile { position: relative; min-height: 145px; padding: 18px; border-radius: 20px; background: linear-gradient( 145deg, var(--panel2), var(--panel) ); border: 1px solid var(--border); color: var(--text); text-decoration: none; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; transition: transform .12s ease, border-color .12s ease, background .12s ease; } .app-tile::after { content: ""; position: absolute; width: 90px; height: 90px; right: -30px; bottom: -35px; border-radius: 50%; background: rgba(24,199,123,.08); } .app-tile:active { transform: scale(.97); border-color: rgba(24,199,123,.35); background: linear-gradient( 145deg, #163b2c, #10251c ); } /* ========================================= ICON ========================================= */ .app-icon { width: 46px; height: 46px; border-radius: 13px; display: flex; align-items: center; justify-content: center; background: rgba(24,199,123,.12); border: 1px solid rgba(24,199,123,.16); font-size: 23px; } /* ========================================= TILE TEXT ========================================= */ .app-name { margin-top: 15px; font-size: 16px; font-weight: 850; letter-spacing: -.2px; } .app-description { margin-top: 5px; color: var(--muted); font-size: 11px; line-height: 1.35; } /* ========================================= FOOTER ========================================= */ .footer { text-align: center; margin-top: 25px; color: #53675f; font-size: 10px; } /* ========================================= DESKTOP ========================================= */ @media (min-width: 600px) { .app { padding-top: 35px; } .app-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } } 
+
+.disabled{
+    opacity:.5;
+    cursor:not-allowed;
+}
+
+
+#passwordModal{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100vw;
+    height:100vh;
+
+    background:#101820;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    z-index:999999;
+
+    padding:20px;
+}
+
+.password-box{
+    width:100%;
+    max-width:420px;
+
+    background:#1d2938;
+
+    border-radius:18px;
+
+    padding:30px 25px;
+
+    box-shadow:0 8px 40px rgba(0,0,0,.6);
+
+    text-align:center;
+}
+
+.password-box h2{
+    margin-bottom:10px;
+    color:white;
+}
+
+.password-box p{
+    color:#8fa6c3;
+    margin-bottom:25px;
+}
+
+.password-box input{
+    width:100%;
+
+    padding:16px;
+
+    border:none;
+    border-radius:12px;
+
+    background:#0f172a;
+    color:white;
+
+    font-size:20px;
+
+    text-align:center;
+
+    outline:none;
+}
+
+.password-box input:focus{
+    box-shadow:0 0 0 2px #7dd3fc;
+}
+
+.password-box button{
+    width:100%;
+
+    border:none;
+    padding:16px;
+
+    border-radius:12px;
+
+    font-size:20px;
+
+    margin-top:15px;
+
+    cursor:pointer;
+
+    background:#10b981;
+    color:white;
+}
+
+.password-box button:hover{
+    filter:brightness(1.1);
+}
+
+#passwordError{
+    color:#f87171;
+
+    margin-top:15px;
+
+    min-height:24px;
+
+    font-weight:bold;
+}
+
+</style> </head> <body>
+<div id="passwordModal">
+
+    <div class="password-box">
+
+        <h2>🔒 Protected App</h2>
+
+        <p>
+            Enter password to continue
+        </p>
+
+        <input
+            type="password"
+            id="appPassword"
+            placeholder="Enter Password"
+            autocomplete="off"
+        >
+
+        <button onclick="checkPassword()">
+            UNLOCK
+        </button>
+
+        <div id="passwordError"></div>
+
+    </div>
+
+</div>
+ <div class="app">
 <header class="header">
 
     <h1>Table Games</h1>
@@ -20,4 +152,55 @@
     Personal strategy tools
 </footer>
 
-</div> <script> /* ========================================================= APP LIST --------------------------------------------------------- Add or remove apps here. name: Name displayed on the tile. description: Small text underneath the name. icon: Emoji/icon displayed at the top. url: The HTML file or URL that should open. Examples: "blackjack.html" "roulette.html" "baccarat.html" "pages/craps.html" You can also use a complete URL if desired. ========================================================= */ const apps = [ { name: "Blackjack", description: "Basic strategy calculator", icon: "♠", url: "https://ajsingh273.github.io/advisor/blackjack.html" }, { name: "Roulette", description: "RB Decider", icon: "🎯", url: "https://ajsingh273.github.io/advisor/rb.html" }, { name: "Roulette", description: "Engine App Dozen Excluder", icon: "🎯", url: "https://ajsingh273.github.io/advisor/engine.html" }, { name: "Roulette", description: "Decider App Permutations", icon: "🎯", url: "https://ajsingh273.github.io/advisor/decider.html" }, { name: "Roulette", description: "Geometry App Dozens Columns", icon: "🎯", url: "https://ajsingh273.github.io/advisor/pinwheel.html" }, { name: "Roulette", description: "Labouchère", icon: "🎯", url: "https://ajsingh273.github.io/advisor/lou.html" }, { name: "Roulette", description: "Labouchère 2", icon: "🎯", url: "https://ajsingh273.github.io/advisor/lou2.html" }, { name: "Roulette", description: "Labouchère Best", icon: "🎯", url: "https://ajsingh273.github.io/advisor/loubest.html" }, { name: "Roulette", description: "Wheel", icon: "🎯", url: "https://ajsingh273.github.io/advisor/wheel-side-system.html" }, { name: "Roulette", description: "Dynamic", icon: "🎯", url: "https://ajsingh273.github.io/advisor/dynamic.html" }, { name: "Roulette", description: "Dynamic 2", icon: "🎯", url: "https://ajsingh273.github.io/advisor/dynamic2.html" } ]; /* ========================================================= CREATE APP TILES ========================================================= */ function createApps() { const grid = document.getElementById("appGrid"); grid.innerHTML = ""; apps.forEach(function(app) { const link = document.createElement("a"); link.className = "app-tile"; link.href = app.url; link.innerHTML = ` <div> <div class="app-icon"> ${app.icon} </div> <div class="app-name"> ${escapeHtml(app.name)} </div> <div class="app-description"> ${escapeHtml(app.description)} </div> </div> `; grid.appendChild(link); }); } /* ========================================================= SAFE TEXT HELPER ========================================================= */ function escapeHtml(text) { return String(text) .replace(/&/g, "&amp;") .replace(/</g, "&lt;") .replace(/>/g, "&gt;") .replace(/"/g, "&quot;") .replace(/'/g, "&#039;"); } /* ========================================================= START ========================================================= */ createApps(); </script> </body> </html>
+</div> 
+<script>
+
+const APP_PASSWORD = "YOURPASSW0RD";
+
+function checkPassword(){
+
+    const entered =
+        document.getElementById("appPassword").value;
+
+    if(entered === APP_PASSWORD){
+
+        document.getElementById("passwordModal").style.display = "none";
+
+    }else{
+
+        document.getElementById("passwordError").textContent =
+            "Incorrect password.";
+
+        document.getElementById("appPassword").value = "";
+
+        document.getElementById("appPassword").focus();
+
+    }
+
+}
+
+
+/* Allow ENTER key to submit */
+
+document.getElementById("appPassword").addEventListener(
+    "keydown",
+    function(event){
+
+        if(event.key === "Enter"){
+            checkPassword();
+        }
+
+    }
+);
+
+
+/* Automatically place cursor in password field */
+
+window.addEventListener("load", function(){
+
+    document.getElementById("appPassword").focus();
+
+});
+
+</script>
+<script> /* ========================================================= APP LIST --------------------------------------------------------- Add or remove apps here. name: Name displayed on the tile. description: Small text underneath the name. icon: Emoji/icon displayed at the top. url: The HTML file or URL that should open. Examples: "blackjack.html" "roulette.html" "baccarat.html" "pages/craps.html" You can also use a complete URL if desired. ========================================================= */ const apps = [ { name: "Blackjack", description: "Basic strategy calculator", icon: "♠", url: "https://ajsingh273.github.io/advisor/blackjack.html" }, { name: "Roulette", description: "RB Decider", icon: "🎯", url: "https://ajsingh273.github.io/advisor/rb.html" }, { name: "Roulette", description: "Engine App Dozen Excluder", icon: "🎯", url: "https://ajsingh273.github.io/advisor/engine.html" }, { name: "Roulette", description: "Decider App Permutations", icon: "🎯", url: "https://ajsingh273.github.io/advisor/decider.html" }, { name: "Roulette", description: "Geometry App Dozens Columns", icon: "🎯", url: "https://ajsingh273.github.io/advisor/pinwheel.html" }, { name: "Roulette", description: "Labouchère", icon: "🎯", url: "https://ajsingh273.github.io/advisor/lou.html" }, { name: "Roulette", description: "Labouchère 2", icon: "🎯", url: "https://ajsingh273.github.io/advisor/lou2.html" }, { name: "Roulette", description: "Labouchère Best", icon: "🎯", url: "https://ajsingh273.github.io/advisor/loubest.html" }, { name: "Roulette", description: "Wheel", icon: "🎯", url: "https://ajsingh273.github.io/advisor/wheel-side-system.html" }, { name: "Roulette", description: "Dynamic", icon: "🎯", url: "https://ajsingh273.github.io/advisor/dynamic.html" }, { name: "Roulette", description: "Dynamic 2", icon: "🎯", url: "https://ajsingh273.github.io/advisor/dynamic2.html" } ]; /* ========================================================= CREATE APP TILES ========================================================= */ function createApps() { const grid = document.getElementById("appGrid"); grid.innerHTML = ""; apps.forEach(function(app) { const link = document.createElement("a"); link.className = "app-tile"; link.href = app.url; link.innerHTML = ` <div> <div class="app-icon"> ${app.icon} </div> <div class="app-name"> ${escapeHtml(app.name)} </div> <div class="app-description"> ${escapeHtml(app.description)} </div> </div> `; grid.appendChild(link); }); } /* ========================================================= SAFE TEXT HELPER ========================================================= */ function escapeHtml(text) { return String(text) .replace(/&/g, "&amp;") .replace(/</g, "&lt;") .replace(/>/g, "&gt;") .replace(/"/g, "&quot;") .replace(/'/g, "&#039;"); } /* ========================================================= START ========================================================= */ createApps(); </script> </body> </html>
