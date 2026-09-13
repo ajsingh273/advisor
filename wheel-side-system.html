@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0b0f17">
+<title>Wheel Side System</title>
+
+<style>
+:root {
+    --bg: #080c13;
+    --card: #111722;
+    --card2: #171e2b;
+    --border: #263043;
+    --text: #f4f7fb;
+    --muted: #8994a7;
+    --green: #18d47b;
+    --green2: #0fa866;
+    --red: #ff4d5e;
+    --blue: #4d8dff;
+    --gold: #ffc857;
+    --gray: #4b5567;
+    --white: #ffffff;
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    padding: 14px;
+}
+
+.app {
+    width: 100%;
+    max-width: 620px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    padding: 8px 4px 16px;
+}
+
+header h1 {
+    font-size: 24px;
+    margin: 0 0 5px;
+    letter-spacing: -0.5px;
+}
+
+header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+/* --------------------------------
+   Recommendation
+-------------------------------- */
+
+.recommendation {
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 20px 16px;
+    background:
+        radial-gradient(circle at 50% 0%, rgba(77,141,255,.12), transparent 55%),
+        var(--card);
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.rec-label {
+    color: var(--muted);
+    text-transform: uppercase;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+}
+
+.rec-main {
+    font-size: 48px;
+    line-height: 1;
+    font-weight: 900;
+    margin: 7px 0;
+    letter-spacing: -2px;
+}
+
+.rec-main.a {
+    color: var(--green);
+}
+
+.rec-main.b {
+    color: var(--red);
+}
+
+.rec-main.wait {
+    color: var(--gold);
+    font-size: 38px;
+}
+
+.rec-detail {
+    color: var(--muted);
+    font-size: 13px;
+    min-height: 19px;
+}
+
+/* --------------------------------
+   Controls
+-------------------------------- */
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 15px;
+    margin-bottom: 12px;
+}
+
+.card-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 800;
+    color: var(--muted);
+    margin-bottom: 11px;
+}
+
+.mode-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.mode-button {
+    border: 1px solid var(--border);
+    background: var(--card2);
+    color: var(--muted);
+    border-radius: 13px;
+    padding: 13px 8px;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.mode-button.active {
+    background: #21375f;
+    border-color: var(--blue);
+    color: white;
+}
+
+/* --------------------------------
+   Input
+-------------------------------- */
+
+textarea {
+    width: 100%;
+    min-height: 105px;
+    resize: vertical;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: #0a0f18;
+    color: var(--text);
+    padding: 13px;
+    font-size: 16px;
+    line-height: 1.55;
+    outline: none;
+    font-family: inherit;
+}
+
+textarea:focus {
+    border-color: var(--blue);
+}
+
+textarea::placeholder {
+    color: #586276;
+}
+
+.input-help {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 8px;
+}
+
+.clear-button {
+    width: 100%;
+    margin-top: 9px;
+    border: 1px solid #30394b;
+    background: #191f2b;
+    color: #c6cedb;
+    border-radius: 12px;
+    padding: 11px;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+/* --------------------------------
+   Wheel
+-------------------------------- */
+
+.wheel-card {
+    padding-bottom: 18px;
+}
+
+.wheel-wrap {
+    width: min(88vw, 420px);
+    aspect-ratio: 1;
+    margin: 4px auto 12px;
+    position: relative;
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.wheel-caption {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 14px;
+}
+
+/* --------------------------------
+   Legend
+-------------------------------- */
+
+.legend {
+    border-top: 1px solid var(--border);
+    padding-top: 13px;
+    margin-top: 2px;
+}
+
+.legend-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin-bottom: 10px;
+}
+
+.legend-row:last-child {
+    margin-bottom: 0;
+}
+
+.legend-swatch {
+    flex: none;
+    width: 13px;
+    height: 13px;
+    border-radius: 4px;
+    margin-top: 2px;
+}
+
+.legend-swatch.a {
+    background: var(--green);
+}
+
+.legend-swatch.b {
+    background: var(--red);
+}
+
+.legend-body {
+    flex: 1;
+}
+
+.legend-title {
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 5px;
+}
+
+.legend-title.a {
+    color: var(--green);
+}
+
+.legend-title.b {
+    color: var(--red);
+}
+
+.legend-numbers {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.65;
+    letter-spacing: .2px;
+}
+
+/* --------------------------------
+   Stats
+-------------------------------- */
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 7px;
+}
+
+.stat {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 5px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 19px;
+    font-weight: 850;
+}
+
+.stat-label {
+    color: var(--muted);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    margin-top: 3px;
+}
+
+/* --------------------------------
+   State
+-------------------------------- */
+
+.state-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.state {
+    border-radius: 14px;
+    padding: 13px;
+    background: var(--card2);
+    border: 1px solid var(--border);
+}
+
+.state-name {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 5px;
+}
+
+.state-value {
+    font-size: 22px;
+    font-weight: 850;
+}
+
+.state-value.a {
+    color: var(--green);
+}
+
+.state-value.b {
+    color: var(--red);
+}
+
+.sequence {
+    max-height: 110px;
+    overflow-y: auto;
+    background: #0a0f18;
+    border-radius: 12px;
+    padding: 9px;
+    margin-top: 10px;
+    line-height: 1.9;
+}
+
+.token {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 25px;
+    height: 25px;
+    padding: 0 4px;
+    border-radius: 13px;
+    margin: 2px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.token.a {
+    background: rgba(24,212,123,.18);
+    color: var(--green);
+    border: 1px solid rgba(24,212,123,.35);
+}
+
+.token.b {
+    background: rgba(255,77,94,.18);
+    color: var(--red);
+    border: 1px solid rgba(255,77,94,.35);
+}
+
+.token.zero {
+    background: rgba(255,255,255,.08);
+    color: #aab2c0;
+    border: 1px solid rgba(255,255,255,.12);
+}
+
+.footer {
+    text-align: center;
+    color: #4e596b;
+    font-size: 10px;
+    padding: 8px 20px 20px;
+    line-height: 1.5;
+}
+
+@media (max-width: 380px) {
+    body {
+        padding: 9px;
+    }
+
+    .rec-main {
+        font-size: 42px;
+    }
+
+    .stats {
+        gap: 4px;
+    }
+
+    .stat-value {
+        font-size: 17px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+    <h1>Wheel Side System</h1>
+    <p>American Roulette · 18 vs 18 wheel sectors</p>
+</header>
+
+<section class="recommendation">
+    <div class="rec-label">Current Recommendation</div>
+    <div id="recommendation" class="rec-main wait">WAIT</div>
+    <div id="recDetail" class="rec-detail">
+        Enter spin history to begin
+    </div>
+</section>
+
+<section class="card">
+    <div class="card-title">Confirmation Mode</div>
+
+    <div class="mode-buttons">
+        <button id="mode2" class="mode-button active" onclick="setMode(2)">
+            2-HIT CONFIRM
+        </button>
+
+        <button id="mode3" class="mode-button" onclick="setMode(3)">
+            3-HIT CONFIRM
+        </button>
+    </div>
+</section>
+
+<section class="card">
+    <div class="card-title">Spin History</div>
+
+    <textarea
+        id="history"
+        spellcheck="false"
+        inputmode="numeric"
+        placeholder="Enter results (0–36, 00):
+
+17 32 0 24 9 5 36
+
+or with commas / line breaks:
+17, 32, 0
+24, 9, 5, 36"
+    ></textarea>
+
+    <div class="input-help">
+        Use the actual spin number. Use 00 for double zero. Spaces, commas and line breaks are accepted.
+    </div>
+
+    <button class="clear-button" onclick="clearHistory()">
+        CLEAR HISTORY
+    </button>
+</section>
+
+<section class="card wheel-card">
+    <div class="card-title">Wheel</div>
+
+    <div class="wheel-wrap">
+        <canvas id="wheel"></canvas>
+    </div>
+
+    <div id="wheelCaption" class="wheel-caption">
+        Enter history to activate a side
+    </div>
+
+    <div class="legend">
+        <div class="legend-row">
+            <div class="legend-swatch a"></div>
+            <div class="legend-body">
+                <div class="legend-title a">Side A</div>
+                <div class="legend-numbers" id="legendA"></div>
+            </div>
+        </div>
+        <div class="legend-row">
+            <div class="legend-swatch b"></div>
+            <div class="legend-body">
+                <div class="legend-title b">Side B</div>
+                <div class="legend-numbers" id="legendB"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="card">
+    <div class="card-title">Statistics</div>
+
+    <div class="stats">
+        <div class="stat">
+            <div id="total" class="stat-value">0</div>
+            <div class="stat-label">Spins</div>
+        </div>
+
+        <div class="stat">
+            <div id="aCount" class="stat-value" style="color:#18d47b">0</div>
+            <div class="stat-label">Side A</div>
+        </div>
+
+        <div class="stat">
+            <div id="bCount" class="stat-value" style="color:#ff4d5e">0</div>
+            <div class="stat-label">Side B</div>
+        </div>
+
+        <div class="stat">
+            <div id="zeroCount" class="stat-value">0</div>
+            <div class="stat-label">0 / 00</div>
+        </div>
+    </div>
+</section>
+
+<section class="card">
+    <div class="card-title">Current State</div>
+
+    <div class="state-grid">
+
+        <div class="state">
+            <div class="state-name">A Consecutive</div>
+            <div id="aStreak" class="state-value a">0</div>
+        </div>
+
+        <div class="state">
+            <div class="state-name">B Consecutive</div>
+            <div id="bStreak" class="state-value b">0</div>
+        </div>
+
+        <div class="state">
+            <div class="state-name">Confirmed Side</div>
+            <div id="confirmedSide" class="state-value">—</div>
+        </div>
+
+        <div class="state">
+            <div class="state-name">Threshold</div>
+            <div id="threshold" class="state-value">2</div>
+        </div>
+
+    </div>
+
+    <div class="card-title" style="margin-top:15px;">Recent Sequence</div>
+    <div id="sequence" class="sequence"></div>
+</section>
+
+<div class="footer">
+    This tool is a mechanical side-selection tracker.
+    It does not predict random outcomes or change roulette probabilities.
+</div>
+
+</div>
+
+<script>
+
+/* ============================================================
+   WHEEL DATA
+   Standard American roulette wheel order, as strings so "0"
+   and "00" stay distinct (an unquoted 00 literal in JS
+   evaluates to 0, which would silently merge the two pockets).
+   ============================================================ */
+
+const wheelNumbers = [
+    "0",
+    "28", "9", "26", "30", "11", "7", "20", "32",
+    "17", "5", "22", "34", "15", "3", "24", "36",
+    "13", "1", "00", "27", "10", "25", "29", "12",
+    "8", "19", "31", "18", "6", "21", "33", "16",
+    "4", "23", "35", "14", "2"
+];
+
+const wheelSet = new Set(wheelNumbers);
+
+/*
+   SIDE A = first 18 non-zero/00 pockets
+   SIDE B = remaining 18 non-zero/00 pockets.
+
+   This creates two adjacent wheel sectors.
+*/
+const sideA = [
+    "28", "9", "26", "30", "11", "7", "20", "32", "17",
+    "5", "22", "34", "15", "3", "24", "36", "13", "1"
+];
+
+const sideB = [
+    "27", "10", "25", "29", "12", "8", "19", "31", "18",
+    "6", "21", "33", "16", "4", "23", "35", "14", "2"
+];
+
+const sideASet = new Set(sideA);
+const sideBSet = new Set(sideB);
+
+let confirmationMode = 2;
+
+function numSide(token) {
+    if (token === "0" || token === "00") return "Z";
+    if (sideASet.has(token)) return "A";
+    if (sideBSet.has(token)) return "B";
+    return null;
+}
+
+/* ============================================================
+   LEGEND
+   ============================================================ */
+
+function renderLegend() {
+    document.getElementById("legendA").textContent = sideA.join(", ");
+    document.getElementById("legendB").textContent = sideB.join(", ");
+}
+
+/* ============================================================
+   MODE
+   ============================================================ */
+
+function setMode(mode) {
+
+    confirmationMode = mode;
+
+    document.getElementById("mode2")
+        .classList.toggle("active", mode === 2);
+
+    document.getElementById("mode3")
+        .classList.toggle("active", mode === 3);
+
+    document.getElementById("threshold").textContent = mode;
+
+    analyze();
+}
+
+/* ============================================================
+   PARSER
+   Accepts actual spin numbers (0-36, 00), separated by
+   spaces, commas or line breaks. Anything that isn't a
+   valid wheel number is ignored.
+   ============================================================ */
+
+function parseHistory(text) {
+
+    const rawTokens = text.trim().split(/[\s,;]+/).filter(Boolean);
+    const tokens = [];
+
+    for (let raw of rawTokens) {
+
+        let t = raw.trim();
+
+        if (t !== "00") {
+            const n = Number(t);
+            if (!Number.isInteger(n) || n < 0 || n > 36) {
+                continue;
+            }
+            t = String(n);
+        }
+
+        if (wheelSet.has(t)) {
+            tokens.push(t);
+        }
+    }
+
+    return tokens;
+}
+
+/* ============================================================
+   ANALYSIS
+   ============================================================ */
+
+function analyze() {
+
+    const text = document.getElementById("history").value;
+    const spins = parseHistory(text);
+
+    const total = spins.length;
+
+    let aCount = 0;
+    let bCount = 0;
+    let zeroCount = 0;
+
+    let currentAStreak = 0;
+    let currentBStreak = 0;
+
+    /*
+       We find the latest uninterrupted A/B streak.
+
+       0 and 00 are neutral and therefore do not create
+       or extend a confirmation streak.
+    */
+    for (let i = 0; i < spins.length; i++) {
+
+        const side = numSide(spins[i]);
+
+        if (side === "A") {
+            aCount++;
+            currentAStreak++;
+            currentBStreak = 0;
+        }
+
+        else if (side === "B") {
+            bCount++;
+            currentBStreak++;
+            currentAStreak = 0;
+        }
+
+        else {
+            zeroCount++;
+        }
+    }
+
+    /*
+       Determine confirmed side.
+
+       The latest A or B streak only becomes confirmed
+       after reaching the selected threshold.
+    */
+    let confirmed = null;
+
+    if (currentAStreak >= confirmationMode) {
+        confirmed = "A";
+    }
+    else if (currentBStreak >= confirmationMode) {
+        confirmed = "B";
+    }
+
+    updateRecommendation(
+        confirmed,
+        currentAStreak,
+        currentBStreak,
+        total
+    );
+
+    updateStats(
+        total,
+        aCount,
+        bCount,
+        zeroCount,
+        currentAStreak,
+        currentBStreak,
+        confirmed,
+        spins
+    );
+
+    drawWheel(confirmed);
+}
+
+/* ============================================================
+   RECOMMENDATION
+   ============================================================ */
+
+function updateRecommendation(
+    confirmed,
+    aStreak,
+    bStreak,
+    total
+) {
+
+    const el = document.getElementById("recommendation");
+    const detail = document.getElementById("recDetail");
+
+    el.className = "rec-main";
+
+    if (total === 0) {
+
+        el.textContent = "WAIT";
+        el.classList.add("wait");
+
+        detail.textContent =
+            "Enter spin history to begin";
+
+        return;
+    }
+
+    if (confirmed === "A") {
+
+        el.textContent = "BET A";
+        el.classList.add("a");
+
+        detail.textContent =
+            `${aStreak}-hit A confirmation · ${confirmationMode}-hit mode`;
+
+        return;
+    }
+
+    if (confirmed === "B") {
+
+        el.textContent = "BET B";
+        el.classList.add("b");
+
+        detail.textContent =
+            `${bStreak}-hit B confirmation · ${confirmationMode}-hit mode`;
+
+        return;
+    }
+
+    el.textContent = "WAIT";
+    el.classList.add("wait");
+
+    const current =
+        aStreak > 0
+            ? `A streak: ${aStreak}`
+            : `B streak: ${bStreak}`;
+
+    detail.textContent =
+        `${current} · waiting for ${confirmationMode}-hit confirmation`;
+}
+
+/* ============================================================
+   STATS
+   ============================================================ */
+
+function updateStats(
+    total,
+    aCount,
+    bCount,
+    zeroCount,
+    aStreak,
+    bStreak,
+    confirmed,
+    spins
+) {
+
+    document.getElementById("total").textContent = total;
+    document.getElementById("aCount").textContent = aCount;
+    document.getElementById("bCount").textContent = bCount;
+    document.getElementById("zeroCount").textContent = zeroCount;
+
+    document.getElementById("aStreak").textContent = aStreak;
+    document.getElementById("bStreak").textContent = bStreak;
+
+    const confirmedEl =
+        document.getElementById("confirmedSide");
+
+    confirmedEl.textContent =
+        confirmed || "—";
+
+    confirmedEl.style.color =
+        confirmed === "A"
+            ? "#18d47b"
+            : confirmed === "B"
+                ? "#ff4d5e"
+                : "#f4f7fb";
+
+    const sequence =
+        document.getElementById("sequence");
+
+    sequence.innerHTML = "";
+
+    /*
+       Show the actual numbers entered, colored by side.
+    */
+    spins.slice(-80).forEach(num => {
+
+        const span = document.createElement("span");
+
+        span.className = "token";
+
+        const side = numSide(num);
+
+        if (side === "A") {
+            span.classList.add("a");
+        }
+        else if (side === "B") {
+            span.classList.add("b");
+        }
+        else {
+            span.classList.add("zero");
+        }
+
+        span.textContent = num;
+
+        sequence.appendChild(span);
+    });
+}
+
+/* ============================================================
+   WHEEL DRAWING
+   ============================================================ */
+
+const canvas = document.getElementById("wheel");
+const ctx = canvas.getContext("2d");
+
+function resizeCanvas() {
+
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const confirmed =
+        getConfirmedSide();
+
+    drawWheel(confirmed);
+}
+
+function getConfirmedSide() {
+
+    const spins =
+        parseHistory(
+            document.getElementById("history").value
+        );
+
+    let aStreak = 0;
+    let bStreak = 0;
+
+    for (const num of spins) {
+
+        const side = numSide(num);
+
+        if (side === "A") {
+            aStreak++;
+            bStreak = 0;
+        }
+        else if (side === "B") {
+            bStreak++;
+            aStreak = 0;
+        }
+    }
+
+    if (aStreak >= confirmationMode) return "A";
+    if (bStreak >= confirmationMode) return "B";
+
+    return null;
+}
+
+function drawWheel(confirmed) {
+
+    const rect = canvas.getBoundingClientRect();
+
+    const w = rect.width;
+    const h = rect.height;
+
+    if (!w || !h) return;
+
+    ctx.clearRect(0, 0, w, h);
+
+    const cx = w / 2;
+    const cy = h / 2;
+
+    const radius =
+        Math.min(w, h) / 2 - 8;
+
+    const pocketRadius =
+        radius * 0.78;
+
+    /*
+       We rotate the graphic so the wheel looks like
+       an actual roulette wheel rather than a pie chart.
+    */
+    const startAngle = -Math.PI / 2;
+
+    const slice =
+        (Math.PI * 2) / wheelNumbers.length;
+
+    /*
+       Outer glow for the confirmed side only.
+    */
+    if (confirmed) {
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius + 3, 0, Math.PI * 2);
+
+        ctx.strokeStyle =
+            confirmed === "A"
+                ? "rgba(24,212,123,.35)"
+                : "rgba(255,77,94,.35)";
+
+        ctx.lineWidth = 7;
+        ctx.stroke();
+    }
+
+    /*
+       Draw pockets. Side A / Side B are tinted at all times
+       (not just when confirmed) so which side is which is
+       always visible. The confirmed side brightens further.
+    */
+    wheelNumbers.forEach((num, index) => {
+
+        const angle =
+            startAngle +
+            index * slice;
+
+        const a0 = angle;
+        const a1 = angle + slice;
+
+        const side = numSide(num);
+
+        let fill;
+
+        if (side === "Z") {
+            fill = "#159447";
+        }
+        else if (side === "A") {
+            fill =
+                confirmed === "A"
+                    ? "#18b96d"
+                    : "#123424";
+        }
+        else {
+            fill =
+                confirmed === "B"
+                    ? "#e83e50"
+                    : "#34161a";
+        }
+
+        ctx.beginPath();
+
+        ctx.moveTo(cx, cy);
+        ctx.arc(
+            cx,
+            cy,
+            radius,
+            a0,
+            a1
+        );
+        ctx.closePath();
+
+        ctx.fillStyle = fill;
+        ctx.fill();
+
+        ctx.strokeStyle = "#0a0e15";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        /*
+           Number position.
+        */
+        const mid =
+            angle + slice / 2;
+
+        const tx =
+            cx + Math.cos(mid) * pocketRadius;
+
+        const ty =
+            cy + Math.sin(mid) * pocketRadius;
+
+        ctx.save();
+
+        ctx.translate(tx, ty);
+        ctx.rotate(mid + Math.PI / 2);
+
+        ctx.fillStyle =
+            "#ffffff";
+
+        ctx.font =
+            "800 11px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        ctx.fillText(
+            num,
+            0,
+            0
+        );
+
+        ctx.restore();
+    });
+
+    /*
+       Inner ring.
+    */
+    ctx.beginPath();
+
+    ctx.arc(
+        cx,
+        cy,
+        radius * .48,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fillStyle = "#0c111a";
+    ctx.fill();
+
+    ctx.strokeStyle = "#30394b";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    /*
+       Center label.
+    */
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    if (confirmed === "A") {
+
+        ctx.fillStyle = "#18d47b";
+        ctx.font =
+            "900 25px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+
+        ctx.fillText(
+            "SIDE A",
+            cx,
+            cy - 8
+        );
+
+        ctx.fillStyle = "#8994a7";
+        ctx.font =
+            "600 10px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+
+        ctx.fillText(
+            "BET 18 NUMBERS",
+            cx,
+            cy + 15
+        );
+
+    }
+    else if (confirmed === "B") {
+
+        ctx.fillStyle = "#ff4d5e";
+        ctx.font =
+            "900 25px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+
+        ctx.fillText(
+            "SIDE B",
+            cx,
+            cy - 8
+        );
+
+        ctx.fillStyle = "#8994a7";
+        ctx.font =
+            "600 10px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+
+        ctx.fillText(
+            "BET 18 NUMBERS",
+            cx,
+            cy + 15
+        );
+
+    }
+    else {
+
+        ctx.fillStyle = "#ffc857";
+        ctx.font =
+            "900 22px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+
+        ctx.fillText(
+            "WAIT",
+            cx,
+            cy
+        );
+    }
+
+    /*
+       Wheel caption.
+    */
+    const caption =
+        document.getElementById("wheelCaption");
+
+    if (confirmed === "A") {
+
+        caption.textContent =
+            "SIDE A CONFIRMED · 18-number sector highlighted";
+
+    }
+    else if (confirmed === "B") {
+
+        caption.textContent =
+            "SIDE B CONFIRMED · 18-number sector highlighted";
+
+    }
+    else {
+
+        caption.textContent =
+            `Waiting for ${confirmationMode}-hit confirmation`;
+    }
+}
+
+/* ============================================================
+   CLEAR
+   ============================================================ */
+
+function clearHistory() {
+
+    document.getElementById("history").value = "";
+
+    analyze();
+
+    document.getElementById("history").focus();
+}
+
+/* ============================================================
+   LIVE INPUT
+   ============================================================ */
+
+document
+    .getElementById("history")
+    .addEventListener("input", analyze);
+
+/* ============================================================
+   RESIZE
+   ============================================================ */
+
+window.addEventListener("resize", resizeCanvas);
+
+/* ============================================================
+   INIT
+   ============================================================ */
+
+renderLegend();
+resizeCanvas();
+analyze();
+
+</script>
+
+</body>
+</html>
