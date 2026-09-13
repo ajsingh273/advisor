@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TERRA-38 — Orbital Wheel Tracker</title>
+<style>
+:root{
+  --bg:#050b14;--panel:#0a1524;--panel2:#0d1c30;--text:#e7f1fb;--muted:#7d93ac;
+  --line:#1c3049;--ocean:#1c7fa8;--land:#3ddc84;--gold:#ffcf5c;--bad:#ff6b6b;--ring:#2a4a6e;
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+  radial-gradient(ellipse 900px 500px at 15% -10%, #0e2d47 0%, transparent 60%),
+  radial-gradient(ellipse 700px 500px at 110% 20%, #0a2a2c 0%, transparent 55%),
+  var(--bg);
+  color:var(--text);font-family:"Helvetica Neue",Inter,ui-sans-serif,system-ui,sans-serif;min-height:100vh}
+.wrap{max-width:980px;margin:auto;padding:28px 22px 60px}
+
+header{display:flex;gap:20px;align-items:center;margin-bottom:26px}
+.globe{
+  width:58px;height:58px;border-radius:50%;flex:none;
+  background:
+    radial-gradient(circle at 32% 28%, #58e0c9 0 6%, transparent 7%),
+    radial-gradient(circle at 65% 60%, #3ddc84 0 10%, transparent 11%),
+    conic-gradient(from 210deg, #0a3a56, #123f5f 30%, #1c7fa8 55%, #0a3a56 100%);
+  box-shadow: inset -8px -8px 18px rgba(0,0,0,.55), 0 0 24px rgba(28,127,168,.35);
+  position:relative;
+}
+.globe::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(120,180,220,.25)}
+h1{margin:0;font-size:26px;letter-spacing:.2px;font-weight:600}
+.sub{color:var(--muted);font-size:13px;margin-top:4px;line-height:1.5;max-width:520px}
+
+.card{background:rgba(10,21,36,.86);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px}
+.card h2{font-size:12px;margin:0 0 14px;letter-spacing:.4px;color:#9fb6cf;font-weight:600}
+
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11px;color:var(--muted)}
+input[type=text],input[type=number],select{
+  background:#071120;border:1px solid var(--ring);border-radius:9px;color:var(--text);
+  padding:9px 11px;font:14px ui-monospace,Menlo,monospace;outline:none;width:100%
+}
+input[type=text]:focus,input[type=number]:focus,select:focus{border-color:var(--ocean)}
+textarea{width:100%;min-height:70px;background:#071120;border:1px solid var(--ring);border-radius:9px;color:var(--text);
+padding:11px;font:13px ui-monospace,Menlo,monospace;resize:vertical;outline:none}
+textarea:focus{border-color:var(--ocean)}
+
+button{border:0;border-radius:9px;padding:10px 15px;font-weight:700;font-size:13px;cursor:pointer;background:#152c47;color:#eaf3ff}
+button.primary{background:linear-gradient(135deg,#1c7fa8,#3ddc84);color:#04150d}
+button.ghost{background:transparent;border:1px solid var(--line);color:#b9cbdf}
+button:hover{filter:brightness(1.12)}
+button:disabled{opacity:.4;cursor:not-allowed;filter:none}
+
+.help{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.5}
+
+/* recommendation */
+.recname{font-size:24px;font-weight:700;letter-spacing:-.3px}
+.recmeta{font-size:12px;color:var(--muted);margin-top:3px}
+.pockets{display:flex;flex-wrap:wrap;gap:5px;margin-top:14px}
+.pocket{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#0d1e33;border:1px solid var(--ring);font-size:10.5px;font-weight:700;color:#cfe0f5}
+.pocket.zero{background:#123322;border-color:#1f5b3c}
+.pocket.last{outline:2px solid var(--gold);outline-offset:1px}
+.altline{font-size:11.5px;color:var(--muted);margin-top:12px}
+
+/* progression */
+.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.pk{background:#071120;border:1px solid var(--line);border-radius:11px;padding:11px}
+.pk span{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.pk b{display:block;font-size:19px;margin-top:3px}
+.pk b.good{color:var(--land)}
+.pk b.bad{color:var(--bad)}
+
+.logline{display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--line);color:#b9cbdf}
+.logline:last-child{border-bottom:none}
+.logline .win{color:var(--land);font-weight:700}
+.logline .loss{color:var(--bad);font-weight:700}
+#logwrap{max-height:150px;overflow-y:auto;margin-top:10px}
+
+.note{margin-top:14px;padding:12px;border-radius:10px;background:#071120;border:1px solid var(--line);font-size:11.5px;color:#9fb2c8;line-height:1.55}
+footer{color:#5c7188;font-size:11px;text-align:center;margin-top:22px;line-height:1.6}
+@media(max-width:640px){.pgrid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="globe"></div>
+  <div>
+    <h1>TERRA-38</h1>
+    <div class="sub">One wheel, eighteen pockets, treated like a band of longitude on a spinning globe. Tracks spins, scores the current sector, and runs your recovery progression — nothing more.</div>
+  </div>
+</header>
+
+<div class="card">
+  <h2>SETUP</h2>
+  <div class="row">
+    <div class="field" style="flex:1;min-width:220px">
+      <label>Starting spin history (optional — newest last)</label>
+      <textarea id="history" placeholder="e.g. 17, 32, 15, 19, 21, 2, 25, 0, 13, 36"></textarea>
+    </div>
+  </div>
+  <div class="row" style="margin-top:12px">
+    <div class="field"><label>Sector size</label>
+      <select id="clusterSize">
+        <option value="12">12 numbers</option>
+        <option value="15">15 numbers</option>
+        <option value="18" selected>18 numbers</option>
+        <option value="21">21 numbers</option>
+        <option value="24">24 numbers</option>
+      </select>
+    </div>
+    <div class="field"><label>Base unit / number ($)</label>
+      <input type="number" id="baseUnit" value="0.50" min="0.10" step="0.10">
+    </div>
+    <div class="field"><label>&nbsp;</label>
+      <button class="primary" onclick="initialize()">Initialize</button>
+    </div>
+    <div class="field"><label>&nbsp;</label>
+      <button class="ghost" onclick="loadDemo()">Demo data</button>
+    </div>
+    <div class="field"><label>&nbsp;</label>
+      <button class="ghost" onclick="resetAll()">Reset session</button>
+    </div>
+  </div>
+  <div class="help">18 numbers is the only sector size where profit-on-hit exactly equals your total stake (36−18=18) — that's what makes plain bet-doubling work cleanly. Other sizes still work here, but the progression math below adjusts automatically rather than just doubling.</div>
+</div>
+
+<div class="card" id="recCard" style="display:none">
+  <h2>CURRENT SECTOR TO BET</h2>
+  <div class="recname" id="recName">—</div>
+  <div class="recmeta" id="recMeta">—</div>
+  <div class="pockets" id="recPockets"></div>
+  <div class="altline" id="altLine"></div>
+</div>
+
+<div class="card" id="progCard" style="display:none">
+  <h2>PROGRESSION</h2>
+  <div class="pgrid">
+    <div class="pk"><span>Next bet</span><b id="nextBet">—</b></div>
+    <div class="pk"><span>Consecutive losses</span><b id="lossStreak">0</b></div>
+    <div class="pk"><span>Session net</span><b id="sessionNet" class="good">$0.00</b></div>
+    <div class="pk"><span>Spins logged</span><b id="spinCount">0</b></div>
+  </div>
+
+  <div class="row" style="margin-top:16px">
+    <div class="field" style="flex:1;min-width:140px">
+      <label>Actual result of that spin</label>
+      <input type="text" id="lastSpin" placeholder="e.g. 24 or 00">
+    </div>
+    <div class="field"><label>&nbsp;</label>
+      <button class="primary" id="logBtn" onclick="logSpin()">Log spin &amp; get next sector</button>
+    </div>
+  </div>
+  <div id="logwrap"></div>
+  <div class="note" id="diagnostic"></div>
+</div>
+
+</div>
+
+<footer>
+TERRA-38 is a spin-tracking and bookkeeping tool, not a prediction system. On an RNG-based electronic table (e.g. Interblock EBT), each spin is statistically independent of the last — the sector score reflects recent history, not future odds. American roulette carries a −5.26% house edge on every bet type here regardless of sector size, and no staking progression changes that expected value; it only reshapes the distribution of outcomes (frequent small results vs. rare large swings). Recovery progressions can require bet sizes that outgrow table maximums during a long losing streak — check your machine's per-number limit before playing.
+</footer>
+</div>
+
+<script>
+const WHEEL=["0","28","9","26","30","11","7","20","32","17","5","22","34","15","3","24","36","13","1","00","27","10","25","29","12","8","19","31","18","6","21","33","16","4","23","35","14","2"];
+const IDX=Object.fromEntries(WHEEL.map((v,i)=>[v,i]));
+
+let state={
+  history:[],
+  clusterSize:18,
+  baseUnit:0.5,
+  lossStreak:0,
+  sessionNet:0,
+  spinCount:0,
+  currentCluster:null,
+  currentBetUnit:0.5,
+  initialized:false
+};
+
+function circularDistance(a,b){const d=Math.abs(a-b);return Math.min(d,WHEEL.length-d);}
+function windowAt(center,width){
+  const start=(center-Math.floor(width/2)+WHEEL.length)%WHEEL.length;
+  return Array.from({length:width},(_,k)=>WHEEL[(start+k)%WHEEL.length]);
+}
+function sectorScore(sector,spins){
+  const set=new Set(sector),N=spins.length;
+  let density=0,recency=0,local=0,run=0;
+  spins.forEach((v,i)=>{const age=N-1-i,w=Math.pow(.94,age);if(set.has(v)){density+=w;recency+=1/(1+age);}});
+  for(let i=1;i<spins.length;i++){if(set.has(spins[i])&&set.has(spins[i-1])) local+=Math.pow(.92,N-1-i);}
+  for(let i=N-1;i>=0&&set.has(spins[i]);i--) run++;
+  const distinct=new Set(spins.slice(-20).filter(v=>set.has(v))).size;
+  return {density,recency,local,distinct,runBonus:Math.min(run,5)*.55};
+}
+function norm(feats,key){
+  const vals=feats.map(f=>f[key]),min=Math.min(...vals),max=Math.max(...vals);
+  return feats.map(f=>max===min?.5:(f[key]-min)/(max-min));
+}
+function bestSector(spins,width){
+  const last=IDX[spins[spins.length-1]];
+  const centers=[(last-12+38)%38,last,(last+12)%38];
+  const cands=centers.map(c=>({center:c,sector:windowAt(c,width)}));
+  const feats=cands.map(c=>sectorScore(c.sector,spins));
+  const keys=["density","recency","local","distinct","runBonus"];
+  const ns={};keys.forEach(k=>ns[k]=norm(feats,k));
+  cands.forEach((c,i)=>{
+    c.score=100*(.34*ns.density[i]+.24*ns.local[i]+.18*ns.recency[i]+.14*ns.distinct[i]+.10*ns.runBonus[i]);
+  });
+  cands.sort((a,b)=>b.score-a.score);
+  return cands;
+}
+
+function parseHistory(raw){
+  return raw.split(/[\s,;|]+/).filter(Boolean).map(v=>v.trim()==="00"?"00":String(Number(v.trim())))
+    .filter(v=>IDX[v]!==undefined).slice(-60);
+}
+function fmt(n){return "$"+n.toFixed(2);}
+
+function initialize(){
+  const raw=document.getElementById("history").value.trim();
+  state.history=raw?parseHistory(raw):[];
+  state.clusterSize=parseInt(document.getElementById("clusterSize").value,10);
+  state.baseUnit=parseFloat(document.getElementById("baseUnit").value)||0.5;
+  state.currentBetUnit=state.baseUnit;
+  state.lossStreak=0;state.sessionNet=0;state.spinCount=state.history.length;
+  state.initialized=true;
+  document.getElementById("logwrap").innerHTML="";
+  if(state.history.length<3){
+    // no meaningful history yet — default to a neutral sector centered on pocket 0
+    state.currentCluster={sector:windowAt(0,state.clusterSize),score:0};
+  }else{
+    const cands=bestSector(state.history,state.clusterSize);
+    state.currentCluster=cands[0];
+    state.altScore=cands[1]?cands[1].score:null;
+  }
+  document.getElementById("recCard").style.display="block";
+  document.getElementById("progCard").style.display="block";
+  renderRecommendation();
+  renderProgression();
+  document.getElementById("diagnostic").textContent="Bet the sector above, then log the actual result to update the tracker and get the next sector.";
+}
+
+function renderRecommendation(){
+  const c=state.currentCluster;
+  const last=state.history.length?state.history[state.history.length-1]:null;
+  document.getElementById("recName").textContent=`${state.clusterSize}-number sector`;
+  document.getElementById("recMeta").textContent = state.history.length<3
+    ? "Not enough history yet — showing a neutral starting sector."
+    : `Score ${c.score.toFixed(1)}/100 based on the last ${state.history.length} spins.`;
+  document.getElementById("recPockets").innerHTML = c.sector.map(v=>
+    `<span class="pocket ${v==="0"||v==="00"?"zero":""} ${v===last?"last":""}">${v}</span>`).join("");
+  document.getElementById("altLine").textContent = state.altScore!=null
+    ? `Next-best alternative sector scored ${state.altScore.toFixed(1)} for comparison.`
+    : "";
+}
+
+function renderProgression(){
+  const betTotal=state.clusterSize*state.currentBetUnit;
+  document.getElementById("nextBet").textContent=fmt(betTotal)+` (${fmt(state.currentBetUnit)}/no.)`;
+  document.getElementById("lossStreak").textContent=state.lossStreak;
+  const netEl=document.getElementById("sessionNet");
+  netEl.textContent=(state.sessionNet>=0?"+":"")+fmt(state.sessionNet);
+  netEl.className=state.sessionNet>=0?"good":"bad";
+  document.getElementById("spinCount").textContent=state.spinCount;
+}
+
+function logSpin(){
+  const val=document.getElementById("lastSpin").value.trim();
+  const norm=val==="00"?"00":String(Number(val));
+  if(IDX[norm]===undefined){alert("Enter a valid result: 0, 00, or 1–36.");return;}
+
+  const k=state.clusterSize, hit=state.currentCluster.sector.includes(norm);
+  const s=state.currentBetUnit, betTotal=k*s;
+  let outcomeNet;
+
+  if(hit){
+    outcomeNet=(36-k)*s;           // profit on hit
+    state.sessionNet+=outcomeNet;
+    state.lossStreak=0;
+    state._cumLossTracker=0;
+    state.currentBetUnit=state.baseUnit;  // reset progression
+  }else{
+    outcomeNet=-betTotal;          // full sector lost
+    state.sessionNet+=outcomeNet;
+    state.lossStreak+=1;
+    state._cumLossTracker=(state._cumLossTracker||0)+betTotal;
+    // recovery formula: next bet's win must cover cumulative loss since last win + one base-unit profit
+    const baseProfitTarget=(36-k)*state.baseUnit;
+    state.currentBetUnit=(state._cumLossTracker+baseProfitTarget)/(36-k);
+  }
+
+  // log line
+  const row=document.createElement("div");
+  row.className="logline";
+  row.innerHTML=`<span>#${state.spinCount+1} — result ${norm}, bet ${fmt(betTotal)}</span><span class="${hit?"win":"loss"}">${hit?"WIN "+ "+"+fmt(outcomeNet):"LOSS "+fmt(outcomeNet)}</span>`;
+  const wrap=document.getElementById("logwrap");
+  wrap.prepend(row);
+
+  state.history.push(norm);
+  if(state.history.length>60) state.history=state.history.slice(-60);
+  state.spinCount+=1;
+  document.getElementById("lastSpin").value="";
+
+  const cands=bestSector(state.history,k);
+  state.currentCluster=cands[0];
+  state.altScore=cands[1]?cands[1].score:null;
+
+  renderRecommendation();
+  renderProgression();
+
+  document.getElementById("diagnostic").textContent = hit
+    ? "Hit — progression reset to your base unit."
+    : `Miss — next bet increased to recover this loss plus one base-unit profit on the following win (streak: ${state.lossStreak}).`;
+}
+
+function loadDemo(){
+  const demo=[17,32,15,19,21,2,25,0,13,36,11,24,17,20,32,5,22,34,15,3,24,36,13,1,27,10,25,29,12,8,19,31,18,6,21,33,16,4,23,35,14,2];
+  document.getElementById("history").value=demo.join(", ");
+  initialize();
+}
+function resetAll(){
+  document.getElementById("history").value="";
+  document.getElementById("lastSpin").value="";
+  document.getElementById("logwrap").innerHTML="";
+  document.getElementById("recCard").style.display="none";
+  document.getElementById("progCard").style.display="none";
+  state={history:[],clusterSize:18,baseUnit:0.5,lossStreak:0,sessionNet:0,spinCount:0,currentCluster:null,currentBetUnit:0.5,initialized:false,_cumLossTracker:0};
+}
+</script>
+</body>
+</html>
