@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Oscar's Grind</title>
+<style>
+:root{
+  --ink:#1c2321; --paper:#f6f3ec; --line:#d8d1c2;
+  --win:#3d6b52; --lose:#8a3b2e; --accent:#2f4858;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --ink:#eae5d9; --paper:#1b1e1c; --line:#39413c; --win:#7fbfa0; --lose:#e08a76; --accent:#8fb3c9; }
+}
+:root[data-theme="dark"]{ --ink:#eae5d9; --paper:#1b1e1c; --line:#39413c; --win:#7fbfa0; --lose:#e08a76; --accent:#8fb3c9; }
+*{box-sizing:border-box;}
+html,body{margin:0; background:var(--paper); color:var(--ink); font-family:'Georgia', 'Iowan Old Style', serif;}
+body{ min-height:100%; display:flex; justify-content:center; padding:32px 16px; }
+main{ width:100%; max-width:460px; }
+h1{ font-size:1.6rem; font-weight:600; margin:0 0 4px; letter-spacing:.2px; }
+.sub{ color:var(--ink); opacity:.65; font-size:.92rem; margin-bottom:28px; }
+.card{ border:1px solid var(--line); border-radius:6px; padding:20px; margin-bottom:16px; }
+label{ display:block; font-size:.85rem; opacity:.75; margin-bottom:6px; }
+input[type=number]{
+  width:100%; font-size:1.1rem; padding:10px 12px; border:1px solid var(--line);
+  border-radius:4px; background:transparent; color:var(--ink); font-family:inherit;
+}
+button{
+  font-family:inherit; font-size:1rem; border:none; border-radius:4px; padding:12px 18px;
+  cursor:pointer; background:var(--accent); color:var(--paper); width:100%; margin-top:6px;
+}
+button.secondary{ background:transparent; color:var(--ink); border:1px solid var(--line); }
+button:active{ opacity:.85; }
+.row{ display:flex; gap:10px; }
+.row button{ flex:1; }
+.bet-display{ text-align:center; padding:22px 0; }
+.bet-display .amount{ font-size:2.6rem; font-weight:700; line-height:1; }
+.bet-display .label{ font-size:.85rem; opacity:.65; margin-top:6px; }
+.stats{ display:flex; justify-content:space-between; font-size:.9rem; margin-top:2px; }
+.stats div{ text-align:center; flex:1; }
+.stats .num{ font-size:1.15rem; font-weight:600; display:block; }
+.history{ font-size:.85rem; opacity:.7; margin-top:14px; line-height:1.6; max-height:120px; overflow-y:auto; }
+.history span{ display:inline-block; margin-right:6px; }
+.win-tag{ color:var(--win); }
+.lose-tag{ color:var(--lose); }
+.done{ text-align:center; color:var(--win); font-weight:600; padding:18px 0; }
+.hidden{ display:none; }
+.mode-btn{ background:transparent; border:1px solid var(--line); color:var(--ink); opacity:.6; }
+.mode-btn.active{ background:var(--accent); color:var(--paper); opacity:1; border-color:var(--accent); }
+.dozen-note{ text-align:center; font-size:.82rem; opacity:.7; margin-top:-8px; margin-bottom:8px; }
+#passwordModal{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100vw;
+    height:100vh;
+
+    background:#101820;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    z-index:999999;
+
+    padding:20px;
+}
+
+.password-box{
+    width:100%;
+    max-width:420px;
+
+    background:#1d2938;
+
+    border-radius:18px;
+
+    padding:30px 25px;
+
+    box-shadow:0 8px 40px rgba(0,0,0,.6);
+
+    text-align:center;
+}
+
+.password-box h2{
+    margin-bottom:10px;
+    color:white;
+}
+
+.password-box p{
+    color:#8fa6c3;
+    margin-bottom:25px;
+}
+
+.password-box input{
+    width:100%;
+
+    padding:16px;
+
+    border:none;
+    border-radius:12px;
+
+    background:#0f172a;
+    color:white;
+
+    font-size:20px;
+
+    text-align:center;
+
+    outline:none;
+}
+
+.password-box input:focus{
+    box-shadow:0 0 0 2px #7dd3fc;
+}
+
+.password-box button{
+    width:100%;
+
+    border:none;
+    padding:16px;
+
+    border-radius:12px;
+
+    font-size:20px;
+
+    margin-top:15px;
+
+    cursor:pointer;
+
+    background:#10b981;
+    color:white;
+}
+
+.password-box button:hover{
+    filter:brightness(1.1);
+}
+
+#passwordError{
+    color:#f87171;
+
+    margin-top:15px;
+
+    min-height:24px;
+
+    font-weight:bold;
+}
+</style>
+</head>
+<body>
+  <div id="passwordModal">
+
+    <div class="password-box">
+
+        <h2>🔒 Protected App</h2>
+
+        <p>
+            Enter password to continue
+        </p>
+
+        <input
+            type="password"
+            id="appPassword"
+            placeholder="Enter Password"
+            autocomplete="off"
+        >
+
+        <button onclick="checkPassword()">
+            UNLOCK
+        </button>
+
+        <div id="passwordError"></div>
+
+    </div>
+
+</div>
+<main>
+  <h1>Oscar's Grind</h1>
+  <div class="sub">Flat after a loss, up one unit after a win, trimmed so a win never overshoots the goal.</div>
+
+  <div class="card" id="setup">
+    <label>Bet type</label>
+    <div class="row" style="margin-bottom:16px;">
+      <button type="button" id="modeEvenBtn" class="mode-btn active" onclick="setMode('even')">Even money</button>
+      <button type="button" id="modeDozenBtn" class="mode-btn" onclick="setMode('dozen')">Two dozens</button>
+    </div>
+    <label for="goal">Goal for this round (units)</label>
+    <input type="number" id="goal" min="1" step="1" value="4">
+    <label for="cap" style="margin-top:14px;">Bet ceiling (units per side, optional)</label>
+    <input type="number" id="cap" min="1" step="1" placeholder="e.g. 6 — leave blank for no ceiling">
+    <button onclick="startRound()">Start round</button>
+  </div>
+
+  <div class="card hidden" id="play">
+    <div class="bet-display">
+      <div class="amount" id="betAmount">1</div>
+      <div class="label" id="betLabel">units — place this bet</div>
+    </div>
+    <div class="dozen-note hidden" id="dozenNote"></div>
+    <div class="row">
+      <button onclick="record('win')" style="background:var(--win)">Win</button>
+      <button onclick="record('lose')" style="background:var(--lose)">Lose</button>
+    </div>
+    <div class="stats">
+      <div><span class="num" id="profitNum">0</span>profit</div>
+      <div><span class="num" id="goalNum">4</span>goal</div>
+      <div><span class="num" id="spinNum">0</span>spins</div>
+    </div>
+    <div class="history" id="history"></div>
+    <button class="secondary" onclick="reset()">New round</button>
+  </div>
+
+  <div class="card hidden" id="finished">
+    <div class="done" id="doneMsg">Goal reached.</div>
+    <button onclick="reset()">Start next round</button>
+  </div>
+</main>
+<script>
+
+const APP_PASSWORD = "YOURPASSW0RD";
+
+function checkPassword(){
+
+    const entered =
+        document.getElementById("appPassword").value;
+
+    if(entered === APP_PASSWORD){
+
+        document.getElementById("passwordModal").style.display = "none";
+
+    }else{
+
+        document.getElementById("passwordError").textContent =
+            "Incorrect password.";
+
+        document.getElementById("appPassword").value = "";
+
+        document.getElementById("appPassword").focus();
+
+    }
+
+}
+
+
+/* Allow ENTER key to submit */
+
+document.getElementById("appPassword").addEventListener(
+    "keydown",
+    function(event){
+
+        if(event.key === "Enter"){
+            checkPassword();
+        }
+
+    }
+);
+
+
+/* Automatically place cursor in password field */
+
+window.addEventListener("load", function(){
+
+    document.getElementById("appPassword").focus();
+
+});
+
+</script>
+<script>
+let mode = 'even'; // 'even' or 'dozen'
+let goal = 0, cap = 0, profit = 0, bet = 1, spins = 0, log = [];
+
+function setMode(m){
+  mode = m;
+  document.getElementById('modeEvenBtn').classList.toggle('active', m === 'even');
+  document.getElementById('modeDozenBtn').classList.toggle('active', m === 'dozen');
+}
+
+function startRound(){
+  goal = Math.max(1, parseInt(document.getElementById('goal').value) || 1);
+  const capVal = parseInt(document.getElementById('cap').value);
+  cap = (capVal && capVal > 0) ? capVal : Infinity;
+  profit = 0; bet = 1; spins = 0; log = [];
+  document.getElementById('setup').classList.add('hidden');
+  document.getElementById('play').classList.remove('hidden');
+  document.getElementById('finished').classList.add('hidden');
+  render();
+}
+
+function record(result){
+  spins++;
+  const stake = bet;
+  // Even money: win +stake, lose -stake.
+  // Two dozens (1 unit per side, scaled by "stake"): a hit nets +stake,
+  // a miss (green or the third dozen) loses both sides, -2*stake.
+  const lossMultiplier = mode === 'dozen' ? 2 : 1;
+  if(result === 'win'){
+    profit += stake;
+  } else {
+    profit -= stake * lossMultiplier;
+  }
+  log.unshift({n: spins, stake, result, lossAmt: stake * lossMultiplier});
+
+  if(profit >= goal){
+    render();
+    document.getElementById('play').classList.add('hidden');
+    document.getElementById('finished').classList.remove('hidden');
+    document.getElementById('doneMsg').textContent =
+      'Goal reached: +' + profit + ' units in ' + spins + ' spin' + (spins===1?'':'s') + '.';
+    return;
+  }
+
+  let proposed = result === 'win' ? Math.min(bet + 1, cap) : Math.min(bet, cap);
+  const remaining = goal - profit;
+  bet = Math.max(1, Math.min(proposed, remaining));
+  render();
+}
+
+function render(){
+  document.getElementById('betAmount').textContent = bet;
+  document.getElementById('profitNum').textContent = (profit>0?'+':'') + profit;
+  document.getElementById('goalNum').textContent = goal;
+  document.getElementById('spinNum').textContent = spins;
+  if(mode === 'dozen'){
+    document.getElementById('betLabel').textContent = 'units on EACH dozen (' + (bet*2) + ' total staked)';
+    const note = document.getElementById('dozenNote');
+    note.textContent = 'A hit nets +' + bet + '. A miss (3rd dozen or green) costs -' + (bet*2) + '.';
+    note.classList.remove('hidden');
+  } else {
+    document.getElementById('betLabel').textContent = 'units — place this bet';
+    document.getElementById('dozenNote').classList.add('hidden');
+  }
+  document.getElementById('history').innerHTML = log.map(e =>
+    '<span class="' + (e.result==='win' ? 'win-tag' : 'lose-tag') + '">#' + e.n + ' ' +
+    (e.result==='win' ? ('W +' + e.stake) : ('L -' + e.lossAmt)) + '</span>'
+  ).join(' ');
+}
+
+function reset(){
+  document.getElementById('finished').classList.add('hidden');
+  document.getElementById('play').classList.add('hidden');
+  document.getElementById('setup').classList.remove('hidden');
+}
+</script>
+</body>
+</html>
