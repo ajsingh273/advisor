@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f6f3ec">
+<title>Dozen Excluder — Last 5</title>
+
+<style>
+:root{
+  --ink:#1c2321; --paper:#f6f3ec; --line:#d8d1c2;
+  --win:#3d6b52; --lose:#8a3b2e; --accent:#2f4858;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --ink:#eae5d9; --paper:#1b1e1c; --line:#39413c; --win:#7fbfa0; --lose:#e08a76; --accent:#8fb3c9; }
+}
+:root[data-theme="dark"]{ --ink:#eae5d9; --paper:#1b1e1c; --line:#39413c; --win:#7fbfa0; --lose:#e08a76; --accent:#8fb3c9; }
+
+*{box-sizing:border-box;}
+
+html,body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Georgia','Iowan Old Style',serif;
+}
+
+body{
+  min-height:100%;
+  display:flex;
+  justify-content:center;
+  padding:32px 16px;
+}
+
+main{
+  width:100%;
+  max-width:460px;
+}
+
+h1{
+  font-size:1.6rem;
+  font-weight:600;
+  margin:0 0 4px;
+  letter-spacing:.2px;
+}
+
+.sub{
+  color:var(--ink);
+  opacity:.65;
+  font-size:.92rem;
+  margin-bottom:28px;
+}
+
+.card{
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:20px;
+  margin-bottom:16px;
+}
+
+label{
+  display:block;
+  font-size:.85rem;
+  opacity:.75;
+  margin-bottom:6px;
+}
+
+input[type=number]{
+  width:100%;
+  font-size:1.1rem;
+  padding:10px 12px;
+  border:1px solid var(--line);
+  border-radius:4px;
+  background:transparent;
+  color:var(--ink);
+  font-family:inherit;
+}
+
+button{
+  font-family:inherit;
+  font-size:1rem;
+  border:none;
+  border-radius:4px;
+  padding:12px 18px;
+  cursor:pointer;
+  background:var(--accent);
+  color:var(--paper);
+  width:100%;
+  margin-top:6px;
+}
+
+button.secondary{
+  background:transparent;
+  color:var(--ink);
+  border:1px solid var(--line);
+}
+
+button:active{opacity:.85;}
+
+.row{
+  display:flex;
+  gap:10px;
+}
+
+.row button{flex:1;}
+
+.bet-display{
+  text-align:center;
+  padding:22px 0;
+}
+
+.bet-display .amount{
+  font-size:2.6rem;
+  font-weight:700;
+  line-height:1;
+}
+
+.bet-display .label{
+  font-size:.85rem;
+  opacity:.65;
+  margin-top:6px;
+}
+
+.stats{
+  display:flex;
+  justify-content:space-between;
+  font-size:.9rem;
+  margin-top:2px;
+}
+
+.stats div{
+  text-align:center;
+  flex:1;
+}
+
+.stats .num{
+  font-size:1.15rem;
+  font-weight:600;
+  display:block;
+}
+
+.history{
+  font-size:.85rem;
+  opacity:.7;
+  margin-top:14px;
+  line-height:1.6;
+  max-height:120px;
+  overflow-y:auto;
+}
+
+.history span{
+  display:inline-block;
+  margin-right:6px;
+}
+
+.win-tag{color:var(--win);}
+.lose-tag{color:var(--lose);}
+
+.done{
+  text-align:center;
+  color:var(--win);
+  font-weight:600;
+  padding:18px 0;
+}
+
+.hidden{display:none;}
+
+.mode-btn{
+  background:transparent;
+  border:1px solid var(--line);
+  color:var(--ink);
+  opacity:.6;
+}
+
+.mode-btn.active{
+  background:var(--accent);
+  color:var(--paper);
+  opacity:1;
+  border-color:var(--accent);
+}
+
+.dozen-note{
+  text-align:center;
+  font-size:.82rem;
+  opacity:.7;
+  margin-top:-8px;
+  margin-bottom:8px;
+}
+
+/* App-specific calm styling */
+.spin-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:8px;
+}
+
+.spin-wrap{
+  text-align:center;
+}
+
+.spin-wrap span{
+  display:block;
+  font-size:.72rem;
+  opacity:.55;
+  margin-bottom:5px;
+}
+
+select{
+  width:100%;
+  min-width:0;
+  padding:11px 4px;
+  border:1px solid var(--line);
+  border-radius:4px;
+  background:transparent;
+  color:var(--ink);
+  font-family:inherit;
+  font-size:1rem;
+}
+
+select option{
+  background:var(--paper);
+  color:var(--ink);
+}
+
+.section-title{
+  font-size:.85rem;
+  opacity:.65;
+  margin-bottom:12px;
+}
+
+.result-label{
+  text-align:center;
+  font-size:.78rem;
+  opacity:.65;
+  letter-spacing:.08em;
+}
+
+.exclude{
+  text-align:center;
+  font-size:3rem;
+  line-height:1;
+  font-weight:700;
+  color:var(--lose);
+  margin:10px 0 12px;
+}
+
+.play{
+  text-align:center;
+  font-size:1.05rem;
+}
+
+.reason{
+  margin-top:18px;
+  padding-top:14px;
+  border-top:1px solid var(--line);
+  text-align:center;
+  font-size:.9rem;
+  line-height:1.5;
+}
+
+.strength{
+  text-align:center;
+  margin-top:10px;
+  font-size:.8rem;
+  opacity:.65;
+}
+
+.empty{
+  text-align:center;
+  opacity:.55;
+  padding:12px 0;
+}
+
+#passwordModal{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100vw;
+  height:100vh;
+  background:var(--paper);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:999999;
+  padding:20px;
+}
+
+.password-box{
+  width:100%;
+  max-width:420px;
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:30px 25px;
+  text-align:center;
+  background:var(--paper);
+}
+
+.password-box h2{
+  margin-bottom:10px;
+  font-weight:600;
+}
+
+.password-box p{
+  opacity:.65;
+  margin-bottom:25px;
+}
+
+.password-box input{
+  width:100%;
+  padding:13px;
+  border:1px solid var(--line);
+  border-radius:4px;
+  background:transparent;
+  color:var(--ink);
+  font-family:inherit;
+  font-size:1rem;
+  text-align:center;
+  outline:none;
+}
+
+.password-box button{
+  margin-top:12px;
+}
+
+#passwordError{
+  color:var(--lose);
+  margin-top:12px;
+  min-height:20px;
+  font-weight:600;
+  font-size:.9rem;
+}
+
+@media(max-width:380px){
+  .spin-grid{gap:5px;}
+  select{font-size:.9rem;}
+}
+</style>
+</head>
+
+<body>
+
+<div id="passwordModal">
+  <div class="password-box">
+    <h2>Protected App</h2>
+    <p>Enter password to continue</p>
+
+    <input
+      type="password"
+      id="appPassword"
+      placeholder="Enter Password"
+      autocomplete="off"
+    >
+
+    <button onclick="checkPassword()">UNLOCK</button>
+
+    <div id="passwordError"></div>
+  </div>
+</div>
+
+<main>
+
+  <h1>Dozen Excluder</h1>
+  <div class="sub">A simple decision engine using only the last 5 spins.</div>
+
+  <section class="card">
+    <div class="section-title">LAST 5 SPINS</div>
+
+    <div class="spin-grid">
+      <div class="spin-wrap">
+        <span>1</span>
+        <select class="spin"></select>
+      </div>
+
+      <div class="spin-wrap">
+        <span>2</span>
+        <select class="spin"></select>
+      </div>
+
+      <div class="spin-wrap">
+        <span>3</span>
+        <select class="spin"></select>
+      </div>
+
+      <div class="spin-wrap">
+        <span>4</span>
+        <select class="spin"></select>
+      </div>
+
+      <div class="spin-wrap">
+        <span>5</span>
+        <select class="spin"></select>
+      </div>
+    </div>
+
+  
+
+    <button onclick="analyze()">ANALYZE</button>
+  </section>
+
+  <section class="card">
+    <div class="result-label">DOZEN TO ELIMINATE</div>
+
+    <div id="exclude" class="exclude">—</div>
+
+    <div id="play" class="play">Enter the last 5 spins.</div>
+
+    <div id="reason" class="reason"></div>
+
+    <div id="strength" class="strength"></div>
+  </section>
+
+  <section class="card">
+    <div class="section-title">LAST 5</div>
+    <div id="history" class="history">
+      <div class="empty">No results entered.</div>
+    </div>
+  </section>
+
+  <div class="row">
+    <button class="secondary" onclick="clearInputs()">CLEAR</button>
+    <button class="secondary" onclick="toggleTheme()">THEME</button>
+  </div>
+
+</main>
+
+<script>
+const APP_PASSWORD = "YOURPASSW0RD";
+
+function checkPassword(){
+  const entered = document.getElementById("appPassword").value;
+
+  if(entered === APP_PASSWORD){
+    document.getElementById("passwordModal").style.display = "none";
+  }else{
+    document.getElementById("passwordError").textContent =
+      "Incorrect password.";
+    document.getElementById("appPassword").value = "";
+    document.getElementById("appPassword").focus();
+  }
+}
+
+document.getElementById("appPassword").addEventListener(
+  "keydown",
+  function(event){
+    if(event.key === "Enter") checkPassword();
+  }
+);
+
+window.addEventListener("load", function(){
+  document.getElementById("appPassword").focus();
+});
+
+const DOZENS = ["D1","D2","D3"];
+const RESULTS = ["D1","D2","D3","0","00"];
+
+document.querySelectorAll(".spin").forEach(select => {
+  select.innerHTML = RESULTS.map(r =>
+    `<option value="${r}">${r}</option>`
+  ).join("");
+});
+
+/*
+  CORE DECISION LOGIC
+
+  The engine deliberately uses ONLY the last 5 spins.
+
+  Higher score = stronger reason to eliminate that dozen.
+
+  1. Frequency:
+     Repeated appearances create exclusion pressure.
+
+  2. Recency:
+     A recent hit carries more weight than an older hit.
+
+  3. Repeat pressure:
+     Consecutive appearances add extra pressure.
+
+  4. Current streak:
+     A longer uninterrupted streak adds additional pressure.
+
+  No transition matrix.
+  No artificial D1 -> D2 -> D3 rotation.
+  No long-term history.
+  No "confidence %" pretending to be a probability.
+*/
+
+function analyzeLastFive(spins){
+
+  const counts = {
+    D1:0,
+    D2:0,
+    D3:0
+  };
+
+  const scores = {
+    D1:0,
+    D2:0,
+    D3:0
+  };
+
+  const reasons = {
+    D1:[],
+    D2:[],
+    D3:[]
+  };
+
+  // Recency weights:
+  // newest = 5, then 4, 3, 2, 1.
+  const recencyWeight = [1,2,3,4,5];
+
+  spins.forEach((spin, index) => {
+    if(!DOZENS.includes(spin)) return;
+
+    counts[spin]++;
+
+    scores[spin] += 3;
+    reasons[spin].push("frequency");
+
+    scores[spin] += recencyWeight[index];
+
+    if(index === 4){
+      reasons[spin].push("most recent");
+    }
+  });
+
+  // Consecutive/repeat pressure.
+  for(let i = 1; i < spins.length; i++){
+    if(
+      DOZENS.includes(spins[i]) &&
+      spins[i] === spins[i-1]
+    ){
+      scores[spins[i]] += 5;
+
+      if(!reasons[spins[i]].includes("repeat")){
+        reasons[spins[i]].push("repeat");
+      }
+    }
+  }
+
+  // Current ending streak.
+  const last = spins[spins.length - 1];
+
+  if(DOZENS.includes(last)){
+    let streak = 1;
+
+    for(let i = spins.length - 2; i >= 0; i--){
+      if(spins[i] === last){
+        streak++;
+      }else{
+        break;
+      }
+    }
+
+    if(streak >= 2){
+      scores[last] += (streak - 1) * 4;
+
+      if(!reasons[last].includes("streak")){
+        reasons[last].push("streak");
+      }
+    }
+  }
+
+  /*
+    Choose the highest exclusion score.
+
+    Tie-breakers:
+    1. More recent last appearance wins the tie.
+    2. Higher frequency wins the tie.
+    3. Fixed D1/D2/D3 order only as final deterministic fallback.
+  */
+
+  const lastIndex = {
+    D1:-1,
+    D2:-1,
+    D3:-1
+  };
+
+  spins.forEach((spin,index)=>{
+    if(DOZENS.includes(spin)){
+      lastIndex[spin] = index;
+    }
+  });
+
+  let candidates = [...DOZENS];
+
+  candidates.sort((a,b)=>{
+
+    if(scores[b] !== scores[a]){
+      return scores[b] - scores[a];
+    }
+
+    if(lastIndex[b] !== lastIndex[a]){
+      return lastIndex[b] - lastIndex[a];
+    }
+
+    if(counts[b] !== counts[a]){
+      return counts[b] - counts[a];
+    }
+
+    return DOZENS.indexOf(a) - DOZENS.indexOf(b);
+  });
+
+  const exclude = candidates[0];
+
+  const sortedScores = [...DOZENS]
+    .map(d => scores[d])
+    .sort((a,b)=>b-a);
+
+  const gap = sortedScores[0] - sortedScores[1];
+
+  let strength = "MODEST";
+  if(gap >= 5) strength = "CLEAR";
+  if(gap >= 10) strength = "STRONG";
+
+  let reasonText;
+
+  if(counts[exclude] === 0){
+    reasonText = "No recent hit is available to create exclusion pressure.";
+  }else{
+    const parts = [];
+
+    if(reasons[exclude].includes("frequency")){
+      parts.push(`${counts[exclude]} hit${counts[exclude] === 1 ? "" : "s"} in the last 5`);
+    }
+
+    if(reasons[exclude].includes("most recent")){
+      parts.push("most recent hit");
+    }
+
+    if(reasons[exclude].includes("repeat")){
+      parts.push("repeat pressure");
+    }
+
+    if(reasons[exclude].includes("streak")){
+      parts.push("current streak");
+    }
+
+    reasonText = parts.join(" • ");
+  }
+
+  return {
+    exclude,
+    play: DOZENS.filter(d => d !== exclude),
+    counts,
+    scores,
+    strength,
+    reasonText
+  };
+}
+
+function analyze(){
+
+  const spins = [...document.querySelectorAll(".spin")]
+    .map(select => select.value);
+
+  const result = analyzeLastFive(spins);
+
+  document.getElementById("exclude").textContent =
+    result.exclude;
+
+  document.getElementById("play").innerHTML =
+    `PLAY <strong>${result.play.join(" + ")}</strong>`;
+
+  document.getElementById("reason").textContent =
+    result.reasonText;
+
+  document.getElementById("strength").textContent =
+    `Exclusion signal: ${result.strength}`;
+
+  document.getElementById("history").innerHTML =
+    spins.map((spin,index)=>{
+      const cls = DOZENS.includes(spin)
+        ? ""
+        : "win-tag";
+
+      return `<span class="${cls}">${index + 1}: ${spin}</span>`;
+    }).join("");
+}
+
+function clearInputs(){
+
+  document.querySelectorAll(".spin").forEach(select=>{
+    select.value = "D1";
+  });
+
+  document.getElementById("exclude").textContent = "—";
+  document.getElementById("play").textContent =
+    "Enter the last 5 spins.";
+  document.getElementById("reason").textContent = "";
+  document.getElementById("strength").textContent = "";
+  document.getElementById("history").innerHTML =
+    `<div class="empty">No results entered.</div>`;
+}
+
+function toggleTheme(){
+
+  const root = document.documentElement;
+
+  if(root.getAttribute("data-theme") === "dark"){
+    root.setAttribute("data-theme","light");
+  }else{
+    root.setAttribute("data-theme","dark");
+  }
+}
+</script>
+
+</body>
+</html>
