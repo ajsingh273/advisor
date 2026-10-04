@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f3ec">
+<title>Dozen Reality Checker</title>
+<style>
+:root{
+  --ink:#1c2321; --paper:#f6f3ec; --line:#d8d1c2; --win:#3d6b52; --lose:#8a3b2e; --accent:#2f4858;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --ink:#eae5d9; --paper:#1b1e1c; --line:#39413c; --win:#7fbfa0; --lose:#e08a76; --accent:#8fb3c9; }
+}
+:root[data-theme="dark"]{ --ink:#eae5d9; --paper:#1b1e1c; --line:#39413c; --win:#7fbfa0; --lose:#e08a76; --accent:#8fb3c9; }
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+*{box-sizing:border-box;}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,'Iowan Old Style',serif;}
+body{display:flex;justify-content:center;padding:32px 16px;}
+main{width:100%;max-width:460px;}
+h1{font-size:1.6rem;font-weight:600;margin:0 0 4px;}
+.sub{opacity:.65;font-size:.92rem;margin-bottom:24px;line-height:1.4;}
+.card{border:1px solid var(--line);border-radius:6px;padding:18px;margin-bottom:16px;}
+.title{font-size:.85rem;opacity:.65;margin-bottom:12px;}
+button{font-family:inherit;font-size:1rem;border:none;border-radius:4px;padding:12px 8px;cursor:pointer;background:var(--accent);color:var(--paper);}
+button:active{opacity:.85;}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+button.secondary,button.chip{background:transparent;color:var(--ink);border:1px solid var(--line);}
+.pad{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.pad button{padding:16px 0;font-size:1.05rem;font-weight:600;}
+.row{display:flex;gap:10px;}
+.row button{flex:1;}
+.chips{display:flex;gap:6px;margin-bottom:14px;}
+.chip{flex:1;padding:8px 0;font-size:.85rem;}
+.chip.on{background:var(--accent);color:var(--paper);border-color:var(--accent);}
+.dz{margin-bottom:14px;}
+.dz-head{display:flex;justify-content:space-between;align-items:baseline;font-size:.95rem;}
+.dz-head b{font-size:1.25rem;}
+.bar{position:relative;height:10px;border:1px solid var(--line);border-radius:3px;margin:6px 0 4px;}
+.fill{height:100%;background:var(--accent);opacity:.8;border-radius:2px;}
+.mark{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--lose);}
+.dz-foot{font-size:.78rem;opacity:.65;}
+.note{font-size:.82rem;opacity:.7;line-height:1.5;}
+.verdict{font-size:1rem;line-height:1.45;margin:2px 0 8px;}
+.log{display:flex;flex-wrap:wrap;gap:6px;max-height:150px;overflow-y:auto;font-size:.85rem;}
+.log span{border:1px solid var(--line);border-radius:3px;padding:3px 7px;}
+.log .z{color:var(--lose);}
+.empty{opacity:.55;text-align:center;padding:8px 0;}
+.legend{display:flex;align-items:center;gap:6px;font-size:.78rem;opacity:.65;margin-top:4px;}
+.legend i{display:inline-block;width:2px;height:12px;background:var(--lose);}
+#passwordModal{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100vw;
+  height:100vh;
+  background:var(--paper);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:999999;
+  padding:20px;
+}
+
+.password-box{
+  width:100%;
+  max-width:420px;
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:30px 25px;
+  text-align:center;
+  background:var(--paper);
+}
+
+.password-box h2{
+  margin-bottom:10px;
+  font-weight:600;
+}
+
+.password-box p{
+  opacity:.65;
+  margin-bottom:25px;
+}
+
+.password-box input{
+  width:100%;
+  padding:13px;
+  border:1px solid var(--line);
+  border-radius:4px;
+  background:transparent;
+  color:var(--ink);
+  font-family:inherit;
+  font-size:1rem;
+  text-align:center;
+  outline:none;
+}
+
+.password-box button{
+  margin-top:12px;
+}
+
+#passwordError{
+  color:var(--lose);
+  margin-top:12px;
+  min-height:20px;
+  font-weight:600;
+  font-size:.9rem;
+}
+</style>
+</head>
+<body>
+<div id="passwordModal">
+  <div class="password-box">
+    <h2>Protected App</h2>
+    <p>Enter password to continue</p>
+
+    <input
+      type="password"
+      id="appPassword"
+      placeholder="Enter Password"
+      autocomplete="off"
+    >
+
+    <button onclick="checkPassword()">UNLOCK</button>
+
+    <div id="passwordError"></div>
+  </div>
+</div>
+<main>
+  <h1>Dozen Reality Checker</h1>
+  <div class="sub">Log every spin. See what the wheel has actually done, and whether it differs from a fair American wheel by more than luck.</div>
+
+  <section class="card">
+    <div class="title">ADD SPIN <span id="count" style="float:right"></span></div>
+    <div class="pad">
+      <button onclick="add('D1')">D1</button>
+      <button onclick="add('D2')">D2</button>
+      <button onclick="add('D3')">D3</button>
+      <button onclick="add('0')">0</button>
+      <button onclick="add('00')">00</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="secondary" onclick="undo()">Undo last</button>
+      <button class="secondary" onclick="clearAll()">Clear log</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="title">HIT RATE</div>
+    <div class="chips" id="chips"></div>
+    <div id="stats"></div>
+    <div class="legend"><i></i> fair-wheel expectation, 31.6% per dozen</div>
+  </section>
+
+  <section class="card">
+    <div class="title">IS THE WHEEL FAIR?</div>
+    <div id="verdict" class="verdict"></div>
+    <div id="detail" class="note"></div>
+  </section>
+
+  <section class="card">
+    <div class="title">LOG (newest first)</div>
+    <div id="log" class="log"></div>
+  </section>
+
+  <div class="row"><button class="secondary" onclick="toggleTheme()">Theme</button></div>
+</main>
+<script>
+const APP_PASSWORD = "YOURPASSW0RD";
+
+function checkPassword(){
+  const entered = document.getElementById("appPassword").value;
+
+  if(entered === APP_PASSWORD){
+    document.getElementById("passwordModal").style.display = "none";
+  }else{
+    document.getElementById("passwordError").textContent =
+      "Incorrect password.";
+    document.getElementById("appPassword").value = "";
+    document.getElementById("appPassword").focus();
+  }
+}
+
+document.getElementById("appPassword").addEventListener(
+  "keydown",
+  function(event){
+    if(event.key === "Enter") checkPassword();
+  }
+);
+</script>
+<script>
+const KEY = 'dozenLog.v1';
+const WINDOWS = [5, 10, 25, 50, 0];           // 0 = all
+const P_DOZEN = 12/38, P_ZERO = 2/38;
+let log = [], win = 0;
+
+try { const s = localStorage.getItem(KEY); if (s) log = JSON.parse(s).filter(x => ['D1','D2','D3','0','00'].includes(x)); } catch(e){}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(log)); } catch(e){} }
+
+function add(r){ log.push(r); save(); render(); }
+function undo(){ log.pop(); save(); render(); }
+function clearAll(){ if (log.length && confirm('Delete all ' + log.length + ' logged spins?')) { log = []; save(); render(); } }
+
+// Wilson 95% interval for a proportion
+function wilson(k, n){
+  if (!n) return [0, 1];
+  const z = 1.96, p = k/n, d = 1 + z*z/n;
+  const c = (p + z*z/(2*n)) / d;
+  const h = z * Math.sqrt(p*(1-p)/n + z*z/(4*n*n)) / d;
+  return [Math.max(0, c-h), Math.min(1, c+h)];
+}
+// complementary error function (Abramowitz–Stegun 7.1.26)
+function erfc(x){
+  const t = 1/(1+0.3275911*x);
+  const y = ((((1.061405429*t - 1.453152027)*t + 1.421413741)*t - 0.284496736)*t + 0.254829592)*t*Math.exp(-x*x);
+  return y;
+}
+// chi-square p-value, 3 degrees of freedom
+function pChi3(x){ return erfc(Math.sqrt(x/2)) + Math.sqrt(2*x/Math.PI)*Math.exp(-x/2); }
+
+const pct = v => (v*100).toFixed(1) + '%';
+
+function render(){
+  document.getElementById('count').textContent = log.length + ' spin' + (log.length === 1 ? '' : 's');
+
+  document.getElementById('chips').innerHTML = WINDOWS.map(w =>
+    `<button class="chip ${w === win ? 'on' : ''}" onclick="win=${w};render()">${w ? 'Last ' + w : 'All'}</button>`).join('');
+
+  const sample = win ? log.slice(-win) : log;
+  const n = sample.length;
+  const c = { D1:0, D2:0, D3:0, Z:0 };
+  sample.forEach(r => { if (r === '0' || r === '00') c.Z++; else c[r]++; });
+
+  if (!n) {
+    document.getElementById('stats').innerHTML = '<div class="empty">Add your first spin above.</div>';
+  } else {
+    document.getElementById('stats').innerHTML = ['D1','D2','D3'].map(d => {
+      const p = c[d]/n, [lo, hi] = wilson(c[d], n), diff = (p - P_DOZEN)*100;
+      return `<div class="dz">
+        <div class="dz-head"><span>${d} &nbsp;${c[d]} of ${n}</span><b>${pct(p)}</b></div>
+        <div class="bar"><div class="fill" style="width:${Math.min(100, p*200)}%"></div><div class="mark" style="left:${P_DOZEN*200}%"></div></div>
+        <div class="dz-foot">${diff >= 0 ? '+' : ''}${diff.toFixed(1)} pts vs fair &nbsp;•&nbsp; plausible range ${pct(lo)} to ${pct(hi)}</div>
+      </div>`;
+    }).join('') + `<div class="dz-foot">0 / 00: ${c.Z} of ${n} (${pct(c.Z/n)}, fair is 5.3%)</div>`;
+  }
+
+  // Fairness test always uses the full log so a short window can't manufacture a "finding".
+  const N = log.length, v = document.getElementById('verdict'), d = document.getElementById('detail');
+  if (N < 100) {
+    v.textContent = 'Not enough spins yet.';
+    d.textContent = `${N} logged. Below about 100 spins, swings of 10 points or more are normal for a fair wheel. Keep logging; several hundred spins make the test meaningful.`;
+  } else {
+    const all = { D1:0, D2:0, D3:0, Z:0 };
+    log.forEach(r => { if (r === '0' || r === '00') all.Z++; else all[r]++; });
+    const exp = { D1:N*P_DOZEN, D2:N*P_DOZEN, D3:N*P_DOZEN, Z:N*P_ZERO };
+    const chi = Object.keys(all).reduce((s,k) => s + (all[k]-exp[k])**2/exp[k], 0);
+    const p = pChi3(chi);
+    v.textContent = p < 0.01 ? 'Unusual: a fair wheel rarely looks like this.'
+                  : p < 0.05 ? 'Borderline: slightly unusual, but could be chance.'
+                  : 'Consistent with a fair wheel.';
+    d.innerHTML = `Chi-square test on all ${N} spins: p = ${p < 0.001 ? '&lt;0.001' : p.toFixed(3)}. ` +
+      `A low p-value means the results are unlikely under fair odds; it does not say which dozen comes next. ` +
+      `Checking repeatedly makes false alarms more likely, so treat one borderline reading as a reason to keep logging, not a conclusion.`;
+  }
+
+  const L = document.getElementById('log');
+  L.innerHTML = log.length ? [...log].reverse().map(r => `<span class="${r.length < 3 && !r.startsWith('D') ? 'z' : ''}">${r}</span>`).join('')
+                           : '<div class="empty">No spins logged.</div>';
+}
+
+function toggleTheme(){
+  const r = document.documentElement;
+  r.setAttribute('data-theme', r.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+}
+render();
+</script>
+</body>
+</html>
