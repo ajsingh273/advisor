@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f3ec">
+<title>Advanced Two-Dozen Intelligence Engine</title>
+<style>
+:root{
+  --ink:#1c2321; --paper:#f6f3ec; --line:#d8d1c2; --win:#3d6b52; --lose:#8a3b2e; --accent:#2f4858;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --ink:#eae5d9; --paper:#1b1e1c; --line:#39413c; --win:#7fbfa0; --lose:#e08a76; --accent:#8fb3c9; }
+}
+:root[data-theme="dark"]{ --ink:#eae5d9; --paper:#1b1e1c; --line:#39413c; --win:#7fbfa0; --lose:#e08a76; --accent:#8fb3c9; }
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+*{box-sizing:border-box;}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,'Iowan Old Style',serif;}
+body{display:flex;justify-content:center;padding:32px 16px;}
+main{width:100%;max-width:500px;}
+h1{font-size:1.5rem;font-weight:600;margin:0 0 4px;}
+.sub{opacity:.65;font-size:.88rem;margin-bottom:20px;line-height:1.4;}
+.card{border:1px solid var(--line);border-radius:6px;padding:16px;margin-bottom:16px;}
+.title{font-size:.82rem;opacity:.65;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;}
+button{font-family:inherit;font-size:1rem;border:none;border-radius:4px;padding:12px 8px;cursor:pointer;background:var(--accent);color:var(--paper);}
+button:active{opacity:.85;}
+button.secondary,button.chip{background:transparent;color:var(--ink);border:1px solid var(--line);}
+.pad{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.pad button{padding:14px 0;font-size:1rem;font-weight:600;}
+.row{display:flex;gap:10px;}
+.row button{flex:1;}
+.chips{display:flex;gap:6px;margin-bottom:14px;}
+.chip{flex:1;padding:6px 0;font-size:.8rem;}
+.chip.on{background:var(--accent);color:var(--paper);border-color:var(--accent);}
+
+/* Selection Card Styles */
+.recommend-box{background:rgba(47,72,88,0.08);border:1px solid var(--accent);border-radius:6px;padding:14px;margin-bottom:12px;}
+.recommend-title{font-size:.78rem;opacity:.8;text-transform:uppercase;font-weight:bold;margin-bottom:4px;}
+.recommend-pair{font-size:1.4rem;font-weight:bold;color:var(--accent);}
+.prob-badge{float:right;font-size:.9rem;font-weight:normal;opacity:.85;}
+.score-card{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);}
+.score-card:last-child{border-bottom:none;}
+.score-val{font-size:1.1rem;font-weight:bold;}
+
+/* Table & Bar Styles */
+.bar{position:relative;height:8px;border:1px solid var(--line);border-radius:3px;margin:4px 0;}
+.fill{height:100%;background:var(--accent);opacity:.8;border-radius:2px;}
+.mark{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--lose);}
+.matrix{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:8px;}
+.matrix th, .matrix td{border:1px solid var(--line);padding:5px;text-align:center;}
+.matrix th{background:rgba(0,0,0,0.03);}
+
+.grid-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:.8rem;margin-top:8px;}
+.metric-tile{border:1px solid var(--line);border-radius:4px;padding:8px;background:rgba(0,0,0,0.01);}
+.metric-tile div:first-child{opacity:.65;font-size:.72rem;text-transform:uppercase;}
+.metric-tile div:last-child{font-weight:bold;font-size:.95rem;margin-top:2px;}
+
+.note{font-size:.8rem;opacity:.75;line-height:1.45;}
+.log{display:flex;flex-wrap:wrap;gap:6px;max-height:140px;overflow-y:auto;font-size:.82rem;}
+.log span{border:1px solid var(--line);border-radius:3px;padding:2px 6px;}
+.log .z{color:var(--lose);border-color:var(--lose);}
+.empty{opacity:.55;text-align:center;padding:8px 0;}
+#passwordModal{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100vw;
+  height:100vh;
+  background:var(--paper);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:999999;
+  padding:20px;
+}
+
+.password-box{
+  width:100%;
+  max-width:420px;
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:30px 25px;
+  text-align:center;
+  background:var(--paper);
+}
+
+.password-box h2{
+  margin-bottom:10px;
+  font-weight:600;
+}
+
+.password-box p{
+  opacity:.65;
+  margin-bottom:25px;
+}
+
+.password-box input{
+  width:100%;
+  padding:13px;
+  border:1px solid var(--line);
+  border-radius:4px;
+  background:transparent;
+  color:var(--ink);
+  font-family:inherit;
+  font-size:1rem;
+  text-align:center;
+  outline:none;
+}
+
+.password-box button{
+  margin-top:12px;
+}
+
+#passwordError{
+  color:var(--lose);
+  margin-top:12px;
+  min-height:20px;
+  font-weight:600;
+  font-size:.9rem;
+}
+</style>
+</head>
+<body>
+<div id="passwordModal">
+  <div class="password-box">
+    <h2>Protected App</h2>
+    <p>Enter password to continue</p>
+
+    <input
+      type="password"
+      id="appPassword"
+      placeholder="Enter Password"
+      autocomplete="off"
+    >
+
+    <button onclick="checkPassword()">UNLOCK</button>
+
+    <div id="passwordError"></div>
+  </div>
+</div>
+<main>
+  <h1>Two-Dozen Intelligence Engine</h1>
+  <div class="sub">Multi-engine prediction combining 1st-3rd order Markov chains, Bayesian updating, Shannon entropy, and autocorrelation.</div>
+
+  <section class="card">
+    <div class="title">LOG SPIN <span id="count" style="float:right"></span></div>
+    <div class="pad">
+      <button onclick="add('D1')">D1</button>
+      <button onclick="add('D2')">D2</button>
+      <button onclick="add('D3')">D3</button>
+      <button onclick="add('0')">0</button>
+      <button onclick="add('00')">00</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="secondary" onclick="undo()">Undo</button>
+      <button class="secondary" onclick="clearAll()">Clear</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="title">INTELLIGENCE TARGET SELECTION</div>
+    <div id="selection-area">
+      <div class="empty">Log spins to generate predictive scores.</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="title">COMPOSITE DOZEN SCORES</div>
+    <div class="chips" id="chips"></div>
+    <div id="stats"></div>
+  </section>
+
+  <section class="card">
+    <div class="title">ENTROPY & DYNAMICS DASHBOARD</div>
+    <div id="dynamics-area" class="note">Requires at least 5 logged spins.</div>
+  </section>
+
+  <section class="card">
+    <div class="title">MARKOV TRANSITION PROBABILITIES (1st Order)</div>
+    <div id="matrix-area" class="note">Requires sequence history.</div>
+  </section>
+
+  <section class="card">
+    <div class="title">SPIN SEQUENCE LOG (Newest First)</div>
+    <div id="log" class="log"></div>
+  </section>
+
+  <div class="row"><button class="secondary" onclick="toggleTheme()">Toggle Theme</button></div>
+</main>
+<script>
+const APP_PASSWORD = "YOURPASSW0RD";
+
+function checkPassword(){
+  const entered = document.getElementById("appPassword").value;
+
+  if(entered === APP_PASSWORD){
+    document.getElementById("passwordModal").style.display = "none";
+  }else{
+    document.getElementById("passwordError").textContent =
+      "Incorrect password.";
+    document.getElementById("appPassword").value = "";
+    document.getElementById("appPassword").focus();
+  }
+}
+
+document.getElementById("appPassword").addEventListener(
+  "keydown",
+  function(event){
+    if(event.key === "Enter") checkPassword();
+  }
+);
+</script>
+<script>
+const KEY = 'dozenLog.v3';
+const WINDOWS = [10, 25, 50, 0]; // 0 = All
+const P_DOZEN = 12/38, P_ZERO = 2/38;
+let log = [], win = 0;
+
+try { const s = localStorage.getItem(KEY); if (s) log = JSON.parse(s).filter(x => ['D1','D2','D3','0','00'].includes(x)); } catch(e){}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(log)); } catch(e){} }
+
+function add(r){ log.push(r); save(); render(); }
+function undo(){ log.pop(); save(); render(); }
+function clearAll(){ if (log.length && confirm('Delete all ' + log.length + ' spins?')) { log = []; save(); render(); } }
+
+const pct = v => (v*100).toFixed(1) + '%';
+
+// Multi-Engine Intelligence Algorithm
+function computeAdvancedScores(data) {
+  const cats = ['D1', 'D2', 'D3'];
+  const n = data.length;
+  if (!n) return { scores: { D1: 33.3, D2: 33.3, D3: 33.3 }, metrics: {} };
+
+  const counts = { D1:0, D2:0, D3:0, Z:0 };
+  data.forEach(x => (x === '0' || x === '00') ? counts.Z++ : counts[x]++);
+
+  // ENGINE 1: Bayesian Posterior Updates (Beta-Binomial Prior: alpha=12, beta=26)
+  const bayesP = {};
+  cats.forEach(d => {
+    const alphaPost = 12 + counts[d];
+    const betaPost = 26 + (n - counts[d]);
+    bayesP[d] = alphaPost / (alphaPost + betaPost);
+  });
+
+  // ENGINE 2: Higher-Order Markov Chains (1st, 2nd, 3rd Order)
+  const markov1 = { D1:0, D2:0, D3:0 }; let m1Total = 0;
+  const markov2 = { D1:0, D2:0, D3:0 }; let m2Total = 0;
+  const markov3 = { D1:0, D2:0, D3:0 }; let m3Total = 0;
+
+  if (n >= 2) {
+    const p1 = data[n - 1];
+    for (let i = 0; i < n - 1; i++) {
+      if (data[i] === p1 && cats.includes(data[i+1])) { markov1[data[i+1]]++; m1Total++; }
+    }
+  }
+  if (n >= 3) {
+    const p1 = data[n - 1], p2 = data[n - 2];
+    for (let i = 0; i < n - 2; i++) {
+      if (data[i] === p2 && data[i+1] === p1 && cats.includes(data[i+2])) { markov2[data[i+2]]++; m2Total++; }
+    }
+  }
+  if (n >= 4) {
+    const p1 = data[n - 1], p2 = data[n - 2], p3 = data[n - 3];
+    for (let i = 0; i < n - 3; i++) {
+      if (data[i] === p3 && data[i+1] === p2 && data[i+2] === p1 && cats.includes(data[i+3])) { markov3[data[i+3]]++; m3Total++; }
+    }
+  }
+
+  // ENGINE 3: Shannon Entropy Dynamics
+  let entropy = 0;
+  Object.values(counts).forEach(cnt => {
+    if (cnt > 0) {
+      const p = cnt / n;
+      entropy -= p * Math.log2(p);
+    }
+  });
+  // Max entropy across 4 outcomes is 2.0 bits. High predictability = low entropy.
+  const predictabilityFactor = Math.max(0.1, 1 - (entropy / 2.0));
+
+  // ENGINE 4: Lag-1 Autocorrelation
+  let matchesLag1 = 0;
+  for (let i = 0; i < n - 1; i++) {
+    if (data[i] === data[i+1] && cats.includes(data[i])) matchesLag1++;
+  }
+  const autoCorr = n > 1 ? (matchesLag1 / (n - 1)) : P_DOZEN;
+
+  // ENGINE 5: Volatility-Adjusted Z-Score
+  const zScores = {};
+  cats.forEach(d => {
+    const expected = n * P_DOZEN;
+    const stdDev = Math.sqrt(n * P_DOZEN * (1 - P_DOZEN));
+    zScores[d] = stdDev > 0 ? (counts[d] - expected) / stdDev : 0;
+  });
+
+  // COMPOSITE INTELLIGENCE AGGREGATION
+  const scores = {};
+  cats.forEach(d => {
+    const m1W = m1Total > 0 ? (markov1[d] / m1Total) : P_DOZEN;
+    const m2W = m2Total > 0 ? (markov2[d] / m2Total) : P_DOZEN;
+    const m3W = m3Total > 0 ? (markov3[d] / m3Total) : P_DOZEN;
+    
+    // Weighted Markov sequence score based on match availability
+    const markovComposite = (m3W * 0.50) + (m2W * 0.35) + (m1W * 0.15);
+
+    const bayesWeight = bayesP[d];
+    const zWeight = 0.333 + (zScores[d] * 0.04);
+
+    // Final multi-engine raw equation
+    const rawScore = (bayesWeight * 0.35) + 
+                     (markovComposite * 0.40 * predictabilityFactor) + 
+                     (zWeight * 0.25);
+
+    scores[d] = Math.min(99.9, Math.max(0.1, rawScore * 250)).toFixed(1);
+  });
+
+  return {
+    scores,
+    metrics: {
+      entropy: entropy.toFixed(2),
+      predictability: (predictabilityFactor * 100).toFixed(1) + '%',
+      autoCorr: pct(autoCorr),
+      m1Matches: m1Total,
+      m2Matches: m2Total,
+      m3Matches: m3Total,
+      zScores
+    }
+  };
+}
+
+function render(){
+  document.getElementById('count').textContent = log.length + ' spin' + (log.length === 1 ? '' : 's');
+
+  document.getElementById('chips').innerHTML = WINDOWS.map(w =>
+    `<button class="chip ${w === win ? 'on' : ''}" onclick="win=${w};render()">${w ? 'Last ' + w : 'All'}</button>`).join('');
+
+  const sample = win ? log.slice(-win) : log;
+  const n = sample.length;
+  const { scores, metrics } = computeAdvancedScores(sample);
+
+  // Intelligence Target Selection UI
+  const selArea = document.getElementById('selection-area');
+  if (n < 3) {
+    selArea.innerHTML = '<div class="empty">Log at least 3 spins for sequence analysis.</div>';
+  } else {
+    const sorted = ['D1','D2','D3'].sort((a,b) => parseFloat(scores[b]) - parseFloat(scores[a]));
+    const topTwo = [sorted[0], sorted[1]];
+    const omitted = sorted[2];
+
+    const c1 = sample.filter(x => x === topTwo[0]).length;
+    const c2 = sample.filter(x => x === topTwo[1]).length;
+    const combinedHit = ((c1 + c2) / n);
+
+    selArea.innerHTML = `
+      <div class="recommend-box">
+        <div class="recommend-title">Top Target Pair Selection</div>
+        <div class="recommend-pair">${topTwo[0]} + ${topTwo[1]} 
+          <span class="prob-badge">Sample Coverage: <b>${pct(combinedHit)}</b></span>
+        </div>
+        <div style="font-size:.78rem;opacity:.75;margin-top:6px;">
+          Omitted: <b>${omitted}</b> & Zeros (0/00) | Net Payout: <b>+$0</b> on Hit / <b>-$20</b> on Loss ($10 unit stake)
+        </div>
+      </div>
+    `;
+  }
+
+  // Score Breakdown
+  const statsArea = document.getElementById('stats');
+  if (!n) {
+    statsArea.innerHTML = '<div class="empty">No spin data logged.</div>';
+  } else {
+    const c = { D1:0, D2:0, D3:0, Z:0 };
+    sample.forEach(r => { if (r === '0' || r === '00') c.Z++; else c[r]++; });
+
+    statsArea.innerHTML = ['D1','D2','D3'].map(d => {
+      const p = c[d]/n;
+      const z = metrics.zScores[d] ? metrics.zScores[d].toFixed(2) : '0.00';
+      return `<div class="score-card">
+        <div>
+          <b>${d}</b> &nbsp;<span style="font-size:.85rem;opacity:.7">${c[d]} hits (${pct(p)})</span>
+          <div style="font-size:.7rem;opacity:.6">Z-Score: ${z > 0 ? '+'+z : z}</div>
+          <div class="bar" style="width:120px"><div class="fill" style="width:${Math.min(100, p*316)}%"></div><div class="mark" style="left:${P_DOZEN*316}%"></div></div>
+        </div>
+        <div>
+          <span style="font-size:.75rem;opacity:.6">SCORE</span>
+          <div class="score-val">${scores[d]}</div>
+        </div>
+      </div>`;
+    }).join('') + `<div style="font-size:.78rem;opacity:.65;margin-top:8px">0 / 00 Hits: ${c.Z} (${pct(c.Z/n)}, Fair: 5.3%)</div>`;
+  }
+
+  // Entropy & Dynamics Dashboard
+  const dynArea = document.getElementById('dynamics-area');
+  if (n < 5) {
+    dynArea.innerHTML = '<div class="empty">Log 5+ spins to display dynamics metrics.</div>';
+  } else {
+    dynArea.innerHTML = `
+      <div class="grid-metrics">
+        <div class="metric-tile"><div>Shannon Entropy</div><div>${metrics.entropy} <span style="font-size:.7rem;font-weight:normal">bits</span></div></div>
+        <div class="metric-tile"><div>Predictability</div><div>${metrics.predictability}</div></div>
+        <div class="metric-tile"><div>Lag-1 Autocorr.</div><div>${metrics.autoCorr}</div></div>
+        <div class="metric-tile"><div>Markov Matches</div><div>3rd:${metrics.m3Matches} | 2nd:${metrics.m2Matches}</div></div>
+      </div>
+    `;
+  }
+
+  // Markov Transition Matrix Render
+  const matrixArea = document.getElementById('matrix-area');
+  if (log.length < 5) {
+    matrixArea.innerHTML = '<div class="empty">Log 5+ spins to display transition matrix.</div>';
+  } else {
+    const categories = ['D1','D2','D3','Z'];
+    const matrix = { D1:{D1:0,D2:0,D3:0,Z:0}, D2:{D1:0,D2:0,D3:0,Z:0}, D3:{D1:0,D2:0,D3:0,Z:0}, Z:{D1:0,D2:0,D3:0,Z:0} };
+    const rowCounts = { D1:0, D2:0, D3:0, Z:0 };
+
+    for(let i=0; i<log.length-1; i++){
+      let from = (log[i]==='0'||log[i]==='00') ? 'Z' : log[i];
+      let to = (log[i+1]==='0'||log[i+1]==='00') ? 'Z' : log[i+1];
+      matrix[from][to]++;
+      rowCounts[from]++;
+    }
+
+    let tableHtml = `<div class="note" style="margin-bottom:6px">Probability of next outcome based on 1st-order transition state:</div>
+      <table class="matrix">
+        <tr><th>From / To</th><th>D1</th><th>D2</th><th>D3</th><th>0/00</th></tr>`;
+
+    categories.forEach(from => {
+      tableHtml += `<tr><b><th>${from}</th></b>`;
+      categories.forEach(to => {
+        const cnt = matrix[from][to];
+        const total = rowCounts[from];
+        const prob = total > 0 ? (cnt/total*100).toFixed(0) + '%' : '-';
+        tableHtml += `<td>${prob}</td>`;
+      });
+      tableHtml += `</tr>`;
+    });
+    tableHtml += `</table>`;
+    matrixArea.innerHTML = tableHtml;
+  }
+
+  // Log View
+  const L = document.getElementById('log');
+  L.innerHTML = log.length ? [...log].reverse().map(r => `<span class="${r==='0'||r==='00'?'z':''}">${r}</span>`).join('')
+                           : '<div class="empty">No spins logged.</div>';
+}
+
+function toggleTheme(){
+  const r = document.documentElement;
+  r.setAttribute('data-theme', r.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+}
+render();
+</script>
+</body>
+</html>
