@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Optimized Two-Dozen Labouchère EBT</title>
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,Helvetica,sans-serif;
+}
+body{
+    background:#101820;
+    color:white;
+    padding:20px;
+}
+.container{
+    max-width:700px;
+    margin:auto;
+}
+.card{
+    background:#1d2938;
+    border-radius:18px;
+    padding:20px;
+    margin-top:20px;
+    box-shadow:0 8px 30px rgba(0,0,0,.35);
+}
+h1{
+    text-align:center;
+    margin-bottom:5px;
+}
+.subtitle{
+    text-align:center;
+    color:#8fa6c3;
+    margin-bottom:15px;
+    font-size:14px;
+}
+.settings{
+    margin-top:15px;
+    background:#162231;
+    padding:15px;
+    border-radius:12px;
+}
+.settings label{
+    display:block;
+    color:#cbd5e1;
+    margin-bottom:6px;
+    font-size:14px;
+}
+.settings input, .settings select{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    background:#0f172a;
+    color:white;
+    font-size:18px;
+    outline:none;
+    margin-bottom:10px;
+}
+.checkbox-group{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:10px;
+    color:#cbd5e1;
+    font-size:14px;
+    cursor:pointer;
+}
+.checkbox-group input{
+    width:20px;
+    height:20px;
+    margin:0;
+    cursor:pointer;
+}
+.step{
+    font-size:18px;
+    color:#7dd3fc;
+    text-align:center;
+    margin-top:15px;
+}
+.bet{
+    font-size:30px;
+    margin:10px 0 5px 0;
+    text-align:center;
+    font-weight:bold;
+    color:#38bdf8;
+}
+.betUnits{
+    text-align:center;
+    color:#8fa6c3;
+    font-size:14px;
+}
+.split-breakdown{
+    text-align:center;
+    color:#fbbf24;
+    font-size:15px;
+    margin-top:5px;
+    font-weight:bold;
+}
+.sequenceTitle{
+    margin-top:20px;
+    text-align:center;
+    color:#cbd5e1;
+    font-size:14px;
+}
+.sequence{
+    margin-top:8px;
+    background:#0f172a;
+    padding:15px;
+    border-radius:12px;
+    text-align:center;
+    font-size:24px;
+    font-weight:bold;
+    color:#7dd3fc;
+    letter-spacing:2px;
+    word-break:break-all;
+}
+.next{
+    margin-top:15px;
+    background:#162231;
+    padding:12px;
+    border-radius:12px;
+    text-align:center;
+    line-height:1.5;
+}
+.nextLabel{
+    color:#8fa6c3;
+    font-size:13px;
+}
+#instructions{
+    font-size:15px;
+    color:#cbd5e1;
+}
+button{
+    width:100%;
+    border:none;
+    padding:16px;
+    border-radius:12px;
+    font-size:18px;
+    margin-top:12px;
+    cursor:pointer;
+    transition:.2s;
+    font-weight:bold;
+}
+button:hover{
+    filter:brightness(1.1);
+    transform:translateY(-1px);
+}
+.win{
+    background:#10b981;
+    color:white;
+}
+.loss{
+    background:#ef4444;
+    color:white;
+}
+.reset{
+    background:#374151;
+    color:white;
+}
+.history{
+    margin-top:15px;
+    background:#0f172a;
+    padding:12px;
+    border-radius:12px;
+    min-height:70px;
+    max-height:150px;
+    overflow-y:auto;
+    font-size:13px;
+    line-height:1.5;
+    color:#94a3b8;
+}
+.complete{
+    color:#10b981;
+    font-size:22px;
+    font-weight:bold;
+    text-align:center;
+}
+.disabled{
+    opacity:.5;
+    cursor:not-allowed;
+}
+
+#passwordModal{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100vw;
+    height:100vh;
+
+    background:#101820;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    z-index:999999;
+
+    padding:20px;
+}
+
+.password-box{
+    width:100%;
+    max-width:420px;
+
+    background:#1d2938;
+
+    border-radius:18px;
+
+    padding:30px 25px;
+
+    box-shadow:0 8px 40px rgba(0,0,0,.6);
+
+    text-align:center;
+}
+
+.password-box h2{
+    margin-bottom:10px;
+    color:white;
+}
+
+.password-box p{
+    color:#8fa6c3;
+    margin-bottom:25px;
+}
+
+.password-box input{
+    width:100%;
+
+    padding:16px;
+
+    border:none;
+    border-radius:12px;
+
+    background:#0f172a;
+    color:white;
+
+    font-size:20px;
+
+    text-align:center;
+
+    outline:none;
+}
+
+.password-box input:focus{
+    box-shadow:0 0 0 2px #7dd3fc;
+}
+
+.password-box button{
+    width:100%;
+
+    border:none;
+    padding:16px;
+
+    border-radius:12px;
+
+    font-size:20px;
+
+    margin-top:15px;
+
+    cursor:pointer;
+
+    background:#10b981;
+    color:white;
+}
+
+.password-box button:hover{
+    filter:brightness(1.1);
+}
+
+#passwordError{
+    color:#f87171;
+
+    margin-top:15px;
+
+    min-height:24px;
+
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+<div id="passwordModal">
+
+    <div class="password-box">
+
+        <h2>🔒 Protected App</h2>
+
+        <p>
+            Enter password to continue
+        </p>
+
+        <input
+            type="password"
+            id="appPassword"
+            placeholder="Enter Password"
+            autocomplete="off"
+        >
+
+        <button onclick="checkPassword()">
+            UNLOCK
+        </button>
+
+        <div id="passwordError"></div>
+
+    </div>
+
+</div>
+<div class="container">
+<h1>🎯 Optimized Two-Dozen EBT</h1>
+<div class="subtitle">American Roulette • Two Hot Dozens Progression</div>
+
+<div class="card">
+<div class="settings">
+    <label for="unitAmount">Base Unit Amount ($)</label>
+    <input type="number" id="unitAmount" value="5" min="1" step="1" oninput="update()">
+    
+    <label for="aggMode">Recovery Speed Setting</label>
+    <select id="aggMode" onchange="update()">
+        <option value="standard">Standard Labouchère (Slower, Safer)</option>
+        <option value="turbo" selected>Turbo Trim (Faster Payback on Wins)</option>
+    </select>
+
+    <div class="checkbox-group">
+        <input type="checkbox" id="flatSplit" checked onchange="update()">
+        <label for="flatSplit" style="margin:0; display:inline;">Split total bet evenly across both dozens</label>
+    </div>
+</div>
+
+<div class="step" id="stepLabel">SPIN 1</div>
+
+<div class="bet" id="betDisplay">$30.00</div>
+<div class="betUnits" id="betUnits">3 total units</div>
+<div class="split-breakdown" id="splitBreakdown">Place $15 on Dozen A &nbsp;|&nbsp; $15 on Dozen B</div>
+
+<div class="sequenceTitle">Current Recovery Sequence</div>
+<div class="sequence" id="sequenceDisplay">1 - 2</div>
+
+<div class="next">
+    <div class="nextLabel">EXECUTION HINT</div>
+    <div id="instructions">Bet the first + last numbers across your two hot dozens.</div>
+</div>
+
+<button class="win" id="winButton" onclick="win()">WIN (Dozen Hit)</button>
+<button class="loss" id="lossButton" onclick="loss()">LOSS (Missed Both)</button>
+<button class="reset" onclick="resetGame()">RESET / NEW SESSION</button>
+
+<div class="history" id="history">Ready for spin 1. Track your EBT results here.</div>
+</div>
+</div>
+<script>
+
+const APP_PASSWORD = "YOURPASSW0RD";
+
+function checkPassword(){
+
+    const entered =
+        document.getElementById("appPassword").value;
+
+    if(entered === APP_PASSWORD){
+
+        document.getElementById("passwordModal").style.display = "none";
+
+    }else{
+
+        document.getElementById("passwordError").textContent =
+            "Incorrect password.";
+
+        document.getElementById("appPassword").value = "";
+
+        document.getElementById("appPassword").focus();
+
+    }
+
+}
+
+
+/* Allow ENTER key to submit */
+
+document.getElementById("appPassword").addEventListener(
+    "keydown",
+    function(event){
+
+        if(event.key === "Enter"){
+            checkPassword();
+        }
+
+    }
+);
+
+
+/* Automatically place cursor in password field */
+
+window.addEventListener("load", function(){
+
+    document.getElementById("appPassword").focus();
+
+});
+
+</script>
+<script>
+const startingSequence = [1, 2];
+let sequence = [...startingSequence];
+let spinCount = 1;
+
+function money(amount){
+    return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD' }).format(amount);
+}
+
+function getUnit(){
+    let val = parseFloat(document.getElementById("unitAmount").value);
+    return (isNaN(val) || val <= 0) ? 5 : val;
+}
+
+function getBetUnits(){
+    if(sequence.length === 0) return 0;
+    if(sequence.length === 1) return sequence[0];
+    return sequence[0] + sequence[sequence.length - 1];
+}
+
+function update(){
+    const unit = getUnit();
+    const mode = document.getElementById("aggMode").value;
+    const seqDisp = document.getElementById("sequenceDisplay");
+    const betDisp = document.getElementById("betDisplay");
+    const betUnitsDisp = document.getElementById("betUnits");
+    const splitDisp = document.getElementById("splitBreakdown");
+    const instructions = document.getElementById("instructions");
+    const stepLabel = document.getElementById("stepLabel");
+    const winBtn = document.getElementById("winButton");
+    const lossBtn = document.getElementById("lossButton");
+
+    stepLabel.innerHTML = "SPIN " + spinCount;
+
+    if(sequence.length === 0){
+        seqDisp.innerHTML = '<span class="complete">RECOVERY COMPLETE ✓</span>';
+        betDisp.innerHTML = "$0.00";
+        betUnitsDisp.innerHTML = "Back to base stake";
+        splitDisp.innerHTML = "Session profit locked in. Reset sequence.";
+        instructions.innerHTML = "You have successfully cleared the deficit!";
+        winBtn.disabled = true; lossBtn.disabled = true;
+        winBtn.classList.add("disabled"); lossBtn.classList.add("disabled");
+        return;
+    }
+
+    winBtn.disabled = false; lossBtn.disabled = false;
+    winBtn.classList.remove("disabled"); lossBtn.classList.remove("disabled");
+
+    seqDisp.innerHTML = sequence.join(" - ");
+
+    const totalUnits = getBetUnits();
+    const totalDollarBet = totalUnits * unit;
+
+    betDisp.innerHTML = money(totalDollarBet);
+    betUnitsDisp.innerHTML = totalUnits + " total units";
+
+    // Split calculation for two dozens
+    let dozenBet = totalDollarBet / 2;
+    // Round to nearest dollar or EBT friendly increment if needed
+    dozenBet = Math.round(dozenBet * 100) / 100;
+    splitDisp.innerHTML = `Place ${money(dozenBet)} on Dozen X &nbsp;|&nbsp; Place ${money(dozenBet)} on Dozen Y`;
+
+    if(sequence.length === 1){
+        instructions.innerHTML = `Only 1 number left. Bet ${sequence[0]} unit(s) total. Mode: <b>${mode.toUpperCase()}</b>`;
+    } else {
+        instructions.innerHTML = `First (${sequence[0]}) + Last (${sequence[sequence.length - 1]}) = <b>${totalUnits} units</b>. Mode: <b>${mode.toUpperCase()}</b>`;
+    }
+}
+
+function win(){
+    if(sequence.length === 0) return;
+    const mode = document.getElementById("aggMode").value;
+    const oldSeq = [...sequence];
+    const units = getBetUnits();
+
+    // Turbo Trim Incentive Payback: Remove extra numbers on a win during deep streaks
+    if(sequence.length === 1){
+        sequence.pop();
+    } else if(sequence.length === 2){
+        sequence.shift();
+        sequence.pop();
+    } else {
+        if(mode === "turbo"){
+            // Aggressive Trim: Removes 2 from front and 1 from back (or vice versa) to accelerate recovery payout
+            sequence.shift();
+            sequence.shift();
+            sequence.pop();
+        } else {
+            // Standard Labouchere
+            sequence.shift();
+            sequence.pop();
+        }
+    }
+
+    let msg = `✅ <b>WIN</b> (${units} units)<br>Trimmed sequence. Old: [${oldSeq.join("-")}] → New: [${sequence.join("-") || 'COMPLETE'}]`;
+    logHistory(msg);
+    spinCount++;
+    update();
+}
+
+function loss(){
+    if(sequence.length === 0) return;
+    const units = getBetUnits();
+    const oldSeq = [...sequence];
+
+    // Append the failed bet amount twice
+    sequence.push(units);
+    sequence.push(units);
+
+    let msg = `❌ <b>LOSS</b> (${units} units)<br>Added ${units} twice. Old: [${oldSeq.join("-")}] → New: [${sequence.join("-")}]`;
+    logHistory(msg);
+    spinCount++;
+    update();
+}
+
+function logHistory(text){
+    const hist = document.getElementById("history");
+    hist.innerHTML = text + "<br><hr style='border:0; border-top:1px solid #2a3b52; margin:6px 0;'>" + hist.innerHTML;
+}
+
+function resetGame(){
+    sequence = [...startingSequence];
+    spinCount = 1;
+    document.getElementById("history").innerHTML = "Progression reset to base [1 - 2].";
+    update();
+}
+
+update();
+</script>
+</body>
+</html>
