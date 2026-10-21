@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101820">
+<title>EBT Blackjack Master Intelligence Engine</title>
+<style>
+:root{
+  --ink:#e2e8f0; --paper:#0f172a; --card-bg:#1e293b; --line:#334155; 
+  --accent:#38bdf8; --green:#10b981; --red:#ef4444; --gold:#fbbf24;
+  box-sizing:border-box;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,'Iowan Old Style',serif;}
+body{display:flex;justify-content:center;padding:20px 12px;}
+main{width:100%;max-width:560px;}
+h1{font-size:1.35rem;font-weight:600;margin:0 0 4px;text-align:center;color:var(--accent);}
+.sub{opacity:.65;font-size:0.8rem;margin-bottom:14px;text-align:center;line-height:1.4;}
+.card{border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;background:var(--card-bg);}
+.title{font-size:0.75rem;opacity:0.65;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.8px;font-weight:bold;}
+
+/* Step Indicator */
+.step-badge{background:var(--accent);color:#000;font-size:0.7rem;padding:2px 6px;border-radius:4px;font-weight:bold;float:right;text-transform:uppercase;}
+
+/* Shoe Input Grid */
+.shoe-grid{display:grid;grid-template-columns:repeat(7, 1fr);gap:4px;margin-bottom:8px;}
+.shoe-btn{padding:8px 0;font-size:0.85rem;font-weight:bold;border:1px solid var(--line);border-radius:4px;cursor:pointer;background:var(--paper);color:var(--ink);text-align:center;}
+.shoe-btn:hover{background:var(--accent);color:#000;}
+
+/* Hand Setup Rows */
+.setup-row{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
+.setup-row label{font-size:0.85rem;flex:1;}
+.setup-row select{flex:1;padding:8px;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:4px;font-family:inherit;}
+
+/* Master Action Box */
+.master-box{background:rgba(56,189,248,0.08);border:2px solid var(--accent);border-radius:8px;padding:16px;}
+.master-action{font-size:2rem;font-weight:bold;margin:6px 0;color:var(--gold);text-align:center;}
+.master-details{font-size:0.9rem;line-height:1.5;margin-top:10px;border-top:1px dashed var(--line);padding-top:10px;}
+.master-details b{color:var(--accent);}
+
+/* Metrics Grid */
+.grid-metrics{display:grid;grid-template-columns:repeat(3, 1fr);gap:6px;margin-top:6px;}
+.metric-tile{border:1px solid var(--line);border-radius:6px;padding:8px;background:var(--paper);text-align:center;}
+.metric-tile div:first-child{opacity:0.6;font-size:0.65rem;text-transform:uppercase;}
+.metric-tile div:last-child{font-weight:bold;font-size:0.95rem;margin-top:2px;color:var(--accent);}
+
+.action-row{display:flex;gap:6px;margin-top:8px;}
+button.secondary{flex:1;padding:8px;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:4px;cursor:pointer;font-family:inherit;font-size:0.8rem;}
+
+.log{display:flex;flex-wrap:wrap;gap:4px;max-height:75px;overflow-y:auto;font-size:0.75rem;}
+.log span{border:1px solid var(--line);border-radius:3px;padding:2px 5px;font-weight:bold;background:var(--paper);}
+
+.history-footer{border-top:1px solid var(--line);margin-top:16px;padding-top:12px;font-size:0.75rem;opacity:0.75;line-height:1.4;}
+.history-footer h4{margin:0 0 4px 0;font-size:0.8rem;text-transform:uppercase;}
+#passwordModal{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100vw;
+    height:100vh;
+
+    background:#101820;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    z-index:999999;
+
+    padding:20px;
+}
+
+.password-box{
+    width:100%;
+    max-width:420px;
+
+    background:#1d2938;
+
+    border-radius:18px;
+
+    padding:30px 25px;
+
+    box-shadow:0 8px 40px rgba(0,0,0,.6);
+
+    text-align:center;
+}
+
+.password-box h2{
+    margin-bottom:10px;
+    color:white;
+}
+
+.password-box p{
+    color:#8fa6c3;
+    margin-bottom:25px;
+}
+
+.password-box input{
+    width:100%;
+
+    padding:16px;
+
+    border:none;
+    border-radius:12px;
+
+    background:#0f172a;
+    color:white;
+
+    font-size:20px;
+
+    text-align:center;
+
+    outline:none;
+}
+
+.password-box input:focus{
+    box-shadow:0 0 0 2px #7dd3fc;
+}
+
+.password-box button{
+    width:100%;
+
+    border:none;
+    padding:16px;
+
+    border-radius:12px;
+
+    font-size:20px;
+
+    margin-top:15px;
+
+    cursor:pointer;
+
+    background:#10b981;
+    color:white;
+}
+
+.password-box button:hover{
+    filter:brightness(1.1);
+}
+
+#passwordError{
+    color:#f87171;
+
+    margin-top:15px;
+
+    min-height:24px;
+
+    font-weight:bold;
+}
+</style>
+</head>
+<body>
+<div id="passwordModal">
+
+    <div class="password-box">
+
+        <h2>🔒 Protected App</h2>
+
+        <p>
+            Enter password to continue
+        </p>
+
+        <input
+            type="password"
+            id="appPassword"
+            placeholder="Enter Password"
+            autocomplete="off"
+        >
+
+        <button onclick="checkPassword()">
+            UNLOCK
+        </button>
+
+        <div id="passwordError"></div>
+
+    </div>
+
+</div>
+<main>
+  <h1>EBT Blackjack Master Engine</h1>
+  <div class="sub">Sequential Shoe History • Braun-Thorp Strategy • Specialty Side Bet Advisor</div>
+
+  <!-- STEP 1: SHOE HISTORY INITIALIZATION -->
+  <section class="card">
+    <div class="title">Step 1: Shoe History (Log Last 10+ Outcomes) <span class="step-badge">Shoe State</span></div>
+    <div class="shoe-grid">
+      <button class="shoe-btn" onclick="logShoeCard('2')">2</button>
+      <button class="shoe-btn" onclick="logShoeCard('3')">3</button>
+      <button class="shoe-btn" onclick="logShoeCard('4')">4</button>
+      <button class="shoe-btn" onclick="logShoeCard('5')">5</button>
+      <button class="shoe-btn" onclick="logShoeCard('6')">6</button>
+      <button class="shoe-btn" onclick="logShoeCard('7')">7</button>
+      <button class="shoe-btn" onclick="logShoeCard('8')">8</button>
+      <button class="shoe-btn" onclick="logShoeCard('9')">9</button>
+      <button class="shoe-btn" onclick="logShoeCard('10')">10</button>
+      <button class="shoe-btn" onclick="logShoeCard('J')">J</button>
+      <button class="shoe-btn" onclick="logShoeCard('Q')">Q</button>
+      <button class="shoe-btn" onclick="logShoeCard('K')">K</button>
+      <button class="shoe-btn" onclick="logShoeCard('A')">A</button>
+    </div>
+    <div class="grid-metrics">
+      <div class="metric-tile"><div>Logged Cards</div><div id="cardCount">0</div></div>
+      <div class="metric-tile"><div>Running Count</div><div id="runningCount">0</div></div>
+      <div class="metric-tile"><div>True Count</div><div id="trueCount">0.0</div></div>
+    </div>
+    <div class="action-row" style="margin-top:8px;">
+      <button class="secondary" onclick="undoShoeCard()">Undo Last Card</button>
+      <button class="secondary" onclick="resetShoe()">Reset Shoe</button>
+    </div>
+    <div class="log" id="cardLog" style="margin-top:8px;"><div class="empty" style="opacity:0.5">Log recent terminal outcomes here.</div></div>
+  </section>
+
+  <!-- STEP 2: ACTIVE HAND SETUP -->
+  <section class="card">
+    <div class="title">Step 2: Active Hand Configuration <span class="step-badge">Deal View</span></div>
+    <div class="setup-row">
+      <label>Your Card 1:</label>
+      <select id="pCard1" onchange="evaluateEngine()">
+        <option value="2">2</option><option value="3">3</option><option value="4">4</option>
+        <option value="5">5</option><option value="6">6</option><option value="7">7</option>
+        <option value="8">8</option><option value="9">9</option><option value="10" selected>10 / J / Q / K</option>
+        <option value="A">Ace</option>
+      </select>
+    </div>
+    <div class="setup-row">
+      <label>Your Card 2:</label>
+      <select id="pCard2" onchange="evaluateEngine()">
+        <option value="2">2</option><option value="3">3</option><option value="4">4</option>
+        <option value="5">5</option><option value="6">6</option><option value="7">7</option>
+        <option value="8">8</option><option value="9">9</option><option value="10" selected>10 / J / Q / K</option>
+        <option value="A">Ace</option>
+      </select>
+    </div>
+    <div class="setup-row">
+      <label>Dealer's Upcard:</label>
+      <select id="dUpcard" onchange="evaluateEngine()">
+        <option value="2">2</option><option value="3">3</option><option value="4">4</option>
+        <option value="5">5</option><option value="6">6</option><option value="7">7</option>
+        <option value="8">8</option><option value="9">9</option><option value="10" selected>10 / J / Q / K</option>
+        <option value="A">Ace</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- STEP 3: UNIFIED MASTER RECOMMENDATION -->
+  <section class="card">
+    <div class="title">Step 3: Decisive Intelligence Recommendation <span class="step-badge">Action</span></div>
+    <div class="master-box">
+      <div class="master-action" id="masterAction">STAND</div>
+      <div class="master-details" id="masterDetails">
+        Enter active hand parameters above to generate optimal decisions.
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="history-footer">
+    <h4>The Intellectual Heritage of Blackjack Mastery</h4>
+    <p><b>Thorp & Braun:</b> Fusing card-counting shoe entropy with computer-verified Basic Strategy matrices for single-hand EBT optimization.</p>
+  </footer>
+</main>
+<script>
+
+const APP_PASSWORD = "YOURPASSW0RD";
+
+function checkPassword(){
+
+    const entered =
+        document.getElementById("appPassword").value;
+
+    if(entered === APP_PASSWORD){
+
+        document.getElementById("passwordModal").style.display = "none";
+
+    }else{
+
+        document.getElementById("passwordError").textContent =
+            "Incorrect password.";
+
+        document.getElementById("appPassword").value = "";
+
+        document.getElementById("appPassword").focus();
+
+    }
+
+}
+
+
+/* Allow ENTER key to submit */
+
+document.getElementById("appPassword").addEventListener(
+    "keydown",
+    function(event){
+
+        if(event.key === "Enter"){
+            checkPassword();
+        }
+
+    }
+);
+
+
+/* Automatically place cursor in password field */
+
+window.addEventListener("load", function(){
+
+    document.getElementById("appPassword").focus();
+
+});
+
+</script>
+<script>
+let seenCards = [];
+let runningCount = 0;
+
+function logShoeCard(val) {
+  seenCards.push(val);
+  if (['2','3','4','5','6'].includes(val)) runningCount++;
+  if (['10','J','Q','K','A'].includes(val)) runningCount--;
+  updateShoeUI();
+  evaluateEngine();
+}
+
+function undoShoeCard() {
+  let val = seenCards.pop();
+  if (val) {
+    if (['2','3','4','5','6'].includes(val)) runningCount--;
+    if (['10','J','Q','K','A'].includes(val)) runningCount++;
+  }
+  updateShoeUI();
+  evaluateEngine();
+}
+
+function resetShoe() {
+  if (confirm('Reset shoe history log?')) {
+    seenCards = [];
+    runningCount = 0;
+    updateShoeUI();
+    evaluateEngine();
+  }
+}
+
+function updateShoeUI() {
+  document.getElementById('cardCount').textContent = seenCards.length;
+  document.getElementById('runningCount').textContent = runningCount;
+  
+  let decksRemaining = Math.max(1, Math.ceil((312 - seenCards.length) / 52));
+  let trueCount = (runningCount / decksRemaining).toFixed(1);
+  document.getElementById('trueCount').textContent = trueCount;
+
+  const logDiv = document.getElementById('cardLog');
+  if (!seenCards.length) {
+    logDiv.innerHTML = '<div class="empty" style="opacity:0.5">Log recent terminal outcomes here.</div>';
+  } else {
+    logDiv.innerHTML = [...seenCards].reverse().map(c => `<span>${c}</span>`).join('');
+  }
+}
+
+function getCardValue(v) {
+  if (v === 'A') return 11;
+  if (['10','J','Q','K'].includes(v)) return 10;
+  return parseInt(v);
+}
+
+function evaluateEngine() {
+  const c1 = document.getElementById('pCard1').value;
+  const c2 = document.getElementById('pCard2').value;
+  const up = document.getElementById('dUpcard').value;
+
+  let action = "STAND";
+  let reason = "Standard basic strategy hold.";
+
+  const v1 = getCardValue(c1);
+  const v2 = getCardValue(c2);
+  const upVal = getCardValue(up);
+  const isPair = (c1 === c2 || (v1 === 10 && v2 === 10 && ['10','J','Q','K'].includes(c1) && ['10','J','Q','K'].includes(c2)));
+  const isSoft = (c1 === 'A' || c2 === 'A') && !(c1 === 'A' && c2 === 'A');
+  const total = v1 + v2;
+
+  // BASIC STRATEGY MATRIX LOGIC
+  if (isPair) {
+    if (c1 === 'A' || c1 === '8') { action = "SPLIT"; reason = "Always split Aces and 8s."; }
+    else if (c1 === '10') { action = "STAND"; reason = "Never split 10s; 20 is a powerhouse."; }
+    else if (c1 === '5') { action = upVal <= 9 ? "DOUBLE" : "HIT"; reason = "Treat pair of 5s as Hard 10."; }
+    else if (['2','3','7'].includes(c1) && upVal <= 7) { action = "SPLIT"; reason = "Favorable split window against weak dealer upcard."; }
+    else if (c1 === '4' && [5,6].includes(upVal)) { action = "SPLIT"; reason = "Split 4s against 5 or 6."; }
+    else if (c1 === '6' && upVal <= 6) { action = "SPLIT"; reason = "Split 6s against dealer 2 through 6."; }
+    else if (c1 === '9' && upVal !== 7 && upVal !== 10 && upVal !== 11) { action = "SPLIT"; reason = "Split 9s except against 7, 10, Ace."; }
+    else { action = "HIT"; reason = "Standard pair handling."; }
+  } else if (isSoft) {
+    let nonAceVal = v1 === 11 ? v2 : v1;
+    if (nonAceVal >= 9) { action = "STAND"; reason = "Always stand on Soft 19 or 20."; }
+    else if (nonAceVal === 8) { action = (upVal === 6) ? "DOUBLE" : "STAND"; reason = "Double Soft 18 against 6; otherwise stand."; }
+    else if (nonAceVal === 7) { action = ([3,4,5,6].includes(upVal)) ? "DOUBLE" : ([2,7,8].includes(upVal) ? "STAND" : "HIT"); reason = "Soft 17 optimization rule."; }
+    else if (nonAceVal >= 4 && nonAceVal <= 6) { action = ([4,5,6].includes(upVal)) ? "DOUBLE" : "HIT"; reason = "Double soft 15-17 against weak 4-6."; }
+    else { action = ([5,6].includes(upVal)) ? "DOUBLE" : "HIT"; reason = "Double soft 13-14 against 5-6."; }
+  } else {
+    // Hard Totals
+    if (total >= 17) { action = "STAND"; reason = "Protect made hard 17+ total."; }
+    else if (total >= 13 && total <= 16) { action = (upVal <= 6) ? "STAND" : "HIT"; reason = "Stand 13-16 when dealer shows weak 2-6 bust card."; }
+    else if (total === 12) { action = ([4,5,6].includes(upVal)) ? "STAND" : "HIT"; reason = "Stand 12 only against dealer 4, 5, or 6."; }
+    else if (total === 11) { action = "DOUBLE"; reason = "Always double Hard 11 if allowed."; }
+    else if (total === 10) { action = (upVal <= 9) ? "DOUBLE" : "HIT"; reason = "Double Hard 10 against dealer 2 through 9."; }
+    else if (total === 9) { action = ([3,4,5,6].includes(upVal)) ? "DOUBLE" : "HIT"; reason = "Double Hard 9 against dealer 3 through 6."; }
+    else { action = "HIT"; reason = "Always hit hard 8 or less."; }
+  }
+
+  // Shoe state integration override note
+  let shoeNote = "";
+  let decksRemaining = Math.max(1, Math.ceil((312 - seenCards.length) / 52));
+  let trueCount = runningCount / decksRemaining;
+  if (trueCount >= 2.0 && action === "DOUBLE" && total === 10) {
+    shoeNote = "<br><b>Shoe Bias Note:</b> High true count favors aggressive double down!";
+  }
+
+  // Specialty Side Bet Analysis
+  let sideBetAdvice = "<b>Side Bets:</b> Avoid (Negative house edge profile).";
+  if (c1 === c2) {
+    sideBetAdvice = "<b>Specialty Side Bet (Perfect Pairs):</b> <i>Favorable setup!</i> Initial hand is a matched pair.";
+  } else if (v1 === 10 && v2 === 10) {
+    sideBetAdvice = "<b>Specialty Side Bet (Perfect Pairs):</b> Mixed 10-value pair detected.";
+  }
+
+  // Update UI
+  document.getElementById('masterAction').textContent = action;
+  document.getElementById('masterDetails').innerHTML = `
+    <b>Strategy Logic:</b> ${reason}${shoeNote}<br><br>
+    ${sideBetAdvice}
+  `;
+}
+
+updateShoeUI();
+evaluateEngine();
+</script>
+</body>
+</html>
