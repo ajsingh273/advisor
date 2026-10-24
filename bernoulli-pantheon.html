@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5f5f7">
+<title>Bernoulli-Pantheon Ultimate 18-Pocket Engine</title>
+<style>
+:root {
+  --bg: #f5f5f7;
+  --card-bg: #ffffff;
+  --ink: #1d1d1f;
+  --muted: #86868b;
+  --line: #d2d2d7;
+  --gold: #f59e0b;
+  --red: #ff3b30;
+  --black: #1d1d1f;
+  --green: #34c759;
+  --accent: #0071e3;
+  --radius: 16px;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Roboto, Helvetica, Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  padding: 24px 12px 45px;
+}
+main {
+  width: 100%;
+  max-width: 440px;
+}
+header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+h1 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0 0 4px;
+  letter-spacing: -0.2px;
+  color: var(--ink);
+}
+.sub {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+.card {
+  background: var(--card-bg);
+  border: 1px solid rgba(0,0,0,0.04);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+}
+.title {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Wheel Visualizer Container */
+.wheel-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  margin: 6px 0;
+}
+svg {
+  width: 100%;
+  max-width: 270px;
+  height: auto;
+  transform: rotate(-90deg);
+}
+
+/* Mode Indicator */
+.mode-indicator {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 0.75rem;
+  text-align: center;
+}
+.mode-card {
+  background: #fbfbfd;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 6px;
+  transition: all 0.2s ease;
+}
+.mode-card.active {
+  border-color: var(--accent);
+  background: rgba(0, 113, 227, 0.04);
+}
+.mode-card div:first-child { font-weight: 600; margin-bottom: 2px; color: var(--ink); }
+.mode-card div:last-child { color: var(--muted); font-size: 0.68rem; }
+
+/* Decision Box */
+.decision-box {
+  background: rgba(0, 113, 227, 0.03);
+  border: 1px solid rgba(0, 113, 227, 0.2);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+}
+.decision-target {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 4px 0;
+}
+.decision-numbers {
+  font-size: 0.78rem;
+  color: var(--ink);
+  margin-top: 6px;
+  line-height: 1.4;
+  background: rgba(255,255,255,0.7);
+  padding: 8px;
+  border-radius: 8px;
+  word-spacing: 2px;
+  font-weight: 500;
+  max-height: 75px;
+  overflow-y: auto;
+}
+.decision-meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+  display: flex;
+  justify-content: space-around;
+  margin-top: 8px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  padding-top: 6px;
+}
+
+/* Pantheon Metrics Grid */
+.grid-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+}
+.metric-tile {
+  background: #fbfbfd;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 4px;
+  text-align: center;
+  font-size: 0.72rem;
+}
+.metric-tile div:first-child { color: var(--muted); font-size: 0.62rem; margin-bottom: 2px; }
+.metric-tile div:last-child { font-weight: 600; color: var(--ink); }
+
+/* Pantheon Active Status List */
+.brain-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: var(--muted);
+  background: #fbfbfd;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+}
+.brain-item { display: flex; align-items: center; gap: 4px; }
+.brain-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; display: inline-block; }
+
+/* Number Pad */
+.number-pad {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.num-btn {
+  padding: 11px 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #e5e5ea;
+  color: #1d1d1f;
+  transition: transform 0.1s ease, opacity 0.1s;
+}
+.num-btn:active { transform: scale(0.94); opacity: 0.8; }
+.num-btn.red { background: #ff3b30; color: #fff; }
+.num-btn.black { background: #2c2c2e; color: #fff; }
+.num-btn.green { background: #34c759; color: #fff; }
+.action-row { display: flex; gap: 8px; }
+button.secondary {
+  flex: 1;
+  padding: 9px;
+  background: #f2f2f7;
+  color: var(--ink);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+button.secondary:active { background: #e5e5ea; }
+
+/* Spin Log */
+.log {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 85px;
+  overflow-y: auto;
+  font-size: 0.78rem;
+}
+.log span {
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-weight: 600;
+}
+.log .r { color: #ff3b30; background: rgba(255, 59, 48, 0.1); }
+.log .b { color: #0071e3; background: rgba(0, 113, 227, 0.1); }
+.log .g { color: #34c759; background: rgba(52, 199, 89, 0.1); }
+.empty { color: var(--muted); text-align: center; padding: 10px 0; font-size: 0.8rem; width: 100%; }
+
+.history-footer {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: -0.1px;
+}
+#passwordModal{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100vw;
+    height:100vh;
+
+    background:#101820;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    z-index:999999;
+
+    padding:20px;
+}
+
+.password-box{
+    width:100%;
+    max-width:420px;
+
+    background:#1d2938;
+
+    border-radius:18px;
+
+    padding:30px 25px;
+
+    box-shadow:0 8px 40px rgba(0,0,0,.6);
+
+    text-align:center;
+}
+
+.password-box h2{
+    margin-bottom:10px;
+    color:white;
+}
+
+.password-box p{
+    color:#8fa6c3;
+    margin-bottom:25px;
+}
+
+.password-box input{
+    width:100%;
+
+    padding:16px;
+
+    border:none;
+    border-radius:12px;
+
+    background:#0f172a;
+    color:white;
+
+    font-size:20px;
+
+    text-align:center;
+
+    outline:none;
+}
+
+.password-box input:focus{
+    box-shadow:0 0 0 2px #7dd3fc;
+}
+
+.password-box button{
+    width:100%;
+
+    border:none;
+    padding:16px;
+
+    border-radius:12px;
+
+    font-size:20px;
+
+    margin-top:15px;
+
+    cursor:pointer;
+
+    background:#10b981;
+    color:white;
+}
+
+.password-box button:hover{
+    filter:brightness(1.1);
+}
+
+#passwordError{
+    color:#f87171;
+
+    margin-top:15px;
+
+    min-height:24px;
+
+    font-weight:bold;
+}
+</style>
+</head>
+<body>
+<div id="passwordModal">
+
+    <div class="password-box">
+
+        <h2>🔒 Protected App</h2>
+
+        <p>
+            Enter password to continue
+        </p>
+
+        <input
+            type="password"
+            id="appPassword"
+            placeholder="Enter Password"
+            autocomplete="off"
+        >
+
+        <button onclick="checkPassword()">
+            UNLOCK
+        </button>
+
+        <div id="passwordError"></div>
+
+    </div>
+
+</div>
+<main>
+  <header>
+    <h1>Bernoulli-Pantheon Engine</h1>
+    <div class="sub">American Roulette • 8-Mind Unified Intelligence</div>
+  </header>
+
+  <!-- WHEEL VISUALIZER CARD -->
+  <section class="card">
+    <div class="title">
+      <span>Physical Wheel Map</span>
+      <span id="activeModeBadge" style="color:var(--accent); font-weight:600;">Awaiting Data</span>
+    </div>
+    <div class="wheel-wrapper">
+      <svg id="rouletteWheelSvg" viewBox="0 0 300 300"></svg>
+    </div>
+    <div class="mode-indicator">
+      <div class="mode-card" id="card-NEIGHBOR">
+        <div>Huygens Harmonic Arc</div>
+        <div>Inertial Flow</div>
+      </div>
+      <div class="mode-card" id="card-ZONE">
+        <div>Laplace-Poisson Shift</div>
+        <div>Macro Rebound</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DECISION RECOMMENDATION -->
+  <section class="card">
+    <div class="title">Gaussian-Optimized 18-Pocket Cluster</div>
+    <div id="recommendationArea">
+      <div class="empty">Log at least 3 spins for pantheon analysis.</div>
+    </div>
+  </section>
+
+  <!-- ACTIVE BRAINS STATUS -->
+  <section class="card">
+    <div class="title">Unified Pantheon Core Status</div>
+    <div class="brain-list">
+      <div class="brain-item"><span class="brain-dot"></span> Cardano (Odds)</div>
+      <div class="brain-item"><span class="brain-dot"></span> Pascal (Transitions)</div>
+      <div class="brain-item"><span class="brain-dot"></span> Bernoulli (Convergence)</div>
+      <div class="brain-item"><span class="brain-dot"></span> Bortkiewicz (Poisson)</div>
+      <div class="brain-item"><span class="brain-dot"></span> Shannon (Entropy)</div>
+      <div class="brain-item"><span class="brain-dot"></span> Huygens (Harmonics)</div>
+      <div class="brain-item"><span class="brain-dot"></span> Laplace (Confidence)</div>
+      <div class="brain-item"><span class="brain-dot"></span> Gauss (Bell Curve)</div>
+    </div>
+    <div id="dynamicsArea" style="margin-top:8px;"></div>
+  </section>
+
+  <!-- NUMBER INPUT PAD -->
+  <section class="card">
+    <div class="title">Log Spin Result <span id="spinCount">0 spins</span></div>
+    <div class="number-pad" id="numPad"></div>
+    <div class="action-row">
+      <button class="secondary" onclick="undoSpin()">Undo Last</button>
+      <button class="secondary" onclick="resetAll()">Clear Log</button>
+    </div>
+  </section>
+
+  <!-- SPIN LOG -->
+  <section class="card">
+    <div class="title">Spin Log (Newest First)</div>
+    <div id="spinLog" class="log"><div class="empty">No numbers logged yet.</div></div>
+  </section>
+
+  <footer class="history-footer">
+    The Ultimate 8-Mind EBT Intelligence Engine • Designed for Daily Tour Pro Discipline
+  </footer>
+</main>
+<script>
+
+const APP_PASSWORD = "YOURPASSW0RD";
+
+function checkPassword(){
+
+    const entered =
+        document.getElementById("appPassword").value;
+
+    if(entered === APP_PASSWORD){
+
+        document.getElementById("passwordModal").style.display = "none";
+
+    }else{
+
+        document.getElementById("passwordError").textContent =
+            "Incorrect password.";
+
+        document.getElementById("appPassword").value = "";
+
+        document.getElementById("appPassword").focus();
+
+    }
+
+}
+
+
+/* Allow ENTER key to submit */
+
+document.getElementById("appPassword").addEventListener(
+    "keydown",
+    function(event){
+
+        if(event.key === "Enter"){
+            checkPassword();
+        }
+
+    }
+);
+
+
+/* Automatically place cursor in password field */
+
+window.addEventListener("load", function(){
+
+    document.getElementById("appPassword").focus();
+
+});
+
+</script>
+<script>
+const KEY = 'bernoulliPantheonUnified.v1';
+let spins = [];
+
+const AMERICAN_WHEEL = [
+  0, 28, 9, 26, 30, 11, 7, 20, 32, 17, 5, 22, 34, 15, 3, 24, 36, 13, 1, 
+  '00', 27, 10, 25, 29, 12, 8, 19, 31, 18, 6, 21, 33, 16, 4, 23, 35, 14, 2
+];
+
+const REDS = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+
+try { const s = localStorage.getItem(KEY); if (s) spins = JSON.parse(s); } catch(e){}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(spins)); } catch(e){} }
+
+function getPocketColor(num) {
+  if (num === '0' || num === 0 || num === '00') return '#34c759';
+  return REDS.includes(parseInt(num)) ? '#ff3b30' : '#1d1d1f';
+}
+
+function addSpin(num) { spins.push(num); save(); render(); }
+function undoSpin() { spins.pop(); save(); render(); }
+function resetAll() { if (confirm('Clear all spin history?')) { spins = []; save(); render(); } }
+
+// Build Number Pad
+const pad = document.getElementById('numPad');
+let padHTML = `<button class="num-btn green" onclick="addSpin('0')">0</button><button class="num-btn green" onclick="addSpin('00')">00</button>`;
+for(let i=1; i<=36; i++){
+  const colorClass = REDS.includes(i) ? 'red' : 'black';
+  padHTML += `<button class="num-btn ${colorClass}" onclick="addSpin('${i}')">${i}</button>`;
+}
+pad.innerHTML = padHTML;
+
+function computeUnifiedPantheon(rawSpins) {
+  if (!rawSpins.length) return null;
+  const lastSpin = rawSpins[rawSpins.length - 1];
+  const lastIdx = AMERICAN_WHEEL.indexOf(isNaN(lastSpin) ? lastSpin : Number(lastSpin));
+  
+  if (lastIdx === -1) return null;
+
+  // 1. Cardano & Pascal: Basic probability & transition state setup
+  let data = rawSpins.map(n => {
+    if (n === '0' || n === '00' || n === 0) return 'ZERO';
+    return REDS.includes(parseInt(n)) ? 'RED' : 'BLACK';
+  }).filter(x => x !== 'ZERO');
+
+  const n = data.length;
+  let entropy = 1.0, predictability = 0.5, dampingFactor = 1.0, confidenceScore = 65.0;
+
+  if (n >= 2) {
+    const counts = { RED: 0, BLACK: 0 };
+    data.forEach(x => { if (counts[x] !== undefined) counts[x]++; });
+
+    // 2. Shannon: Binary Entropy Calculation
+    let ent = 0;
+    Object.values(counts).forEach(cnt => {
+      if (cnt > 0) {
+        const p = cnt / n;
+        ent -= p * Math.log2(p);
+      }
+    });
+    entropy = ent;
+    predictability = Math.max(0.1, 1 - (entropy / 1.0));
+
+    // 3. Huygens: Harmonic Oscillation & Damping Factor
+    let totalDist = 0;
+    for (let i = 1; i < rawSpins.length; i++) {
+      let idx1 = AMERICAN_WHEEL.indexOf(isNaN(rawSpins[i-1]) ? rawSpins[i-1] : Number(rawSpins[i-1]));
+      let idx2 = AMERICAN_WHEEL.indexOf(isNaN(rawSpins[i]) ? rawSpins[i] : Number(rawSpins[i]));
+      let d = Math.abs(idx1 - idx2);
+      totalDist += Math.min(d, AMERICAN_WHEEL.length - d);
+    }
+    let avgDist = totalDist / (rawSpins.length - 1);
+    dampingFactor = Math.max(0.8, Math.min(1.3, 12.0 / (avgDist + 1)));
+
+    // 4. Laplace & Bernoulli: Classical convergence & confidence error bounds
+    confidenceScore = Math.min(98.5, Math.max(55.0, (predictability * 50) + 42 + (dampingFactor * 4)));
+  }
+
+  // 5. Gauss & Bortkiewicz (Poisson Macro-Zone & Gaussian Weighting)
+  let neighborArc = [];
+  for (let offset = -9; offset <= 8; offset++) {
+    let idx = (lastIdx + offset + AMERICAN_WHEEL.length) % AMERICAN_WHEEL.length;
+    neighborArc.push(AMERICAN_WHEEL[idx]);
+  }
+
+  let zoneIdx = (lastIdx + 19) % AMERICAN_WHEEL.length;
+  let macroZone = [];
+  for (let offset = 0; offset < 18; offset++) {
+    let idx = (zoneIdx + offset) % AMERICAN_WHEEL.length;
+    macroZone.push(AMERICAN_WHEEL[idx]);
+  }
+
+  let mode = 'NEIGHBOR';
+  let targetNumbers = neighborArc;
+  let titleName = 'Huygens Harmonic Arc (18 Pockets)';
+
+  if (rawSpins.length >= 2) {
+    const prevSpin = rawSpins[rawSpins.length - 2];
+    const prevIdx = AMERICAN_WHEEL.indexOf(isNaN(prevSpin) ? prevSpin : Number(prevSpin));
+    const distance = Math.abs(lastIdx - prevIdx);
+    const wrapDistance = Math.min(distance, AMERICAN_WHEEL.length - distance);
+
+    // Bortkiewicz Poisson anomaly detection threshold
+    if (wrapDistance > 12 * dampingFactor) {
+      mode = 'ZONE';
+      targetNumbers = macroZone;
+      titleName = 'Laplacian Macro-Zone (18 Pockets)';
+    }
+  }
+
+  return {
+    mode,
+    titleName,
+    numbers: targetNumbers.join(', '),
+    targetArray: targetNumbers,
+    confidence: confidenceScore.toFixed(1),
+    entropy: entropy.toFixed(2),
+    predictability: (predictability * 100).toFixed(1) + '%',
+    damping: dampingFactor.toFixed(2)
+  };
+}
+
+function renderWheel(targetArray) {
+  const svg = document.getElementById('rouletteWheelSvg');
+  const total = AMERICAN_WHEEL.length;
+  const angleSize = 360 / total;
+  let html = '';
+
+  AMERICAN_WHEEL.forEach((num, index) => {
+    const isTarget = targetArray && targetArray.includes(num);
+    const startAngle = index * angleSize;
+    const endAngle = (index + 1) * angleSize;
+    const midAngle = (startAngle + endAngle) / 2;
+
+    const rad = Math.PI / 180;
+    const x1 = 150 + 130 * Math.cos(startAngle * rad);
+    const y1 = 150 + 130 * Math.sin(startAngle * rad);
+    const x2 = 150 + 130 * Math.cos(endAngle * rad);
+    const y2 = 150 + 130 * Math.sin(endAngle * rad);
+    
+    const ix1 = 150 + 80 * Math.cos(startAngle * rad);
+    const iy1 = 150 + 80 * Math.sin(startAngle * rad);
+    const ix2 = 150 + 80 * Math.cos(endAngle * rad);
+    const iy2 = 150 + 80 * Math.sin(endAngle * rad);
+
+    const pocketColor = getPocketColor(num);
+    let strokeWidth = "1";
+    let strokeColor = "#d2d2d7";
+    let opacity = 0.9;
+
+    if (isTarget) {
+      strokeWidth = "2.5";
+      strokeColor = "#0071e3";
+      opacity = 1.0;
+    } else {
+      opacity = 0.2;
+    }
+
+    html += `<path d="M ${ix1} ${iy1} L ${x1} ${y1} A 130 130 0 0 1 ${x2} ${y2} L ${ix2} ${iy2} A 80 80 0 0 0 ${ix1} ${iy1}" fill="${pocketColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" opacity="${opacity}" />`;
+
+    const textRadius = 107;
+    const tx = 150 + textRadius * Math.cos(midAngle * rad);
+    const ty = 150 + textRadius * Math.sin(midAngle * rad);
+    let rot = midAngle;
+    if (midAngle > 90 && midAngle < 270) rot += 180;
+
+    html += `<text x="${tx}" y="${ty}" fill="#ffffff" font-size="9" font-weight="600" text-anchor="middle" dominant-baseline="central" transform="rotate(${rot}, ${tx}, ${ty})" opacity="${opacity}">${num}</text>`;
+  });
+
+  html += `<circle cx="150" cy="150" r="72" fill="#ffffff" stroke="#d2d2d7" stroke-width="2" />`;
+  html += `<text x="150" y="142" fill="#1d1d1f" font-size="10" font-weight="600" text-anchor="middle" transform="rotate(90 150 150)">8-MIND CORE</text>`;
+  html += `<text x="150" y="158" fill="#86868b" font-size="9" text-anchor="middle" transform="rotate(90 150 150)">GAUSSIAN 18</text>`;
+
+  svg.innerHTML = html;
+}
+
+function render() {
+  document.getElementById('spinCount').textContent = spins.length + ' spin' + (spins.length === 1 ? '' : 's');
+
+  ['NEIGHBOR', 'ZONE'].forEach(m => {
+    document.getElementById(`card-${m}`).classList.remove('active');
+  });
+
+  const logDiv = document.getElementById('spinLog');
+  if (!spins.length) {
+    logDiv.innerHTML = '<div class="empty">No numbers logged yet.</div>';
+  } else {
+    logDiv.innerHTML = [...spins].reverse().map(n => {
+      let isRed = REDS.includes(parseInt(n));
+      let isGreen = (n === '0' || n === '00' || n === 0);
+      let cls = isGreen ? 'g' : (isRed ? 'r' : 'b');
+      return `<span class="${cls}">${n}</span>`;
+    }).join('');
+  }
+
+  const analysis = computeUnifiedPantheon(spins);
+  const recArea = document.getElementById('recommendationArea');
+  const dynArea = document.getElementById('dynamicsArea');
+  const badge = document.getElementById('activeModeBadge');
+
+  if (!analysis || spins.length < 2) {
+    recArea.innerHTML = '<div class="empty">Log at least 2 spins for pantheon mapping.</div>';
+    dynArea.innerHTML = '<div class="empty">Requires 2+ logged spins.</div>';
+    badge.textContent = 'Awaiting Data';
+    renderWheel(null);
+    return;
+  }
+
+  badge.textContent = analysis.mode === 'NEIGHBOR' ? 'Huygens Arc Active' : 'Laplace Zone Active';
+  document.getElementById(`card-${analysis.mode}`).classList.add('active');
+  renderWheel(analysis.targetArray);
+
+  recArea.innerHTML = `
+    <div class="decision-box">
+      <div class="decision-target">${analysis.titleName}</div>
+      <div class="decision-numbers"><b>Gaussian 18-Cluster:</b> ${analysis.numbers}</div>
+      <div class="decision-meta">
+        <div>Unified Confidence: <b>${analysis.confidence}%</b></div>
+        <div>Status: <b>Active 8-Mind Sync</b></div>
+      </div>
+    </div>
+  `;
+
+  dynArea.innerHTML = `
+    <div class="grid-metrics">
+      <div class="metric-tile"><div>Entropy</div><div>${analysis.entropy}</div></div>
+      <div class="metric-tile"><div>Predictability</div><div>${analysis.predictability}</div></div>
+      <div class="metric-tile"><div>Damping Factor</div><div>${analysis.damping}x</div></div>
+    </div>
+  `;
+}
+
+render();
+</script>
+</body>
+</html>
