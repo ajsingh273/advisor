@@ -149,11 +149,21 @@ textarea{width:100%;min-height:70px;resize:vertical}
 @media (max-width:900px){
   .grid{display:flex;flex-direction:column;gap:14px}
   .col{display:contents}
-  #sec-wheel{order:1}#sec-entry{order:2}#sec-toggle{order:3;display:flex;gap:8px}#sec-toggle .btn{flex:1}
-  #sec-rec{order:4}#sec-log{order:5}#sec-models{order:6}#sec-perf{order:7}#sec-bias{order:8}#sec-sim{order:9}
+  #sec-wheel{order:1}#sec-entry{order:2}#sec-log{order:3}#sec-toggle{order:4;display:flex;gap:8px}#sec-toggle .btn{flex:1;min-height:44px}
+  #sec-rec{order:5}#sec-models{order:6}#sec-perf{order:7}#sec-bias{order:8}#sec-sim{order:9}
   h1{font-size:23px}
+  body{overflow-x:clip}
+  .bar{padding-block:8px;margin-bottom:12px}
+  .panel{padding:12px;border-radius:10px}
+  .panel>h2{margin-bottom:8px}
+  #wheel{max-width:none}
+  .pad{gap:4px}
+  .pad button{min-height:46px;font-size:15px}
+  .row .btn{flex:1;min-height:44px}
+  #quick{min-height:44px;font-size:16px}
+  .log{max-height:112px}
   .brand p,#sec-wheel .legend{display:none}
-  body:not(.show-details) .bar .controls,body:not(.show-details) #exampleNote,body:not(.show-details) #sec-rec,body:not(.show-details) #sec-log,body:not(.show-details) #sec-models,body:not(.show-details) #sec-perf,body:not(.show-details) #sec-bias,body:not(.show-details) #sec-sim{display:none}
+  body:not(.show-details) .bar .controls,body:not(.show-details) #exampleNote,body:not(.show-details) #logData,body:not(.show-details) #sec-rec,body:not(.show-details) #sec-models,body:not(.show-details) #sec-perf,body:not(.show-details) #sec-bias,body:not(.show-details) #sec-sim{display:none}
   .bar .controls #signOut{display:none}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -231,6 +241,7 @@ textarea{width:100%;min-height:70px;resize:vertical}
       <section class="panel" id="sec-log">
         <h2>Spin log <small>newest first</small></h2>
         <div class="log" id="logChips"></div>
+        <div id="logData">
         <h3>Copy or load</h3>
         <textarea id="dataText" aria-label="Spin log as text, oldest to newest" spellcheck="false"></textarea>
         <div class="row" style="margin-top:8px">
@@ -238,6 +249,7 @@ textarea{width:100%;min-height:70px;resize:vertical}
           <button type="button" class="btn" id="loadData">Replace log with this text</button>
         </div>
         <p class="msg" id="dataMsg" aria-live="polite"></p>
+        </div>
       </section>
     </div>
 
