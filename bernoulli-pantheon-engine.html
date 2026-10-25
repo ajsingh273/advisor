@@ -91,7 +91,7 @@ h3{margin:16px 0 8px;font:700 13px/1.2 var(--body);letter-spacing:.05em;text-tra
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
 .btn.danger{background:var(--bad);color:#fff;border-color:transparent}
 .btn:disabled{opacity:.5;cursor:default}
-input[type=text],select,textarea{font:400 13px var(--mono);padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);min-width:0}
+input[type=text],input[type=password],select,textarea{font:400 13px var(--mono);padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);min-width:0}
 input[type=text]{flex:1 1 140px}
 textarea{width:100%;min-height:70px;resize:vertical}
 .msg{min-height:18px;margin:6px 0 0;font-size:12.5px;color:var(--ink-2)}
@@ -136,90 +136,44 @@ textarea{width:100%;min-height:70px;resize:vertical}
 .hist i{flex:1;background:var(--accent);opacity:.75;min-height:1px;border-radius:2px 2px 0 0}
 .histax{display:flex;justify-content:space-between;font:400 10.5px var(--mono);color:var(--ink-2);margin-top:3px}
 .verdict-ok{color:var(--ink-2)} .verdict-flag{color:var(--bad);font-weight:600} .verdict-marg{color:var(--brass);font-weight:600}
+#sec-toggle{display:none}
+.login{min-height:100dvh;display:grid;place-items:center;padding-block:24px}
+.login-card{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:24px;display:flex;flex-direction:column;gap:8px}
+.login-card h1{font-size:28px}
+.login-card p{margin:0 0 8px;color:var(--ink-2);font-size:13px}
+.login-card label{margin-top:6px;font:500 11px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2)}
+.login-card input[type=text],.login-card input[type=password]{flex:none;width:100%;padding:10px 12px;font-size:15px}
+.login-card .check{display:flex;align-items:center;gap:8px;margin:8px 0 4px;font:400 13px var(--body);text-transform:none;letter-spacing:0;color:var(--ink)}
+.login-card .btn{margin-top:8px;padding:11px 14px;font-size:14px}
+.login-err{min-height:18px;margin:4px 0 0;font-size:12.5px;color:var(--bad)}
 @media (max-width:900px){
   .grid{display:flex;flex-direction:column;gap:14px}
   .col{display:contents}
-  #sec-rec{order:1}#sec-wheel{order:2}#sec-entry{order:3}#sec-log{order:4}#sec-models{order:5}#sec-perf{order:6}#sec-bias{order:7}#sec-sim{order:8}
+  #sec-wheel{order:1}#sec-entry{order:2}#sec-toggle{order:3;display:flex;gap:8px}#sec-toggle .btn{flex:1}
+  #sec-rec{order:4}#sec-log{order:5}#sec-models{order:6}#sec-perf{order:7}#sec-bias{order:8}#sec-sim{order:9}
   h1{font-size:23px}
+  .brand p,#sec-wheel .legend{display:none}
+  body:not(.show-details) .bar .controls,body:not(.show-details) #exampleNote,body:not(.show-details) #sec-rec,body:not(.show-details) #sec-log,body:not(.show-details) #sec-models,body:not(.show-details) #sec-perf,body:not(.show-details) #sec-bias,body:not(.show-details) #sec-sim{display:none}
+  .bar .controls #signOut{display:none}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
-#passwordModal{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100vw;
-  height:100vh;
-  background:var(--paper);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:999999;
-  padding:20px;
-}
-
-.password-box{
-  width:100%;
-  max-width:420px;
-  border:1px solid var(--line);
-  border-radius:6px;
-  padding:30px 25px;
-  text-align:center;
-  background:var(--paper);
-}
-
-.password-box h2{
-  margin-bottom:10px;
-  font-weight:600;
-}
-
-.password-box p{
-  opacity:.65;
-  margin-bottom:25px;
-}
-
-.password-box input{
-  width:100%;
-  padding:13px;
-  border:1px solid var(--line);
-  border-radius:4px;
-  background:transparent;
-  color:var(--ink);
-  font-family:inherit;
-  font-size:1rem;
-  text-align:center;
-  outline:none;
-}
-
-.password-box button{
-  margin-top:12px;
-}
-
-#passwordError{
-  color:var(--lose);
-  margin-top:12px;
-  min-height:20px;
-  font-weight:600;
-  font-size:.9rem;
-}
 </style>
-<div id="passwordModal">
-  <div class="password-box">
-    <h2>Protected App</h2>
-    <p>Enter password to continue</p>
 
-    <input
-      type="password"
-      id="appPassword"
-      placeholder="Enter Password"
-      autocomplete="off"
-    >
-
-    <button onclick="checkPassword()">UNLOCK</button>
-
-    <div id="passwordError"></div>
-  </div>
+<div class="login" id="login" hidden>
+  <form class="login-card" id="loginForm" autocomplete="off">
+    <h1>Bernoulli-Pantheon Engine</h1>
+    <p>Sign in to continue.</p>
+    <label for="loginUser">Username</label>
+    <input type="text" id="loginUser" autocomplete="username" autocapitalize="none" spellcheck="false">
+    <label for="loginPass">Password</label>
+    <input type="password" id="loginPass" autocomplete="current-password">
+    <label class="check" for="loginRemember"><input type="checkbox" id="loginRemember"> Keep me signed in on this device</label>
+    <button type="submit" class="btn primary">Sign in</button>
+    <p class="login-err" id="loginErr" role="alert"></p>
+  </form>
 </div>
-<div class="app">
+
+<div class="app" id="app" hidden>
   <header class="bar">
     <div class="brand">
       <h1>Bernoulli-Pantheon Engine</h1>
@@ -237,6 +191,7 @@ textarea{width:100%;min-height:70px;resize:vertical}
         <span id="arcSize">18 pockets</span>
         <button type="button" id="arcPlus" aria-label="Larger arc">+</button>
       </div>
+      <button type="button" class="btn js-signout" id="signOut">Sign out</button>
     </div>
   </header>
 
@@ -267,6 +222,11 @@ textarea{width:100%;min-height:70px;resize:vertical}
         </div>
         <p class="msg" id="entryMsg" aria-live="polite"></p>
       </section>
+
+      <div id="sec-toggle">
+        <button type="button" class="btn" id="detailsToggle" aria-expanded="false">Show details</button>
+        <button type="button" class="btn js-signout">Sign out</button>
+      </div>
 
       <section class="panel" id="sec-log">
         <h2>Spin log <small>newest first</small></h2>
@@ -334,29 +294,7 @@ textarea{width:100%;min-height:70px;resize:vertical}
     </div>
   </div>
 </div>
-<script>
-const APP_PASSWORD = "YOURPASSW0RD";
 
-function checkPassword(){
-  const entered = document.getElementById("appPassword").value;
-
-  if(entered === APP_PASSWORD){
-    document.getElementById("passwordModal").style.display = "none";
-  }else{
-    document.getElementById("passwordError").textContent =
-      "Incorrect password.";
-    document.getElementById("appPassword").value = "";
-    document.getElementById("appPassword").focus();
-  }
-}
-
-document.getElementById("appPassword").addEventListener(
-  "keydown",
-  function(event){
-    if(event.key === "Enter") checkPassword();
-  }
-);
-</script>
 <script id="engine">
 const Engine=(function(){
 'use strict';
@@ -647,6 +585,9 @@ return {N,WHEEL,IDX,kind,WARM,runEngine,rateStats,biasTests,powerRows,genSpins,s
 'use strict';
 const E=Engine,N=E.N,WHEEL=E.WHEEL,IDX=E.IDX;
 const $=id=>document.getElementById(id);
+/* Front-end login only. Change these two values to set your sign-in. Anyone who can view the page source can read them. */
+const AUTH={user:'admin',pass:'YOURPASSW0RD'};
+const AUTHKEY='zoneEngine.auth';
 const KEY='zoneEngine.v2',OLD='bernoulliPantheon4View.v1';
 const state={spins:[],view:'arc',arcK:18,example:false};
 const OLDVIEW={CLUSTER18:'arc',PAIRS9:'pairs',TRIPLETS6:'tri6',TRIPLETS8:'tri8'};
@@ -957,6 +898,36 @@ async function runSim(){
 }
 
 /* ---------- wiring ---------- */
+function authed(){try{return sessionStorage.getItem(AUTHKEY)==='1'||localStorage.getItem(AUTHKEY)==='1';}catch(e){return false;}}
+function setAuth(on,remember){
+  try{
+    if(on){sessionStorage.setItem(AUTHKEY,'1');if(remember)localStorage.setItem(AUTHKEY,'1');}
+    else{sessionStorage.removeItem(AUTHKEY);localStorage.removeItem(AUTHKEY);}
+  }catch(e){}
+}
+function showApp(on){
+  $('app').hidden=!on;$('login').hidden=on;
+  if(on)renderAll();else{$('loginPass').value='';$('loginErr').textContent='';$('loginUser').focus();}
+}
+function setupAuth(){
+  $('loginForm').addEventListener('submit',e=>{
+    e.preventDefault();
+    if($('loginUser').value.trim()===AUTH.user&&$('loginPass').value===AUTH.pass){
+      setAuth(true,$('loginRemember').checked);showApp(true);
+    }else{$('loginErr').textContent='Username or password is incorrect.';$('loginPass').value='';$('loginPass').focus();}
+  });
+  document.querySelectorAll('.js-signout').forEach(b=>b.addEventListener('click',()=>{
+    setAuth(false);document.body.classList.remove('show-details');$('detailsToggle').textContent='Show details';$('detailsToggle').setAttribute('aria-expanded','false');showApp(false);
+  }));
+  $('detailsToggle').addEventListener('click',()=>{
+    const on=!document.body.classList.contains('show-details');
+    document.body.classList.toggle('show-details',on);
+    $('detailsToggle').textContent=on?'Hide details':'Show details';
+    $('detailsToggle').setAttribute('aria-expanded',String(on));
+    if(on)renderCharts();
+  });
+  showApp(authed());
+}
 function init(){
   load();buildPad();renderPower();
   document.querySelectorAll('#viewSeg button').forEach(b=>b.addEventListener('click',()=>{state.view=b.dataset.view;save();renderAll();}));
@@ -982,6 +953,7 @@ function init(){
   else window.addEventListener('resize',()=>{clearTimeout(tm);tm=setTimeout(redraw,120);});
   lw=document.body.clientWidth;
   renderAll();
+  setupAuth();
 }
 init();
 })();
