@@ -1,0 +1,990 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Bernoulli-Pantheon Engine</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Big+Shoulders+Display:wght@600;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: instrument panel. Left column = wheel, entry, log. Right column = recommendation, models, backtest, bias lab, simulator. One column on phones. */
+:root{
+  --bg:#E6E9E3; --surface:#F5F7F2; --surface-2:#DCE1D8; --ink:#13201A; --ink-2:#54635A; --line:#C2CABF;
+  --accent:#0B6A54; --accent-ink:#F3FBF7; --brass:#A86F12; --brass-soft:rgba(168,111,18,.16);
+  --red:#B5302A; --pk-black:#1A201D; --pk-green:#1D7A4F; --bad:#B5302A;
+  --m1:#0B6A54; --m2:#4AA58E; --m3:#B7791F; --m4:#7A4FA3; --m5:#2F6FA8; --m6:#7D8B2E; --m7:#B5302A; --m8:#7B877F;
+  --display:'Big Shoulders Display','Barlow Condensed','Arial Narrow',sans-serif;
+  --body:'Barlow',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1411; --surface:#151F1A; --surface-2:#1E2B25; --ink:#E3EBE5; --ink-2:#92A498; --line:#2B3A32;
+    --accent:#43C2A0; --accent-ink:#052219; --brass:#E0AC4E; --brass-soft:rgba(224,172,78,.18);
+    --red:#E0574E; --pk-black:#050807; --pk-green:#2E9962; --bad:#EE7A71;
+    --m1:#43C2A0; --m2:#7DD6BC; --m3:#E0AC4E; --m4:#B58BDB; --m5:#6EA8E0; --m6:#B5C25A; --m7:#EE7A71; --m8:#8A9A90;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1411; --surface:#151F1A; --surface-2:#1E2B25; --ink:#E3EBE5; --ink-2:#92A498; --line:#2B3A32;
+  --accent:#43C2A0; --accent-ink:#052219; --brass:#E0AC4E; --brass-soft:rgba(224,172,78,.18);
+  --red:#E0574E; --pk-black:#050807; --pk-green:#2E9962; --bad:#EE7A71;
+  --m1:#43C2A0; --m2:#7DD6BC; --m3:#E0AC4E; --m4:#B58BDB; --m5:#6EA8E0; --m6:#B5C25A; --m7:#EE7A71; --m8:#8A9A90;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink); font:400 14px/1.45 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0 32px;
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30}
+.app{max-width:1320px;margin:0 auto}
+.bar{
+  position:sticky; top:env(safe-area-inset-top,0px); z-index:20; background:var(--bg);
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 20px;
+  padding-block:12px; border-bottom:1px solid var(--line); margin-bottom:16px;
+}
+.brand{min-width:0}
+h1{margin:0;font:800 28px/1 var(--display);letter-spacing:.03em;text-transform:uppercase}
+.brand p{margin:3px 0 0;color:var(--ink-2);font-size:12.5px}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--surface)}
+.seg button{font:600 12.5px var(--body);padding:8px 12px;border:0;border-right:1px solid var(--line);background:transparent;color:var(--ink-2);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:7px;background:var(--surface);overflow:hidden}
+.stepper button{width:34px;height:34px;border:0;background:transparent;color:var(--ink);font:600 16px var(--mono);cursor:pointer}
+.stepper span{min-width:64px;text-align:center;font:500 12.5px var(--mono);color:var(--ink)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:16px;align-items:start}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;min-width:0}
+.panel>h2{margin:0 0 12px;font:700 18px/1 var(--display);letter-spacing:.09em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.panel>h2 small{font:400 11.5px var(--mono);letter-spacing:0;text-transform:none;color:var(--ink-2)}
+h3{margin:16px 0 8px;font:700 13px/1.2 var(--body);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2)}
+.muted{color:var(--ink-2)}
+.small{font-size:12.5px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.note{margin:0 0 12px;padding:8px 12px;border:1px solid var(--line);border-left:3px solid var(--brass);border-radius:6px;background:var(--surface);font-size:13px}
+
+/* wheel */
+#wheel{display:block;width:100%;max-width:460px;height:auto;margin:0 auto}
+.w-label{font:500 11px var(--mono);fill:#fff;text-anchor:middle;dominant-baseline:central}
+.w-center-n{font:800 64px var(--display);text-anchor:middle;dominant-baseline:central}
+.w-center-s{font:400 11.5px var(--mono);fill:var(--ink-2);text-anchor:middle}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;color:var(--ink-2)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+
+/* chips */
+.chip{display:inline-grid;place-items:center;min-width:30px;height:28px;padding:0 6px;border-radius:5px;font:500 12.5px var(--mono);color:#fff}
+.k-r{background:var(--red)} .k-k{background:var(--pk-black);box-shadow:inset 0 0 0 1px var(--line)} .k-g{background:var(--pk-green)}
+.zone{display:flex;flex-wrap:wrap;gap:8px 12px}
+.zgroup{display:inline-flex;gap:3px;padding:3px;border:1px solid var(--brass);border-radius:7px;background:var(--brass-soft)}
+.log{display:flex;flex-wrap:wrap;gap:4px;max-height:132px;overflow-y:auto;padding:2px}
+.log .chip{min-width:28px;height:24px;font-size:11.5px}
+
+/* entry */
+.pad{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
+.pad button{min-height:40px;border:0;border-radius:6px;font:500 14px var(--mono);color:#fff;cursor:pointer}
+.pad button:active{transform:scale(.95)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{font:600 13px var(--body);padding:8px 13px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.danger{background:var(--bad);color:#fff;border-color:transparent}
+.btn:disabled{opacity:.5;cursor:default}
+input[type=text],select,textarea{font:400 13px var(--mono);padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);min-width:0}
+input[type=text]{flex:1 1 140px}
+textarea{width:100%;min-height:70px;resize:vertical}
+.msg{min-height:18px;margin:6px 0 0;font-size:12.5px;color:var(--ink-2)}
+
+/* tiles + pills */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:8px;margin:14px 0 4px}
+.tile{border:1px solid var(--line);border-radius:6px;padding:9px 11px;min-width:0}
+.tile span{display:block;font:500 11px var(--mono);color:var(--ink-2);text-transform:uppercase;letter-spacing:.05em}
+.tile b{display:block;margin-top:2px;font:700 26px/1.1 var(--display);letter-spacing:.02em}
+.tile em{display:block;margin-top:2px;font:400 11.5px var(--mono);color:var(--ink-2);font-style:normal}
+.pill{display:inline-block;padding:3px 9px;border-radius:99px;font:600 11px var(--mono);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+.p-none{background:var(--surface-2);color:var(--ink-2)}
+.p-weak{background:var(--brass-soft);color:var(--brass)}
+.p-sig{background:var(--accent);color:var(--accent-ink)}
+
+/* tables */
+.tablewrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{padding:6px 8px;text-align:left;font:500 11px var(--mono);color:var(--ink-2);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl .num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl tr.hl td{background:var(--brass-soft)}
+.tbl .sub{display:block;color:var(--ink-2);font-size:11.5px;line-height:1.3;margin-top:1px}
+.sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px}
+.wbar{height:6px;min-width:56px;background:var(--surface-2);border-radius:3px;overflow:hidden}
+.wbar i{display:block;height:100%}
+.wcell{display:flex;align-items:center;gap:8px;font:400 12px var(--mono)}
+.wcell .wbar{flex:1}
+
+/* charts */
+.chart{width:100%;min-height:60px}
+.chart svg{display:block}
+.gl{stroke:var(--line);stroke-width:1}
+.ax{fill:var(--ink-2);font:400 10.5px var(--mono)}
+.ln{fill:none;stroke-width:2;stroke-linejoin:round}
+.chart-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 14px;margin:14px 0 4px}
+.chart-head:first-of-type{margin-top:0}
+.chart-head b{font:700 13px var(--body)}
+.chart-head span{font-size:12px;color:var(--ink-2)}
+.scrollx{overflow-x:auto}
+.hist{display:flex;align-items:flex-end;gap:3px;height:70px;margin-top:6px}
+.hist i{flex:1;background:var(--accent);opacity:.75;min-height:1px;border-radius:2px 2px 0 0}
+.histax{display:flex;justify-content:space-between;font:400 10.5px var(--mono);color:var(--ink-2);margin-top:3px}
+.verdict-ok{color:var(--ink-2)} .verdict-flag{color:var(--bad);font-weight:600} .verdict-marg{color:var(--brass);font-weight:600}
+@media (max-width:900px){
+  .grid{display:flex;flex-direction:column;gap:14px}
+  .col{display:contents}
+  #sec-rec{order:1}#sec-wheel{order:2}#sec-entry{order:3}#sec-log{order:4}#sec-models{order:5}#sec-perf{order:6}#sec-bias{order:7}#sec-sim{order:8}
+  h1{font-size:23px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+#passwordModal{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100vw;
+  height:100vh;
+  background:var(--paper);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:999999;
+  padding:20px;
+}
+
+.password-box{
+  width:100%;
+  max-width:420px;
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:30px 25px;
+  text-align:center;
+  background:var(--paper);
+}
+
+.password-box h2{
+  margin-bottom:10px;
+  font-weight:600;
+}
+
+.password-box p{
+  opacity:.65;
+  margin-bottom:25px;
+}
+
+.password-box input{
+  width:100%;
+  padding:13px;
+  border:1px solid var(--line);
+  border-radius:4px;
+  background:transparent;
+  color:var(--ink);
+  font-family:inherit;
+  font-size:1rem;
+  text-align:center;
+  outline:none;
+}
+
+.password-box button{
+  margin-top:12px;
+}
+
+#passwordError{
+  color:var(--lose);
+  margin-top:12px;
+  min-height:20px;
+  font-weight:600;
+  font-size:.9rem;
+}
+</style>
+<div id="passwordModal">
+  <div class="password-box">
+    <h2>Protected App</h2>
+    <p>Enter password to continue</p>
+
+    <input
+      type="password"
+      id="appPassword"
+      placeholder="Enter Password"
+      autocomplete="off"
+    >
+
+    <button onclick="checkPassword()">UNLOCK</button>
+
+    <div id="passwordError"></div>
+  </div>
+</div>
+<div class="app">
+  <header class="bar">
+    <div class="brand">
+      <h1>Bernoulli-Pantheon Engine</h1>
+      <p>American roulette. Zone recommendations from spin history, scored by walk-forward backtest.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" id="viewSeg" role="group" aria-label="Zone type">
+        <button type="button" data-view="arc" aria-pressed="true">Arc</button>
+        <button type="button" data-view="pairs" aria-pressed="false">9 pairs</button>
+        <button type="button" data-view="tri6" aria-pressed="false">6 triplets</button>
+        <button type="button" data-view="tri8" aria-pressed="false">8 triplets</button>
+      </div>
+      <div class="stepper" id="arcStepper">
+        <button type="button" id="arcMinus" aria-label="Smaller arc">−</button>
+        <span id="arcSize">18 pockets</span>
+        <button type="button" id="arcPlus" aria-label="Larger arc">+</button>
+      </div>
+    </div>
+  </header>
+
+  <p class="note" id="exampleNote" hidden></p>
+
+  <div class="grid">
+    <div class="col">
+      <section class="panel" id="sec-wheel">
+        <h2>Wheel <small id="wheelMeta"></small></h2>
+        <svg id="wheel" viewBox="0 0 440 440" role="img" aria-label="Roulette wheel with recommended zone highlighted"></svg>
+        <div class="legend">
+          <span><i style="background:var(--brass)"></i>Recommended zone</span>
+          <span><i style="background:var(--brass);opacity:.45"></i>Inner ring: ensemble probability vs fair (uniform = half intensity)</span>
+          <span><i style="background:none;box-shadow:inset 0 0 0 2px var(--brass)"></i>Last 8 spins</span>
+        </div>
+      </section>
+
+      <section class="panel" id="sec-entry">
+        <h2>Log a spin <small id="spinCount">0 spins</small></h2>
+        <div class="row" style="margin-bottom:10px">
+          <input type="text" id="quick" inputmode="numeric" autocomplete="off" placeholder="Type 0, 00, 1–36, then Enter" aria-label="Quick entry">
+          <button type="button" class="btn primary" id="quickAdd">Add</button>
+        </div>
+        <div class="pad" id="pad"></div>
+        <div class="row" style="margin-top:10px">
+          <button type="button" class="btn" id="undo">Undo last</button>
+          <button type="button" class="btn" id="clear">Clear log</button>
+        </div>
+        <p class="msg" id="entryMsg" aria-live="polite"></p>
+      </section>
+
+      <section class="panel" id="sec-log">
+        <h2>Spin log <small>newest first</small></h2>
+        <div class="log" id="logChips"></div>
+        <h3>Copy or load</h3>
+        <textarea id="dataText" aria-label="Spin log as text, oldest to newest" spellcheck="false"></textarea>
+        <div class="row" style="margin-top:8px">
+          <button type="button" class="btn" id="copyData">Copy</button>
+          <button type="button" class="btn" id="loadData">Replace log with this text</button>
+        </div>
+        <p class="msg" id="dataMsg" aria-live="polite"></p>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel" id="sec-rec">
+        <h2>Next-spin zone <small id="recMeta"></small></h2>
+        <div id="recBody"></div>
+      </section>
+
+      <section class="panel" id="sec-models">
+        <h2>Models <small>8 predictors + ensemble</small></h2>
+        <p class="small muted" style="margin:0 0 10px">Each model assigns a probability to all 38 pockets before every spin. The ensemble weights them by recent log-score against a uniform wheel, so a model that does no better than chance loses weight to the uniform baseline. Hit rates are walk-forward: every prediction uses only earlier spins.</p>
+        <div class="tablewrap" id="modelTable"></div>
+      </section>
+
+      <section class="panel" id="sec-perf">
+        <h2>Backtest <small id="perfMeta"></small></h2>
+        <div class="chart-head"><b>Hits above chance</b><span>Ensemble zone, with 95% range expected from luck alone</span></div>
+        <div class="chart" id="chartSurplus"></div>
+        <div class="chart-head"><b>Flat-bet result, units</b><span>1 unit on every pocket in the zone each spin, against the expected loss line</span></div>
+        <div class="chart" id="chartNet"></div>
+        <div class="chart-head"><b>Which model has control</b><span>Ensemble weights over time, colors match the table</span></div>
+        <div class="chart" id="chartWeights"></div>
+      </section>
+
+      <section class="panel" id="sec-bias">
+        <h2>Bias lab <small id="biasMeta"></small></h2>
+        <p class="small muted" style="margin:0 0 10px">The only way history can help is if the wheel itself is biased or consecutive spins are linked. These tests check for that directly. Four tests run on every fair wheel, so a flag needs p below 0.0125 (0.05 ÷ 4).</p>
+        <div class="tablewrap" id="biasTable"></div>
+        <h3>Pocket frequency in wheel order</h3>
+        <div class="scrollx"><div class="chart" id="chartFreq" style="min-width:640px"></div></div>
+        <h3>Spins needed to detect one biased pocket</h3>
+        <div class="tablewrap" id="powerTable"></div>
+      </section>
+
+      <section class="panel" id="sec-sim">
+        <h2>Simulator <small>runs the full engine on generated spins</small></h2>
+        <div class="row">
+          <label class="small muted" for="simProfile">Wheel</label>
+          <select id="simProfile">
+            <option value="fair">Fair wheel</option>
+            <option value="bias">Biased sector (6 pockets, +40%)</option>
+            <option value="sticky">Linked spins (20% land within 3 pockets of the last)</option>
+          </select>
+          <label class="small muted" for="simSpins">Spins</label>
+          <select id="simSpins"><option value="1000">1,000</option><option value="3000" selected>3,000</option><option value="10000">10,000</option></select>
+          <label class="small muted" for="simTrials">Trials</label>
+          <select id="simTrials"><option value="1">1</option><option value="10" selected>10</option><option value="30">30</option></select>
+          <button type="button" class="btn primary" id="simRun">Run</button>
+        </div>
+        <p class="msg" id="simMsg" aria-live="polite"></p>
+        <div id="simOut"></div>
+      </section>
+    </div>
+  </div>
+</div>
+<script>
+const APP_PASSWORD = "YOURPASSW0RD";
+
+function checkPassword(){
+  const entered = document.getElementById("appPassword").value;
+
+  if(entered === APP_PASSWORD){
+    document.getElementById("passwordModal").style.display = "none";
+  }else{
+    document.getElementById("passwordError").textContent =
+      "Incorrect password.";
+    document.getElementById("appPassword").value = "";
+    document.getElementById("appPassword").focus();
+  }
+}
+
+document.getElementById("appPassword").addEventListener(
+  "keydown",
+  function(event){
+    if(event.key === "Enter") checkPassword();
+  }
+);
+</script>
+<script id="engine">
+const Engine=(function(){
+'use strict';
+const N=38;
+const WHEEL=['0','28','9','26','30','11','7','20','32','17','5','22','34','15','3','24','36','13','1','00','27','10','25','29','12','8','19','31','18','6','21','33','16','4','23','35','14','2'];
+const IDX={}; WHEEL.forEach((l,i)=>{IDX[l]=i;});
+const REDS=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+function kind(i){const l=WHEEL[i];if(l==='0'||l==='00')return 'g';return REDS.has(+l)?'r':'k';}
+const WARM=30, RHO=0.99, ETA=4;
+function cd(a,b){const d=Math.abs(a-b);return Math.min(d,N-d);}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+/* special functions */
+function erfc(x){
+  const z=Math.abs(x),t=1/(1+0.5*z);
+  const r=t*Math.exp(-z*z-1.26551223+t*(1.00002368+t*(0.37409196+t*(0.09678418+t*(-0.18628806+t*(0.27886807+t*(-1.13520398+t*(1.48851587+t*(-0.82215223+t*0.17087277)))))))));
+  return x>=0?r:2-r;
+}
+const LG=[0.99999999999980993,676.5203681218851,-1259.1392167224028,771.32342877765313,-176.61502916214059,12.507343278686905,-0.13857109526572012,9.9843695780195716e-6,1.5056327351493116e-7];
+function lgamma(z){
+  if(z<0.5)return Math.log(Math.PI/Math.sin(Math.PI*z))-lgamma(1-z);
+  z-=1;let x=LG[0];for(let i=1;i<9;i++)x+=LG[i]/(z+i);
+  const t=z+7.5;return 0.5*Math.log(2*Math.PI)+(z+0.5)*Math.log(t)-t+Math.log(x);
+}
+function gammaQ(a,x){
+  if(x<=0)return 1;
+  if(x<a+1){
+    let ap=a,sum=1/a,del=sum;
+    for(let n=0;n<500;n++){ap+=1;del*=x/ap;sum+=del;if(Math.abs(del)<Math.abs(sum)*1e-14)break;}
+    return Math.max(0,1-sum*Math.exp(-x+a*Math.log(x)-lgamma(a)));
+  }
+  let b=x+1-a,c=1/1e-300,d=1/b,h=d;
+  for(let i=1;i<500;i++){
+    const an=-i*(i-a);b+=2;d=an*d+b;if(Math.abs(d)<1e-300)d=1e-300;
+    c=b+an/c;if(Math.abs(c)<1e-300)c=1e-300;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<1e-14)break;
+  }
+  return Math.min(1,Math.exp(-x+a*Math.log(x)-lgamma(a))*h);
+}
+function chi2sf(x,df){return gammaQ(df/2,x/2);}
+function normCdf(z){return 0.5*erfc(-z/Math.SQRT2);}
+function normInv(p){let lo=-10,hi=10;for(let i=0;i<80;i++){const m=(lo+hi)/2;if(normCdf(m)<p)lo=m;else hi=m;}return (lo+hi)/2;}
+
+/* models */
+const H=3;
+const COSH=[],SINH=[];
+for(let h=0;h<=H;h++){COSH.push(new Float64Array(N));SINH.push(new Float64Array(N));for(let j=0;j<N;j++){COSH[h][j]=Math.cos(2*Math.PI*h*j/N);SINH[h][j]=Math.sin(2*Math.PI*h*j/N);}}
+const KM=[];for(let i=0;i<N;i++){const r=new Float64Array(N);for(let j=0;j<N;j++){const d=cd(i,j);r[j]=Math.exp(-d*d/(2*9));}KM.push(r);}
+const KROW=KM[0].reduce((a,b)=>a+b,0);
+
+function freqModel(id,name,basis,lam,alpha){
+  const c=new Float64Array(N),out=new Float64Array(N);let tot=0;
+  return {id,name,basis,
+    p(){const d=tot+alpha*N;for(let j=0;j<N;j++)out[j]=(c[j]+alpha)/d;return out;},
+    learn(i){for(let j=0;j<N;j++)c[j]*=lam;c[i]+=1;tot=tot*lam+1;}};
+}
+function sectorModel(){
+  const s=new Float64Array(N),out=new Float64Array(N),lam=0.99;
+  return {id:'sec',name:'Sector density',basis:'Gaussian kernel, σ = 3 pockets, over decayed hits on the wheel circle',
+    p(){let tot=0;for(let j=0;j<N;j++){const v=s[j]+KROW;out[j]=v;tot+=v;}for(let j=0;j<N;j++)out[j]/=tot;return out;},
+    learn(i){const row=KM[i];for(let j=0;j<N;j++)s[j]=lam*s[j]+row[j];}};
+}
+function spectralModel(){
+  const A=new Float64Array(H+1),B=new Float64Array(H+1),out=new Float64Array(N),lam=0.995;let tot=0;
+  return {id:'spec',name:'Wheel harmonics',basis:'First 3 spatial harmonics of decayed hits, the signature of a tilted wheel',
+    p(){const mean=tot/N;let sum=0;for(let j=0;j<N;j++){let e=mean;for(let h=1;h<=H;h++)e+=(2/N)*(A[h]*COSH[h][j]+B[h]*SINH[h][j]);const v=Math.max(e,0)+1;out[j]=v;sum+=v;}for(let j=0;j<N;j++)out[j]/=sum;return out;},
+    learn(i){tot=tot*lam+1;for(let h=1;h<=H;h++){A[h]=lam*A[h]+COSH[h][i];B[h]=lam*B[h]+SINH[h][i];}}};
+}
+function disp1Model(){
+  const D=new Float64Array(N),out=new Float64Array(N),lam=0.999,al=0.5;let dt=0,last=-1;
+  return {id:'d1',name:'Displacement, order 1',basis:'Distribution of pocket-to-pocket jumps on the wheel, applied to the last spin',
+    p(){if(last<0){out.fill(1/N);return out;}const den=dt+al*N;for(let j=0;j<N;j++)out[j]=(D[(j-last+N)%N]+al)/den;return out;},
+    learn(i){if(last>=0){for(let b=0;b<N;b++)D[b]*=lam;dt*=lam;D[(i-last+N)%N]+=1;dt+=1;}last=i;}};
+}
+function bucket(b){const s=((b+19)%N)-19;return Math.min(5,Math.floor((s+19)*6/N));}
+function disp2Model(){
+  const D1=new Float64Array(N),D2=[],n2=new Float64Array(6),out=new Float64Array(N),lam=0.999,al=0.5,KP=30;
+  for(let c=0;c<6;c++)D2.push(new Float64Array(N));
+  let dt=0,last=-1,prevB=-1;
+  return {id:'d2',name:'Displacement, order 2',basis:'Next jump conditioned on the size of the previous jump, backed off to order 1',
+    p(){
+      if(last<0){out.fill(1/N);return out;}
+      const den=dt+al*N;
+      if(prevB<0){for(let j=0;j<N;j++)out[j]=(D1[(j-last+N)%N]+al)/den;return out;}
+      const c=bucket(prevB),row=D2[c],nc=n2[c];
+      for(let j=0;j<N;j++){const b=(j-last+N)%N;const p1=(D1[b]+al)/den;out[j]=(row[b]+KP*p1)/(nc+KP);}
+      return out;
+    },
+    learn(i){
+      if(last>=0){
+        const b=(i-last+N)%N;
+        for(let k=0;k<N;k++)D1[k]*=lam;dt*=lam;D1[b]+=1;dt+=1;
+        if(prevB>=0){const c=bucket(prevB);for(let k=0;k<N;k++)D2[c][k]*=lam;n2[c]=n2[c]*lam+1;D2[c][b]+=1;}
+        prevB=b;
+      }
+      last=i;
+    }};
+}
+function overdueModel(){
+  const seen=new Int32Array(N).fill(-1),out=new Float64Array(N);let t=0;
+  return {id:'od',name:'Overdue pockets',basis:'Weight rises with spins since the pocket last hit (the gambler’s-fallacy model)',
+    p(){let sum=0;for(let j=0;j<N;j++){const gap=seen[j]<0?t+1:t-seen[j];const v=0.5+(1-Math.exp(-gap/N));out[j]=v;sum+=v;}for(let j=0;j<N;j++)out[j]/=sum;return out;},
+    learn(i){seen[i]=t;t++;}};
+}
+function uniformModel(){
+  const out=new Float64Array(N).fill(1/N);
+  return {id:'un',name:'Uniform baseline',basis:'Every pocket 1 in 38. Always selects the same fixed zone',p(){return out;},learn(){}};
+}
+function makeModels(){
+  return [
+    freqModel('fl','Frequency, long memory','Laplace-smoothed pocket counts, half-life about 140 spins',0.995,1),
+    freqModel('fs','Frequency, short memory','Laplace-smoothed pocket counts, half-life about 14 spins',0.95,1),
+    sectorModel(),spectralModel(),disp1Model(),disp2Model(),overdueModel(),uniformModel()
+  ];
+}
+
+/* zones */
+function zoneCount(view,K){return view==='arc'?K:(view==='tri8'?24:18);}
+function segSpec(view){return view==='pairs'?[2,9]:view==='tri6'?[3,6]:[3,8];}
+function bestSegments(p,L,m){
+  const seg=new Float64Array(N);
+  for(let i=0;i<N;i++){let s=0;for(let k=0;k<L;k++)s+=p[(i+k)%N];seg[i]=s;}
+  function linear(a,b,mm){
+    const len=b-a,W=mm+1;
+    const dp=new Float64Array((len+1)*W).fill(-Infinity),take=new Uint8Array((len+1)*W);
+    dp[0]=0;
+    for(let i=1;i<=len;i++){
+      for(let j=0;j<=mm;j++){
+        let best=dp[(i-1)*W+j],tk=0;
+        if(j>=1&&i>=L){const v=dp[(i-L)*W+j-1]+seg[a+i-L];if(v>best){best=v;tk=1;}}
+        dp[i*W+j]=best;take[i*W+j]=tk;
+      }
+    }
+    const total=dp[len*W+mm];
+    if(total===-Infinity)return null;
+    const starts=[];let i=len,j=mm;
+    while(i>0&&j>0){if(take[i*W+j]){starts.push(a+i-L);i-=L;j--;}else i--;}
+    return {sum:total,starts};
+  }
+  let best=linear(0,N,m);
+  for(let j=1;j<L;j++){
+    const f=N-j,r=linear(L-j,N-j,m-1);
+    if(r){const tot=r.sum+seg[f];if(!best||tot>best.sum)best={sum:tot,starts:r.starts.concat([f])};}
+  }
+  return {sum:best.sum,starts:best.starts.sort((x,y)=>x-y)};
+}
+function pickZone(view,K,p){
+  const mask=new Uint8Array(N);let starts,L,count;
+  if(view==='arc'){
+    L=K;count=K;let cur=0;for(let k=0;k<K;k++)cur+=p[k];
+    let best=cur,bs=0;
+    for(let s=1;s<N;s++){cur+=p[(s+K-1)%N]-p[s-1];if(cur>best+1e-15){best=cur;bs=s;}}
+    starts=[bs];
+  }else{
+    const sp=segSpec(view);L=sp[0];count=sp[0]*sp[1];starts=bestSegments(p,sp[0],sp[1]).starts;
+  }
+  for(const s of starts)for(let k=0;k<L;k++)mask[(s+k)%N]=1;
+  return {mask,starts,L,count};
+}
+function anchorMask(view,K,last){
+  const mask=new Uint8Array(N);
+  if(view==='arc'){const s=last-Math.floor(K/2);for(let k=0;k<K;k++)mask[(((s+k)%N)+N)%N]=1;}
+  else{const sp=segSpec(view),step=Math.floor(N/sp[1]);for(let i=0;i<sp[1];i++){const b=(last+i*step)%N;for(let k=0;k<sp[0];k++)mask[(b+k)%N]=1;}}
+  return mask;
+}
+
+/* stats */
+function rateStats(h,n,q){
+  if(!n)return {rate:NaN,z:0,p:1,lo:NaN,hi:NaN,surplus:0,n:0};
+  const sd=Math.sqrt(n*q*(1-q)),z=(h-n*q)/sd,p=erfc(Math.abs(z)/Math.SQRT2);
+  const zz=1.96,ph=h/n,den=1+zz*zz/n,ctr=(ph+zz*zz/(2*n))/den,hw=zz*Math.sqrt(ph*(1-ph)/n+zz*zz/(4*n*n))/den;
+  return {rate:ph,z,p,lo:ctr-hw,hi:ctr+hw,surplus:h-n*q,n};
+}
+
+/* walk-forward runner */
+function runEngine(spins,opt){
+  opt=opt||{};
+  const view=opt.view||'arc',K=opt.K||18,perModel=opt.perModel!==false,curves=opt.curves!==false,warm=opt.warm!=null?opt.warm:WARM;
+  const models=makeModels(),M=models.length,n=spins.length;
+  const S=new Float64Array(M),w=new Float64Array(M),ens=new Float64Array(N);
+  const count=zoneCount(view,K),q=count/N;
+  const tl=models.map(()=>({hits:0,hc:0,lift:0,cnt:0}));
+  const pmFrom=opt.pmFrom!=null?opt.pmFrom:0;
+  const E={hits:0,lift:0,cnt:0},A={hits:0,cnt:0};
+  const surplus=[],net=[],whist=[];
+  const step=Math.max(1,Math.ceil(Math.max(1,n-warm)/240));
+  let netCum=0,last=-1,prevZone=null,zone=null,finalPreds=null,finalW=null;
+  for(let t=0;t<=n;t++){
+    const preds=models.map(m=>m.p());
+    let mx=-1e9;for(let m=0;m<M;m++){const v=ETA*S[m];if(v>mx)mx=v;}
+    let sw=0;for(let m=0;m<M;m++){w[m]=Math.exp(ETA*S[m]-mx);sw+=w[m];}
+    for(let m=0;m<M;m++)w[m]/=sw;
+    ens.fill(0);
+    for(let m=0;m<M;m++){const wm=w[m];if(wm<1e-9)continue;const pm=preds[m];for(let j=0;j<N;j++)ens[j]+=wm*pm[j];}
+    let se=0;for(let j=0;j<N;j++)se+=ens[j];for(let j=0;j<N;j++)ens[j]/=se;
+    zone=pickZone(view,K,ens);
+    if(t===n-1)prevZone=zone;
+    if(t===n){finalPreds=preds.map(a=>Float64Array.from(a));finalW=Float64Array.from(w);break;}
+    const a=spins[t];
+    if(t>=warm){
+      const hit=zone.mask[a];
+      E.hits+=hit;E.cnt++;E.lift+=Math.log2(Math.max(ens[a]*N,1e-6));
+      netCum+=36*hit-count;
+      if(curves){surplus.push(E.hits-E.cnt*q);net.push(netCum);if((E.cnt-1)%step===0)whist.push(Float64Array.from(w));}
+      if(last>=0){A.hits+=anchorMask(view,K,last)[a];A.cnt++;}
+      for(let m=0;m<M;m++){
+        tl[m].cnt++;tl[m].lift+=Math.log2(Math.max(preds[m][a]*N,1e-6));
+        if(perModel&&t>=pmFrom){tl[m].hits+=pickZone(view,K,preds[m]).mask[a];tl[m].hc++;}
+      }
+    }
+    for(let m=0;m<M;m++){
+      S[m]=RHO*S[m]+Math.log(Math.max(preds[m][a]*N,1e-6));
+      if(S[m]>40)S[m]=40;else if(S[m]<-40)S[m]=-40;
+      models[m].learn(a);
+    }
+    last=a;
+  }
+  let overlap=null;
+  if(prevZone){overlap=0;for(let j=0;j<N;j++)if(prevZone.mask[j]&&zone.mask[j])overlap++;}
+  return {
+    n,scored:E.cnt,count,q,view,K,
+    ens:{hits:E.hits,cnt:E.cnt,bits:E.cnt?E.lift/E.cnt:0,stats:rateStats(E.hits,E.cnt,q)},
+    anchor:{hits:A.hits,cnt:A.cnt,stats:rateStats(A.hits,A.cnt,q)},
+    models:models.map((m,i)=>({id:m.id,name:m.name,basis:m.basis,weight:finalW[i],hits:tl[i].hits,cnt:tl[i].cnt,bits:tl[i].cnt?tl[i].lift/tl[i].cnt:0,hc:tl[i].hc,stats:perModel?rateStats(tl[i].hits,tl[i].hc,q):null,p:finalPreds[i]})),
+    curves:{surplus,net,whist,step},
+    final:{p:Float64Array.from(ens),zone,prevZone,overlap,weights:finalW}
+  };
+}
+
+/* bias tests */
+function biasTests(spins,K){
+  const n=spins.length;if(n<20)return null;
+  const cnt=new Float64Array(N);for(const i of spins)cnt[i]++;
+  const E=n/N;let chi=0;for(let j=0;j<N;j++)chi+=(cnt[j]-E)*(cnt[j]-E)/E;
+  const out=[];
+  out.push({name:'Pocket uniformity',stat:'χ² '+chi.toFixed(1)+', df 37',p:chi2sf(chi,37),valid:E>=5,need:Math.ceil(5*N),note:'Do some pockets hit more often than 1 in 38?'});
+  const dc=new Float64Array(N);for(let i=1;i<n;i++)dc[(spins[i]-spins[i-1]+N)%N]++;
+  const m2=n-1,E2=m2/N;let chi2=0;for(let j=0;j<N;j++)chi2+=(dc[j]-E2)*(dc[j]-E2)/E2;
+  out.push({name:'Spin-to-spin link',stat:'χ² '+chi2.toFixed(1)+', df 37',p:chi2sf(chi2,37),valid:E2>=5,need:Math.ceil(5*N)+1,note:'Does the jump between consecutive pockets deviate from uniform?'});
+  const q=K/N,sd=Math.sqrt(n*q*(1-q));
+  function maxZ(c){let cur=0;for(let k=0;k<K;k++)cur+=c[k];let mx=cur;for(let s=1;s<N;s++){cur+=c[(s+K-1)%N]-c[s-1];if(cur>mx)mx=cur;}return (mx-n*q)/sd;}
+  const obs=maxZ(cnt),rng=mulberry32(12345),sims=300,c2=new Float64Array(N);let ge=0;
+  for(let s=0;s<sims;s++){c2.fill(0);for(let i=0;i<n;i++)c2[(rng()*N)|0]++;if(maxZ(c2)>=obs-1e-12)ge++;}
+  out.push({name:'Sector scan, arc of '+K,stat:'max z '+obs.toFixed(2),p:(ge+1)/(sims+1),valid:n>=100,need:100,note:'Is the busiest arc busier than the best arc on a fair wheel? Simulated p-value.'});
+  let C=0,Sn=0;for(const i of spins){C+=Math.cos(2*Math.PI*i/N);Sn+=Math.sin(2*Math.PI*i/N);}
+  const Rr=Math.sqrt(C*C+Sn*Sn);
+  const pr=Math.min(1,Math.exp(Math.sqrt(1+4*n+4*(n*n-Rr*Rr))-(1+2*n)));
+  let ang=Math.atan2(Sn,C);if(ang<0)ang+=2*Math.PI;
+  const centre=WHEEL[Math.round(ang/(2*Math.PI)*N)%N];
+  out.push({name:'Wheel tilt (Rayleigh)',stat:'R̄ '+(Rr/n).toFixed(3)+', centre '+centre,p:pr,valid:n>=30,need:30,note:'Do hits cluster toward one side of the wheel?'});
+  return out;
+}
+function powerRows(){
+  const alpha=0.05/N,zA=normInv(1-alpha/2),zB=normInv(0.8),p0=1/N,rows=[];
+  for(const e of [0.1,0.25,0.5,1.0]){
+    const p1=p0*(1+e),num=zA*Math.sqrt(p0*(1-p0))+zB*Math.sqrt(p1*(1-p1)),n=Math.pow(num/(p1-p0),2);
+    rows.push({effect:e,n:Math.ceil(n)});
+  }
+  return rows;
+}
+
+/* simulation */
+function genSpins(profile,n,seed){
+  const rng=mulberry32(seed),out=new Uint8Array(n);
+  let cum=null;
+  if(profile==='bias'){cum=new Float64Array(N);let s=0;for(let j=0;j<N;j++){s+=(j>=10&&j<16)?1.4:1;cum[j]=s;}}
+  let prev=-1;
+  for(let i=0;i<n;i++){
+    let v;
+    if(profile==='bias'){const r=rng()*cum[N-1];v=0;while(cum[v]<r)v++;}
+    else if(profile==='sticky'&&prev>=0&&rng()<0.2){v=(prev+Math.floor(rng()*7)-3+N)%N;}
+    else v=Math.floor(rng()*N);
+    out[i]=v;prev=v;
+  }
+  return out;
+}
+function simulateTrial(profile,n,view,K,seed){
+  const spins=genSpins(profile,n,seed);
+  const R=runEngine(spins,{view,K,perModel:false,curves:false});
+  return {stats:R.ens.stats,bits:R.ens.bits,hits:R.ens.hits,cnt:R.ens.cnt,q:R.q,spins};
+}
+
+return {N,WHEEL,IDX,kind,WARM,runEngine,rateStats,biasTests,powerRows,genSpins,simulateTrial,mulberry32,erfc,chi2sf,normInv,pickZone,bestSegments,zoneCount};
+})();
+</script>
+
+<script id="ui">
+(function(){
+'use strict';
+const E=Engine,N=E.N,WHEEL=E.WHEEL,IDX=E.IDX;
+const $=id=>document.getElementById(id);
+const KEY='zoneEngine.v2',OLD='bernoulliPantheon4View.v1';
+const state={spins:[],view:'arc',arcK:18,example:false};
+const OLDVIEW={CLUSTER18:'arc',PAIRS9:'pairs',TRIPLETS6:'tri6',TRIPLETS8:'tri8'};
+let R=null,lastSim=null;
+
+function exampleSpins(){return Array.from(E.genSpins('fair',160,20260),i=>WHEEL[i]);}
+function load(){
+  try{
+    const s=localStorage.getItem(KEY);
+    if(s){const d=JSON.parse(s);state.spins=(d.spins||[]).map(String).filter(l=>l in IDX);state.view=d.view||'arc';state.arcK=d.arcK||18;state.example=!!d.example;return;}
+    const o=localStorage.getItem(OLD);
+    if(o){const d=JSON.parse(o);state.spins=(d.spins||[]).map(String).filter(l=>l in IDX);state.view=OLDVIEW[d.currentView]||'arc';if(state.spins.length)return;}
+  }catch(e){}
+  state.spins=exampleSpins();state.example=true;
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({spins:state.spins,view:state.view,arcK:state.arcK,example:state.example}));}catch(e){}}
+
+const pct=(x,d=1)=>isFinite(x)?(x*100).toFixed(d)+'%':'–';
+const sgn=(x,d=1)=>(x<0?'−':'+')+Math.abs(x).toFixed(d);
+const fp=p=>p<0.001?'<0.001':p.toFixed(3);
+const chip=i=>`<span class="chip k-${E.kind(i)}">${WHEEL[i]}</span>`;
+const idxArr=()=>state.spins.map(l=>IDX[l]);
+function viewLabel(){return state.view==='arc'?'Arc of '+state.arcK:state.view==='pairs'?'9 pairs':state.view==='tri6'?'6 triplets':'8 triplets';}
+
+/* ---------- wheel ---------- */
+const TAU=Math.PI*2,WC=220,HALF=TAU/N/2;
+const ang=i=>-Math.PI/2+i*TAU/N;
+const pol=(r,a)=>[WC+r*Math.cos(a),WC+r*Math.sin(a)];
+function sector(r0,r1,a0,a1){
+  const p1=pol(r1,a0),p2=pol(r1,a1),p3=pol(r0,a1),p4=pol(r0,a0),lg=(a1-a0)>Math.PI?1:0,f=v=>v.toFixed(2);
+  return `M${f(p1[0])} ${f(p1[1])}A${r1} ${r1} 0 ${lg} 1 ${f(p2[0])} ${f(p2[1])}L${f(p3[0])} ${f(p3[1])}A${r0} ${r0} 0 ${lg} 0 ${f(p4[0])} ${f(p4[1])}Z`;
+}
+const FILL={r:'var(--red)',k:'var(--pk-black)',g:'var(--pk-green)'};
+function renderWheel(){
+  const z=R.final.zone,p=R.final.p,idx=idxArr(),ready=state.spins.length>=2;
+  let h='';
+  for(let i=0;i<N;i++){
+    const a0=ang(i)-HALF,a1=ang(i)+HALF,inZ=ready&&z.mask[i],op=ready?(inZ?1:0.32):0.85;
+    h+=`<path d="${sector(150,196,a0,a1)}" fill="${FILL[E.kind(i)]}" stroke="var(--surface)" stroke-width="1.2" opacity="${op}"/>`;
+    const lp=pol(173,ang(i)),deg=ang(i)*180/Math.PI,rot=lp[1]>WC?deg-90:deg+90;
+    h+=`<text class="w-label" transform="translate(${lp[0].toFixed(1)} ${lp[1].toFixed(1)}) rotate(${rot.toFixed(1)})" opacity="${op}">${WHEEL[i]}</text>`;
+    const ratio=p[i]*N,heat=Math.max(0,Math.min(1,(ratio-0.7)/0.8));
+    h+=`<path d="${sector(128,145,a0,a1)}" fill="var(--brass)" opacity="${(0.06+heat*0.9).toFixed(3)}" stroke="var(--surface)" stroke-width="1"/>`;
+  }
+  if(ready){
+    for(const s of z.starts){
+      const a0=ang(s)-HALF,a1=ang(s+z.L-1)+HALF;
+      h+=`<path d="${sector(200,208,a0,a1)}" fill="var(--brass)"/>`;
+    }
+  }
+  const recent=idx.slice(-8);
+  recent.forEach((i,k)=>{
+    const latest=k===recent.length-1,pt=pol(112,ang(i));
+    h+=`<circle cx="${pt[0].toFixed(1)}" cy="${pt[1].toFixed(1)}" r="${latest?8:4.5}" fill="${latest?'var(--surface)':'none'}" stroke="var(--brass)" stroke-width="${latest?3:2}" opacity="${latest?1:0.35+0.6*k/8}"/>`;
+  });
+  const lastLabel=state.spins.length?state.spins[state.spins.length-1]:'–';
+  const lk=state.spins.length?E.kind(IDX[lastLabel]):'k';
+  const lc=lk==='r'?'var(--red)':lk==='g'?'var(--pk-green)':'var(--ink)';
+  h+=`<text class="w-center-n" x="${WC}" y="${WC-8}" fill="${lc}">${lastLabel}</text>`;
+  h+=`<text class="w-center-s" x="${WC}" y="${WC+34}">last of ${state.spins.length} spins</text>`;
+  $('wheel').innerHTML=h;
+  $('wheelMeta').textContent=viewLabel();
+}
+
+/* ---------- recommendation ---------- */
+function renderRec(){
+  const el=$('recBody'),n=state.spins.length;
+  $('recMeta').textContent=viewLabel();
+  if(n<2){el.innerHTML='<p class="muted">Log at least two spins to get a zone. The engine becomes meaningful after about 150.</p>';return;}
+  const f=R.final,z=f.zone,K=z.count,q=K/N;
+  let pz=0;for(let j=0;j<N;j++)if(z.mask[j])pz+=f.p[j];
+  const groups=z.starts.map(s=>Array.from({length:z.L},(_,k)=>(s+k)%N));
+  const zoneHtml=groups.map(g=>`<span class="zgroup">${g.map(chip).join('')}</span>`).join('');
+  const st=R.ens.stats,scored=R.scored;
+  let pill;
+  if(scored<150)pill=`<span class="pill p-none">Collecting data, ${scored} of 150 scored</span>`;
+  else if(st.p<0.0125&&st.surplus>0)pill=`<span class="pill p-sig">Edge in history</span>`;
+  else if(st.p<0.05&&st.surplus>0)pill=`<span class="pill p-weak">Weak signal</span>`;
+  else pill=`<span class="pill p-none">No detectable edge</span>`;
+  const evSpin=-2*K/N,sd=36*Math.sqrt(q*(1-q));
+  el.innerHTML=`
+    <div class="zone">${zoneHtml}</div>
+    <div class="tiles">
+      <div class="tile"><span>Model probability</span><b>${pct(pz)}</b><em>fair ${pct(q)} · ${sgn((pz-q)*100,2)} pp</em></div>
+      <div class="tile"><span>Backtest hit rate</span><b>${scored?pct(st.rate):'–'}</b><em>${scored?`95% ${pct(st.lo)} to ${pct(st.hi)}`:'needs 30+ spins'}</em></div>
+      <div class="tile"><span>Backtest vs fair</span><b>${scored?sgn(st.surplus,1):'–'}</b><em>${scored?`hits · z ${sgn(st.z,2)} · p ${fp(st.p)}`:''}</em></div>
+      <div class="tile"><span>Zone churn</span><b>${f.overlap==null?'–':f.overlap+'/'+K}</b><em>pockets kept from last zone</em></div>
+    </div>
+    <p style="margin:12px 0 6px">${pill}</p>
+    <p class="small" style="margin:0 0 8px">Flat bet of 1 unit on each of ${K} pockets stakes ${K} units a spin. Expected result is ${evSpin.toFixed(2)} units a spin (−5.26% of stake). Over 100 spins that is ${(evSpin*100).toFixed(0)} units with a typical swing of ±${(sd*10).toFixed(0)}.</p>
+    <p class="small muted" style="margin:0">Each spin is independent, so every zone of ${K} pockets hits ${pct(q)} of the time on a fair wheel. The recommendation ranks pockets by what the models learned from the log. The backtest above is the measure of whether that ranking has done anything.</p>`;
+}
+
+/* ---------- models table ---------- */
+function renderModels(){
+  const el=$('modelTable'),ok=R.scored>0,windowed=R.scored>3000;
+  const rows=[];
+  const es=R.ens.stats;
+  rows.push(`<tr class="hl"><td><b>Ensemble</b><span class="sub">Weighted mixture of all models, source of the zone above</span></td><td class="num">–</td><td class="num">${ok?pct(es.rate):'–'}</td><td class="num">${ok?sgn((es.rate-R.q)*100,2)+' pp':'–'}</td><td class="num">${ok?sgn(es.z,2):'–'}</td><td class="num">${ok?sgn(R.ens.bits,4):'–'}</td></tr>`);
+  R.models.forEach((m,i)=>{
+    const s=m.stats;
+    rows.push(`<tr><td><span class="sw" style="background:var(--m${i+1})"></span>${m.name}<span class="sub">${m.basis}</span></td>
+      <td class="num"><div class="wcell"><div class="wbar"><i style="width:${(m.weight*100).toFixed(1)}%;background:var(--m${i+1})"></i></div><span>${(m.weight*100).toFixed(0)}%</span></div></td>
+      <td class="num">${ok?pct(s.rate):'–'}</td><td class="num">${ok?sgn((s.rate-R.q)*100,2)+' pp':'–'}</td><td class="num">${ok?sgn(s.z,2):'–'}</td><td class="num">${ok?sgn(m.bits,4):'–'}</td></tr>`);
+  });
+  const a=R.anchor.stats;
+  rows.push(`<tr><td>Anchor on last spin<span class="sub">Zone fixed around the previous number, the logic of the original app</span></td><td class="num">–</td><td class="num">${R.anchor.cnt?pct(a.rate):'–'}</td><td class="num">${R.anchor.cnt?sgn((a.rate-R.q)*100,2)+' pp':'–'}</td><td class="num">${R.anchor.cnt?sgn(a.z,2):'–'}</td><td class="num">–</td></tr>`);
+  el.innerHTML=`<table class="tbl"><thead><tr><th>Model</th><th>Weight now</th><th class="num">Zone hit</th><th class="num">vs fair</th><th class="num">z</th><th class="num" title="Average log2 gain of the probability given to the actual pocket over 1/38">Bits/spin</th></tr></thead><tbody>${rows.join('')}</tbody></table>${windowed?'<p class="small muted" style="margin:8px 0 0">Per-model zone hit rates cover the latest 3,000 spins. The ensemble, anchor and backtest charts cover the whole log.</p>':''}`;
+}
+
+/* ---------- charts ---------- */
+function niceTicks(lo,hi,target){
+  const span=(hi-lo)||1,raw=span/target,mag=Math.pow(10,Math.floor(Math.log10(raw))),nr=raw/mag;
+  const step=(nr<1.5?1:nr<3?2:nr<7?5:10)*mag,t=[];
+  for(let v=Math.ceil(lo/step)*step;v<=hi+1e-9;v+=step)t.push(+v.toFixed(10));
+  return t;
+}
+function fmtTick(v){const a=Math.abs(v);return a>=1000?(v/1000).toFixed(a%1000===0?0:1)+'k':String(+v.toFixed(2));}
+function chartFrame(el,len,lo,hi,h){
+  const W=Math.max(260,el.clientWidth),m={l:50,r:12,t:10,b:24};
+  const pad=(hi-lo)*0.06||1;lo-=pad;hi+=pad;
+  const X=k=>m.l+(len>1?k/(len-1):0.5)*(W-m.l-m.r),Y=v=>h-m.b-(v-lo)/(hi-lo)*(h-m.t-m.b);
+  let g='';
+  for(const t of niceTicks(lo,hi,4))g+=`<line class="gl" x1="${m.l}" x2="${W-m.r}" y1="${Y(t).toFixed(1)}" y2="${Y(t).toFixed(1)}"/><text class="ax" x="${m.l-6}" y="${(Y(t)+3.5).toFixed(1)}" text-anchor="end">${fmtTick(t)}</text>`;
+  for(const t of niceTicks(1,len,5)){const x=X(t-1);g+=`<text class="ax" x="${x.toFixed(1)}" y="${h-6}" text-anchor="middle">${fmtTick(t)}</text>`;}
+  return {W,m,X,Y,g,lo,hi};
+}
+function path(ys,F,len){
+  const st=Math.max(1,Math.ceil(len/500));let d='';
+  for(let k=0;k<len;k+=st)d+=(d?'L':'M')+F.X(k).toFixed(1)+' '+F.Y(ys[k]).toFixed(1);
+  if((len-1)%st)d+='L'+F.X(len-1).toFixed(1)+' '+F.Y(ys[len-1]).toFixed(1);
+  return d;
+}
+function bandPath(up,lo,F,len){
+  const st=Math.max(1,Math.ceil(len/300));let top='',bot='';
+  for(let k=0;k<len;k+=st){top+=(top?'L':'M')+F.X(k).toFixed(1)+' '+F.Y(up[k]).toFixed(1);bot=F.X(k).toFixed(1)+' '+F.Y(lo[k]).toFixed(1)+(bot?'L'+bot:'');}
+  return top+'L'+bot+'Z';
+}
+function minmax(arrs){let lo=Infinity,hi=-Infinity;for(const a of arrs)for(let i=0;i<a.length;i++){if(a[i]<lo)lo=a[i];if(a[i]>hi)hi=a[i];}return [lo,hi];}
+function drawLine(el,len,series,band,h){
+  if(len<2){el.innerHTML='<p class="small muted" style="margin:6px 0">Needs more than 31 spins.</p>';return;}
+  const arrs=series.map(s=>s.y);if(band){arrs.push(band.up);arrs.push(band.lo);}
+  const mm=minmax(arrs),F=chartFrame(el,len,Math.min(mm[0],0),Math.max(mm[1],0),h);
+  let s=F.g;
+  if(band)s+=`<path d="${bandPath(band.up,band.lo,F,len)}" fill="var(--accent)" opacity=".13"/>`;
+  s+=`<line x1="${F.m.l}" x2="${F.W-F.m.r}" y1="${F.Y(0).toFixed(1)}" y2="${F.Y(0).toFixed(1)}" stroke="var(--ink-2)" stroke-width="1" opacity=".6"/>`;
+  for(const se of series){
+    s+=`<path class="ln" d="${path(se.y,F,len)}" stroke="${se.color}" ${se.dash?'stroke-dasharray="5 4"':''} stroke-width="${se.w||2}"/>`;
+  }
+  const top=series[0],ex=F.X(len-1),ey=F.Y(top.y[len-1]);
+  s+=`<circle cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="4" fill="${top.color}"/>`;
+  el.innerHTML=`<svg width="${F.W}" height="${h}" viewBox="0 0 ${F.W} ${h}" role="img" aria-label="${top.label}">${s}</svg>`;
+}
+function drawWeights(el,wh,h){
+  const len=wh.length;
+  if(len<2){el.innerHTML='<p class="small muted" style="margin:6px 0">Needs more than 31 spins.</p>';return;}
+  const F=chartFrame(el,len,0,1,h),M=wh[0].length;let s=F.g;
+  const base=new Float64Array(len);
+  for(let m=0;m<M;m++){
+    let top='',bot='';
+    for(let k=0;k<len;k++){
+      const lo=base[k],hi=lo+wh[k][m];
+      top+=(top?'L':'M')+F.X(k).toFixed(1)+' '+F.Y(hi).toFixed(1);
+      bot=F.X(k).toFixed(1)+' '+F.Y(lo).toFixed(1)+(bot?'L'+bot:'');
+      base[k]=hi;
+    }
+    s+=`<path d="${top}L${bot}Z" fill="var(--m${m+1})" opacity=".88"/>`;
+  }
+  el.innerHTML=`<svg width="${F.W}" height="${h}" viewBox="0 0 ${F.W} ${h}" role="img" aria-label="Ensemble weights over time">${s}</svg>`;
+}
+function drawFreq(el,idx){
+  const n=idx.length,cnt=new Array(N).fill(0);for(const i of idx)cnt[i]++;
+  const W=Math.max(640,el.clientWidth),h=210,m={l:44,r:10,t:10,b:30};
+  if(n<20){el.innerHTML='<p class="small muted" style="margin:6px 0">Needs at least 20 spins.</p>';return;}
+  const mean=n/N,sd=Math.sqrt(n*(1/N)*(1-1/N)),top=Math.max(Math.max(...cnt),mean+2.6*sd)*1.05;
+  const Y=v=>h-m.b-v/top*(h-m.t-m.b),bw=(W-m.l-m.r)/N;let s='';
+  for(const t of niceTicks(0,top,4))s+=`<line class="gl" x1="${m.l}" x2="${W-m.r}" y1="${Y(t).toFixed(1)}" y2="${Y(t).toFixed(1)}"/><text class="ax" x="${m.l-6}" y="${(Y(t)+3.5).toFixed(1)}" text-anchor="end">${fmtTick(t)}</text>`;
+  const hiB=mean+1.96*sd,loB=Math.max(0,mean-1.96*sd);
+  s+=`<rect x="${m.l}" y="${Y(hiB).toFixed(1)}" width="${W-m.l-m.r}" height="${(Y(loB)-Y(hiB)).toFixed(1)}" fill="var(--accent)" opacity=".12"/>`;
+  for(let i=0;i<N;i++){
+    const out=cnt[i]>hiB||cnt[i]<loB,x=m.l+i*bw;
+    s+=`<rect x="${(x+1.5).toFixed(1)}" y="${Y(cnt[i]).toFixed(1)}" width="${(bw-3).toFixed(1)}" height="${(Y(0)-Y(cnt[i])).toFixed(1)}" fill="${out?'var(--brass)':'var(--accent)'}" opacity="${out?1:0.7}"/>`;
+    s+=`<text class="ax" x="${(x+bw/2).toFixed(1)}" y="${h-12}" text-anchor="middle" style="font-size:9.5px">${WHEEL[i]}</text>`;
+  }
+  s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${Y(mean).toFixed(1)}" y2="${Y(mean).toFixed(1)}" stroke="var(--ink)" stroke-width="1.2" stroke-dasharray="5 4"/>`;
+  el.innerHTML=`<svg width="${W}" height="${h}" viewBox="0 0 ${W} ${h}" role="img" aria-label="Hits per pocket against expected">${s}</svg>`;
+}
+function renderCharts(){
+  const c=R.curves,len=c.surplus.length,q=R.q,K=R.count;
+  $('perfMeta').textContent=R.scored+' scored spins · '+viewLabel();
+  const up=new Float64Array(len),lo=new Float64Array(len),ex=new Float64Array(len),nu=new Float64Array(len),nl=new Float64Array(len);
+  for(let k=0;k<len;k++){
+    const m=k+1,sd=Math.sqrt(m*q*(1-q));up[k]=1.96*sd;lo[k]=-1.96*sd;
+    ex[k]=-(2*K/N)*m;const s2=36*Math.sqrt(q*(1-q)*m);nu[k]=ex[k]+1.96*s2;nl[k]=ex[k]-1.96*s2;
+  }
+  drawLine($('chartSurplus'),len,[{y:c.surplus,color:'var(--accent)',label:'Hits above chance'}],{up,lo},190);
+  drawLine($('chartNet'),len,[{y:c.net,color:'var(--accent)',label:'Flat-bet result'},{y:ex,color:'var(--ink-2)',dash:true,w:1.5}],{up:nu,lo:nl},190);
+  drawWeights($('chartWeights'),c.whist,150);
+  drawFreq($('chartFreq'),idxArr());
+}
+
+/* ---------- bias lab ---------- */
+function renderBias(){
+  const idx=idxArr(),T=E.biasTests(idx,state.arcK),el=$('biasTable');
+  $('biasMeta').textContent=idx.length+' spins';
+  if(!T){el.innerHTML='<p class="small muted" style="margin:0">Needs at least 20 spins.</p>';return;}
+  const rows=T.map(t=>{
+    let v,c;
+    if(!t.valid){v='Too few spins, need '+t.need+'+';c='verdict-ok';}
+    else if(t.p<0.0125){v='Flagged';c='verdict-flag';}
+    else if(t.p<0.05){v='Marginal';c='verdict-marg';}
+    else{v='Consistent with fair';c='verdict-ok';}
+    return `<tr><td>${t.name}<span class="sub">${t.note}</span></td><td class="num">${t.stat}</td><td class="num">${fp(t.p)}</td><td class="${c}">${v}</td></tr>`;
+  });
+  el.innerHTML=`<table class="tbl"><thead><tr><th>Test</th><th class="num">Statistic</th><th class="num">p</th><th>Reading</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
+}
+function renderPower(){
+  const rows=E.powerRows().map(r=>`<tr><td>+${(r.effect*100).toFixed(0)}% over 1 in 38</td><td class="num">${(1/38*(1+r.effect)*100).toFixed(2)}%</td><td class="num">${r.n.toLocaleString('en-US')}</td></tr>`);
+  $('powerTable').innerHTML=`<table class="tbl"><thead><tr><th>True bias of one pocket</th><th class="num">Hit chance</th><th class="num">Spins for 80% power</th></tr></thead><tbody>${rows.join('')}</tbody></table><p class="small muted" style="margin:8px 0 0">Two-sided test at 0.05 ÷ 38, since any of the 38 pockets could be the biased one.</p>`;
+}
+
+/* ---------- log + entry ---------- */
+function renderLog(){
+  const n=state.spins.length;
+  $('spinCount').textContent=n+(n===1?' spin':' spins');
+  $('logChips').innerHTML=n?state.spins.slice().reverse().map(l=>chip(IDX[l])).join(''):'<span class="muted small">No spins logged.</span>';
+  const ta=$('dataText');if(document.activeElement!==ta)ta.value=state.spins.join(', ');
+  const note=$('exampleNote');
+  if(state.example){note.hidden=false;note.textContent='Showing '+state.spins.length+' example spins from a simulated fair wheel. Logging a spin replaces them with your own log.';}
+  else note.hidden=true;
+}
+function renderControls(){
+  document.querySelectorAll('#viewSeg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===state.view)));
+  $('arcStepper').hidden=state.view!=='arc';
+  $('arcSize').textContent=state.arcK+' pockets';
+}
+function renderAll(){
+  const ia=idxArr();R=E.runEngine(ia,{view:state.view,K:state.arcK,pmFrom:Math.max(0,ia.length-3000)});
+  renderControls();renderWheel();renderRec();renderModels();renderCharts();renderBias();renderLog();
+}
+function msg(id,t){$(id).textContent=t;}
+function addLabels(labels){
+  if(state.example){state.spins=[];state.example=false;}
+  for(const l of labels)state.spins.push(l);
+  save();renderAll();
+}
+function parseTokens(text){
+  const ok=[];let bad=0;
+  for(const tk of text.split(/[^0-9A-Za-z]+/)){if(!tk)continue;if(tk in IDX)ok.push(tk);else bad++;}
+  return {ok,bad};
+}
+function twoStep(btn,armedText,fn){
+  let t=null;const orig=btn.textContent;
+  btn.addEventListener('click',()=>{
+    if(t){clearTimeout(t);t=null;btn.textContent=orig;btn.classList.remove('danger');fn();}
+    else{btn.textContent=typeof armedText==='function'?armedText():armedText;btn.classList.add('danger');t=setTimeout(()=>{t=null;btn.textContent=orig;btn.classList.remove('danger');},3000);}
+  });
+}
+
+function buildPad(){
+  let h='';
+  const all=['0','00'];for(let i=1;i<=36;i++)all.push(String(i));
+  for(const l of all)h+=`<button type="button" data-l="${l}" aria-label="Log ${l}" style="background:${FILL[E.kind(IDX[l])]}">${l}</button>`;
+  $('pad').innerHTML=h;
+  $('pad').addEventListener('click',e=>{const b=e.target.closest('button[data-l]');if(b){msg('entryMsg','');addLabels([b.dataset.l]);}});
+}
+function quickAdd(){
+  const inp=$('quick'),r=parseTokens(inp.value);
+  if(!r.ok.length&&!r.bad){return;}
+  if(r.bad)msg('entryMsg',r.bad+' entr'+(r.bad===1?'y':'ies')+' not recognised. Use 0, 00 or 1 to 36.');
+  else msg('entryMsg','');
+  if(r.ok.length){addLabels(r.ok);}
+  inp.value='';inp.focus();
+}
+
+/* ---------- simulator ---------- */
+async function runSim(){
+  const profile=$('simProfile').value,n=+$('simSpins').value,trials=+$('simTrials').value,btn=$('simRun');
+  btn.disabled=true;const res=[];
+  for(let t=0;t<trials;t++){
+    msg('simMsg','Running trial '+(t+1)+' of '+trials+'…');
+    await new Promise(r=>setTimeout(r,0));
+    res.push(E.simulateTrial(profile,n,state.view,state.arcK,Math.floor(Math.random()*1e9)+t));
+  }
+  btn.disabled=false;msg('simMsg','');
+  lastSim=res[res.length-1].spins;
+  const q=res[0].q,rate=res.reduce((a,r)=>a+r.hits,0)/res.reduce((a,r)=>a+r.cnt,0);
+  const meanSur=res.reduce((a,r)=>a+r.stats.surplus,0)/trials,meanZ=res.reduce((a,r)=>a+r.stats.z,0)/trials,bits=res.reduce((a,r)=>a+r.bits,0)/trials;
+  const posSig=res.filter(r=>r.stats.p<0.05&&r.stats.surplus>0).length,negSig=res.filter(r=>r.stats.p<0.05&&r.stats.surplus<0).length;
+  const bins=new Array(12).fill(0);
+  for(const r of res){const b=Math.max(0,Math.min(11,Math.floor((r.stats.z+6)/1)));bins[b]++;}
+  const mb=Math.max(...bins);
+  $('simOut').innerHTML=`
+    <div class="tiles">
+      <div class="tile"><span>Engine hit rate</span><b>${pct(rate,2)}</b><em>chance alone: ${pct(q,2)}</em></div>
+      <div class="tile"><span>Mean hits above chance</span><b>${sgn(meanSur,1)}</b><em>per trial of ${(n-E.WARM).toLocaleString('en-US')} scored</em></div>
+      <div class="tile"><span>Mean z</span><b>${sgn(meanZ,2)}</b><em>${posSig} of ${trials} above chance at p&lt;0.05${negSig?`, ${negSig} below`:''}</em></div>
+      <div class="tile"><span>Ensemble bits/spin</span><b>${sgn(bits,4)}</b><em>0 = no better than 1 in 38</em></div>
+    </div>
+    <h3>Distribution of z across trials</h3>
+    <div class="hist" role="img" aria-label="Histogram of z-scores">${bins.map(b=>`<i style="height:${mb?Math.max(2,b/mb*100):2}%" title="${b} trials"></i>`).join('')}</div>
+    <div class="histax"><span>−6</span><span>0</span><span>+6</span></div>
+    <p class="small muted" style="margin:10px 0 0">On a fair wheel about 1 trial in 40 lands above chance at p&lt;0.05 by luck alone. The biased and linked wheels show what a real signal looks like to this engine.</p>
+    <div class="row" style="margin-top:10px"><button type="button" class="btn" id="simLoad">Load last trial into the log</button></div>`;
+  twoStep($('simLoad'),'Replace your log? Tap again',()=>{
+    state.spins=Array.from(lastSim.slice(-2000),i=>WHEEL[i]);state.example=false;save();renderAll();msg('simMsg','Log replaced with the last '+state.spins.length+' simulated spins.');
+  });
+}
+
+/* ---------- wiring ---------- */
+function init(){
+  load();buildPad();renderPower();
+  document.querySelectorAll('#viewSeg button').forEach(b=>b.addEventListener('click',()=>{state.view=b.dataset.view;save();renderAll();}));
+  $('arcMinus').addEventListener('click',()=>{state.arcK=Math.max(6,state.arcK-1);save();renderAll();});
+  $('arcPlus').addEventListener('click',()=>{state.arcK=Math.min(24,state.arcK+1);save();renderAll();});
+  $('quickAdd').addEventListener('click',quickAdd);
+  $('quick').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();quickAdd();}});
+  $('undo').addEventListener('click',()=>{if(state.example){state.spins=[];state.example=false;}else state.spins.pop();save();renderAll();});
+  twoStep($('clear'),'Tap again to clear',()=>{state.spins=[];state.example=false;save();renderAll();});
+  $('copyData').addEventListener('click',()=>{
+    const ta=$('dataText'),txt=state.spins.join(', ');
+    const fallback=()=>{ta.focus();ta.select();msg('dataMsg','Select and copy the text above.');};
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(()=>msg('dataMsg','Copied '+state.spins.length+' spins.'),fallback);else fallback();
+  });
+  twoStep($('loadData'),()=>{const r=parseTokens($('dataText').value);return 'Replace log with '+r.ok.length+' spins? Tap again';},()=>{
+    const r=parseTokens($('dataText').value);state.spins=r.ok;state.example=false;save();renderAll();
+    msg('dataMsg',r.bad?'Loaded '+r.ok.length+' spins. Skipped '+r.bad+' unrecognised entries.':'Loaded '+r.ok.length+' spins.');
+  });
+  $('simRun').addEventListener('click',runSim);
+  let tm=null,lw=0;
+  const redraw=()=>{const w=document.body.clientWidth;if(w===lw)return;lw=w;if(R)renderCharts();};
+  if(window.ResizeObserver)new ResizeObserver(()=>{clearTimeout(tm);tm=setTimeout(redraw,120);}).observe(document.body);
+  else window.addEventListener('resize',()=>{clearTimeout(tm);tm=setTimeout(redraw,120);});
+  lw=document.body.clientWidth;
+  renderAll();
+}
+init();
+})();
+</script>
+
+</body></html>
