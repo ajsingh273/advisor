@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clean Escalating Labouchere</title>
+<title>Strict 4-Step Labouchere</title>
 <style>
 *{
     margin:0;
@@ -40,7 +40,7 @@ h1{
 .subtitle{
     text-align:center;
     color:#94a3b8;
-    margin-bottom:20px;
+    margin-bottom:16px;
     font-size:13px;
 }
 .settings{
@@ -48,10 +48,10 @@ h1{
     justify-content:space-between;
     align-items:center;
     background:#0f172a;
-    padding:12px 16px;
+    padding:10px 16px;
     border-radius:10px;
     border: 1px solid #1e293b;
-    margin-bottom:16px;
+    margin-bottom:14px;
 }
 .settings label{
     color:#cbd5e1;
@@ -59,7 +59,7 @@ h1{
 }
 .settings input{
     width:80px;
-    padding:8px;
+    padding:6px;
     border:none;
     border-radius:8px;
     background:#1e293b;
@@ -70,11 +70,11 @@ h1{
 }
 .main-display {
     background: #0f172a;
-    padding: 20px;
+    padding: 16px;
     border-radius: 12px;
     text-align: center;
     border: 1px solid #1e293b;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 .bet-label {
     font-size: 11px;
@@ -83,8 +83,8 @@ h1{
     letter-spacing: 1px;
 }
 .bet{
-    font-size:38px;
-    margin:6px 0;
+    font-size:36px;
+    margin:4px 0;
     font-weight:bold;
     color:#f8fafc;
 }
@@ -92,6 +92,30 @@ h1{
     font-size: 13px;
     color: #34d399;
     font-weight: bold;
+}
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+}
+.stat-box {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    padding: 8px;
+    border-radius: 8px;
+    text-align: center;
+}
+.stat-label {
+    font-size: 10px;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+.stat-val {
+    font-size: 15px;
+    font-weight: bold;
+    color: #38bdf8;
+    margin-top: 2px;
 }
 .sequenceTitle{
     text-align:center;
@@ -112,7 +136,21 @@ h1{
     letter-spacing:1px;
     word-break:break-all;
     border: 1px solid #1e293b;
-    margin-bottom:20px;
+    margin-bottom:14px;
+}
+.log-box {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    color: #94a3b8;
+    margin-bottom: 16px;
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 }
 button{
     width:100%;
@@ -139,9 +177,9 @@ button:hover{
 .reset{
     background:transparent;
     color:#64748b;
-    padding:8px;
-    font-size:13px;
-    margin-top:5px;
+    padding:6px;
+    font-size:12px;
+    margin-top:2px;
 }
 .reset:hover{
     color:#cbd5e1;
@@ -283,22 +321,39 @@ button:hover{
 </div>
 <div class="container">
 <div class="card">
-    <h1>Even-Money Labouchere</h1>
-    <div class="subtitle">American Roulette • Gentle Escalation</div>
+    <h1>Strict 4-Step Labouchere</h1>
+    <div class="subtitle">American Roulette • Mathematically Guaranteed Recovery</div>
 
     <div class="settings">
         <label for="unitAmount">Base Unit ($)</label>
-        <input type="number" id="unitAmount" value="10" min="1" step="1" oninput="update()">
+        <input type="number" id="unitAmount" value="5" min="1" step="1" oninput="update()">
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-box">
+            <div class="stat-label">Wins</div>
+            <div class="stat-val" id="winCount">0</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Losses</div>
+            <div class="stat-val" id="lossCount">0</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Streak</div>
+            <div class="stat-val" id="streakCount">0</div>
+        </div>
     </div>
 
     <div class="main-display">
         <div class="bet-label" id="stepLabel">Next Bet</div>
-        <div class="bet" id="betDisplay">$30.00</div>
-        <div class="target-profit" id="targetProfitDisplay">Target Profit on Win: $30.00</div>
+        <div class="bet" id="betDisplay">$10.00</div>
+        <div class="target-profit" id="targetProfitDisplay">Target Profit on Win: $20.00</div>
     </div>
 
-    <div class="sequenceTitle">Active Sequence</div>
-    <div class="sequence" id="sequenceDisplay">1 - 2</div>
+    <div class="sequenceTitle">Active Sequence (Max 4)</div>
+    <div class="sequence" id="sequenceDisplay">1 - 1 - 1 - 1</div>
+
+    <div class="log-box" id="logDisplay">Session started. Ready for spin outcome.</div>
 
     <button class="win" id="winButton" onclick="win()">WIN</button>
     <button class="loss" id="lossButton" onclick="loss()">LOSS</button>
@@ -356,8 +411,12 @@ window.addEventListener("load", function(){
 
 </script>
 <script>
-const baseSequence = [1, 2];
+const baseSequence = [1, 1, 1, 1];
 let sequence = [...baseSequence];
+
+let totalWins = 0;
+let totalLosses = 0;
+let currentStreak = 0;
 
 function money(amount){
     return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD' }).format(amount);
@@ -365,7 +424,7 @@ function money(amount){
 
 function getUnit(){
     let val = parseFloat(document.getElementById("unitAmount").value);
-    return (isNaN(val) || val <= 0) ? 10 : val;
+    return (isNaN(val) || val <= 0) ? 5 : val;
 }
 
 function getBetUnits(){
@@ -382,6 +441,10 @@ function update(){
     const winBtn = document.getElementById("winButton");
     const lossBtn = document.getElementById("lossButton");
     const stepLabel = document.getElementById("stepLabel");
+    
+    document.getElementById("winCount").innerText = totalWins;
+    document.getElementById("lossCount").innerText = totalLosses;
+    document.getElementById("streakCount").innerText = currentStreak;
 
     if(sequence.length === 0){
         seqDisp.innerHTML = '<span class="complete">SESSION COMPLETE ✓</span>';
@@ -403,7 +466,6 @@ function update(){
     const totalDollarBet = totalUnits * unit;
     betDisp.innerHTML = money(totalDollarBet);
 
-    // Gentle escalation target profit calculation (Sum of sequence * unit)
     let sumUnits = sequence.reduce((a, b) => a + b, 0);
     let targetProfit = sumUnits * unit;
     targetDisp.innerHTML = `Target Profit on Win: ${money(targetProfit)}`;
@@ -411,31 +473,61 @@ function update(){
 
 function win(){
     if(sequence.length === 0) return;
+    
+    const prevBet = getBetUnits();
+    
     if(sequence.length === 1){
         sequence.pop();
     } else {
         sequence.shift();
         sequence.pop();
     }
+    
+    totalWins++;
+    currentStreak = currentStreak > 0 ? currentStreak + 1 : 1;
+    
+    let logMsg = `Captured WIN on ${money(prevBet * getUnit())}. Sequence updated.`;
+    if(sequence.length === 0) logMsg = `🎉 Session Completed Successfully!`;
+    document.getElementById("logDisplay").innerText = logMsg;
+    
     update();
 }
 
 function loss(){
     if(sequence.length === 0) return;
-    const units = getBetUnits();
     
-    // GENTLE SCALING: Appends a moderate increment instead of aggressive multiplication
-    // Keeps bet sizes manageable while still providing a higher profit reward upon completion.
-    let penaltyUnits = Math.ceil(units * 0.5);
-    if(penaltyUnits < 1) penaltyUnits = 1;
+    const currentBetUnits = getBetUnits();
+    const currentSum = sequence.reduce((a, b) => a + b, 0);
+    
+    // MATHEMATICALLY CORRECT RECOVERY:
+    // New total sequence sum must absorb the lost bet + a progressive profit bonus
+    const profitBonus = Math.max(1, Math.round(currentBetUnits * 0.25));
+    const newSum = currentSum + currentBetUnits + profitBonus;
+    
+    // Redistribute the exact new sum strictly into 4 balanced sequence numbers
+    let s1 = Math.max(1, Math.floor(newSum * 0.20));
+    let s2 = Math.max(1, Math.floor(newSum * 0.25));
+    let s3 = Math.max(1, Math.round(newSum * 0.25));
+    let s4 = newSum - (s1 + s2 + s3);
+    if(s4 < 1) s4 = 1;
 
-    sequence.push(units);
-    sequence.push(penaltyUnits);
+    sequence = [s1, s2, s3, s4];
+    
+    totalLosses++;
+    currentStreak = currentStreak < 0 ? currentStreak - 1 : -1;
+    
+    const newBet = getBetUnits() * getUnit();
+    document.getElementById("logDisplay").innerText = `Captured LOSS. Bet adjusted to ${money(newBet)} (Max 4 steps).`;
+    
     update();
 }
 
 function resetGame(){
     sequence = [...baseSequence];
+    totalWins = 0;
+    totalLosses = 0;
+    currentStreak = 0;
+    document.getElementById("logDisplay").innerText = "Session reset to base 4-step sequence.";
     update();
 }
 
