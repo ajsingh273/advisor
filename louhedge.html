@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hedged Dozen & Split Labouchere</title>
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,Helvetica,sans-serif;
+}
+body{
+    background:#0b0f19;
+    color:white;
+    padding:20px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+}
+.container{
+    width:100%;
+    max-width:520px;
+}
+.card{
+    background:#131d2d;
+    border-radius:16px;
+    padding:24px;
+    box-shadow:0 8px 30px rgba(0,0,0,.5);
+    border: 1px solid #1e293b;
+}
+h1{
+    text-align:center;
+    font-size:20px;
+    margin-bottom:4px;
+    color:#38bdf8;
+}
+.subtitle{
+    text-align:center;
+    color:#94a3b8;
+    margin-bottom:20px;
+    font-size:13px;
+}
+.settings{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#0f172a;
+    padding:12px 16px;
+    border-radius:10px;
+    border: 1px solid #1e293b;
+    margin-bottom:16px;
+}
+.settings label{
+    color:#cbd5e1;
+    font-size:13px;
+}
+.settings input{
+    width:90px;
+    padding:8px;
+    border:none;
+    border-radius:8px;
+    background:#1e293b;
+    color:white;
+    font-size:16px;
+    text-align:center;
+    outline:none;
+}
+.main-display {
+    background: #0f172a;
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid #1e293b;
+    margin-bottom: 16px;
+}
+.bet-label {
+    font-size: 11px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.bet{
+    font-size:32px;
+    margin:4px 0;
+    font-weight:bold;
+    color:#f8fafc;
+}
+.breakdown {
+    font-size: 13px;
+    color: #fbbf24;
+    margin-top: 6px;
+    font-weight: bold;
+}
+.target-profit {
+    font-size: 13px;
+    color: #34d399;
+    font-weight: bold;
+    margin-top: 4px;
+}
+.sequenceTitle{
+    text-align:center;
+    color:#94a3b8;
+    font-size:11px;
+    text-transform: uppercase;
+    margin-bottom:6px;
+    letter-spacing: 1px;
+}
+.sequence{
+    background:#0f172a;
+    padding:12px;
+    border-radius:10px;
+    text-align:center;
+    font-size:18px;
+    font-weight:bold;
+    color:#7dd3fc;
+    letter-spacing:1px;
+    word-break:break-all;
+    border: 1px solid #1e293b;
+    margin-bottom:20px;
+}
+button{
+    width:100%;
+    border:none;
+    padding:14px;
+    border-radius:10px;
+    font-size:16px;
+    margin-bottom:10px;
+    cursor:pointer;
+    transition:.2s;
+    font-weight:bold;
+}
+button:hover{
+    filter:brightness(1.1);
+}
+.win{
+    background:#059669;
+    color:white;
+}
+.loss{
+    background:#dc2626;
+    color:white;
+}
+.reset{
+    background:transparent;
+    color:#64748b;
+    padding:8px;
+    font-size:13px;
+    margin-top:5px;
+}
+.reset:hover{
+    color:#cbd5e1;
+    filter:none;
+}
+.complete{
+    color:#34d399;
+    font-size:18px;
+}
+.disabled{
+    opacity:.4;
+    cursor:not-allowed;
+}
+#passwordModal{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100vw;
+    height:100vh;
+
+    background:#101820;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    z-index:999999;
+
+    padding:20px;
+}
+
+.password-box{
+    width:100%;
+    max-width:420px;
+
+    background:#1d2938;
+
+    border-radius:18px;
+
+    padding:30px 25px;
+
+    box-shadow:0 8px 40px rgba(0,0,0,.6);
+
+    text-align:center;
+}
+
+.password-box h2{
+    margin-bottom:10px;
+    color:white;
+}
+
+.password-box p{
+    color:#8fa6c3;
+    margin-bottom:25px;
+}
+
+.password-box input{
+    width:100%;
+
+    padding:16px;
+
+    border:none;
+    border-radius:12px;
+
+    background:#0f172a;
+    color:white;
+
+    font-size:20px;
+
+    text-align:center;
+
+    outline:none;
+}
+
+.password-box input:focus{
+    box-shadow:0 0 0 2px #7dd3fc;
+}
+
+.password-box button{
+    width:100%;
+
+    border:none;
+    padding:16px;
+
+    border-radius:12px;
+
+    font-size:20px;
+
+    margin-top:15px;
+
+    cursor:pointer;
+
+    background:#10b981;
+    color:white;
+}
+
+.password-box button:hover{
+    filter:brightness(1.1);
+}
+
+#passwordError{
+    color:#f87171;
+
+    margin-top:15px;
+
+    min-height:24px;
+
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+<div id="passwordModal">
+
+    <div class="password-box">
+
+        <h2>🔒 Protected App</h2>
+
+        <p>
+            Enter password to continue
+        </p>
+
+        <input
+            type="password"
+            id="appPassword"
+            placeholder="Enter Password"
+            autocomplete="off"
+        >
+
+        <button onclick="checkPassword()">
+            UNLOCK
+        </button>
+
+        <div id="passwordError"></div>
+
+    </div>
+
+</div>
+<div class="container">
+<div class="card">
+    <h1>Hedged Dozen & Split Labouchere</h1>
+    <div class="subtitle">American Roulette • $0.50 Incremental Split Hedge</div>
+
+    <div class="settings">
+        <label for="unitAmount">Base Unit ($)</label>
+        <input type="number" id="unitAmount" value="10" min="1" step="1" oninput="update()">
+    </div>
+
+    <div class="main-display">
+        <div class="bet-label" id="stepLabel">Total Spin Risk</div>
+        <div class="bet" id="betDisplay">$22.00</div>
+        <div class="breakdown" id="breakdownDisplay">D1: $10.00 | D2: $10.00 | 0/00: $2.00</div>
+        <div class="target-profit" id="targetProfitDisplay">Target Profit on Win: $30.00</div>
+    </div>
+
+    <div class="sequenceTitle">Active Sequence</div>
+    <div class="sequence" id="sequenceDisplay">1 - 2</div>
+
+    <button class="win" id="winButton" onclick="win()">WIN (Dozen or 0/00 Hit)</button>
+    <button class="loss" id="lossButton" onclick="loss()">LOSS (Missed All)</button>
+    <button class="reset" onclick="resetGame()">Reset Session</button>
+</div>
+</div>
+<script>
+
+const APP_PASSWORD = "YOURPASSW0RD";
+
+function checkPassword(){
+
+    const entered =
+        document.getElementById("appPassword").value;
+
+    if(entered === APP_PASSWORD){
+
+        document.getElementById("passwordModal").style.display = "none";
+
+    }else{
+
+        document.getElementById("passwordError").textContent =
+            "Incorrect password.";
+
+        document.getElementById("appPassword").value = "";
+
+        document.getElementById("appPassword").focus();
+
+    }
+
+}
+
+
+/* Allow ENTER key to submit */
+
+document.getElementById("appPassword").addEventListener(
+    "keydown",
+    function(event){
+
+        if(event.key === "Enter"){
+            checkPassword();
+        }
+
+    }
+);
+
+
+/* Automatically place cursor in password field */
+
+window.addEventListener("load", function(){
+
+    document.getElementById("appPassword").focus();
+
+});
+
+</script>
+<script>
+const baseSequence = [1, 2];
+let sequence = [...baseSequence];
+
+function money(amount){
+    return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD' }).format(amount);
+}
+
+function getUnit(){
+    let val = parseFloat(document.getElementById("unitAmount").value);
+    return (isNaN(val) || val <= 0) ? 10 : val;
+}
+
+function getBetUnits(){
+    if(sequence.length === 0) return 0;
+    if(sequence.length === 1) return sequence[0];
+    return sequence[0] + sequence[sequence.length - 1];
+}
+
+function update(){
+    const unit = getUnit();
+    const seqDisp = document.getElementById("sequenceDisplay");
+    const betDisp = document.getElementById("betDisplay");
+    const breakdownDisp = document.getElementById("breakdownDisplay");
+    const targetDisp = document.getElementById("targetProfitDisplay");
+    const winBtn = document.getElementById("winButton");
+    const lossBtn = document.getElementById("lossButton");
+    const stepLabel = document.getElementById("stepLabel");
+
+    if(sequence.length === 0){
+        seqDisp.innerHTML = '<span class="complete">SESSION COMPLETE ✓</span>';
+        betDisp.innerHTML = "$0.00";
+        breakdownDisp.innerHTML = "All losses recovered with net profit!";
+        targetDisp.innerHTML = "Cycle successfully closed.";
+        stepLabel.innerHTML = "Status";
+        winBtn.disabled = true; lossBtn.disabled = true;
+        winBtn.classList.add("disabled"); lossBtn.classList.add("disabled");
+        return;
+    }
+
+    winBtn.disabled = false; lossBtn.disabled = false;
+    winBtn.classList.remove("disabled"); lossBtn.classList.remove("disabled");
+    stepLabel.innerHTML = "Total Spin Risk";
+
+    seqDisp.innerHTML = sequence.join(" - ");
+
+    // Units derived from Labouchere First + Last calculation
+    const units = getBetUnits();
+    
+    let dozenBet = units * unit;
+    
+    // 0/00 Split Hedge rounded strictly to the nearest $0.50 increment (minimum $0.50)
+    let rawSplit = dozenBet * 0.2; 
+    let splitBet = Math.max(0.50, Math.round(rawSplit / 0.50) * 0.50);
+
+    let totalDollarBet = (dozenBet * 2) + splitBet;
+
+    betDisp.innerHTML = money(totalDollarBet);
+    breakdownDisp.innerHTML = `D1: ${money(dozenBet)} | D2: ${money(dozenBet)} | 0/00: ${money(splitBet)}`;
+
+    let sumUnits = sequence.reduce((a, b) => a + b, 0);
+    let targetProfit = sumUnits * unit;
+    targetDisp.innerHTML = `Target Profit on Win: ${money(targetProfit)}`;
+}
+
+function win(){
+    if(sequence.length === 0) return;
+    if(sequence.length === 1){
+        sequence.pop();
+    } else {
+        sequence.shift();
+        sequence.pop();
+    }
+    update();
+}
+
+function loss(){
+    if(sequence.length === 0) return;
+    const units = getBetUnits();
+    
+    let penaltyUnits = Math.ceil(units * 0.4);
+    if(penaltyUnits < 1) penaltyUnits = 1;
+
+    sequence.push(units);
+    sequence.push(penaltyUnits);
+    update();
+}
+
+function resetGame(){
+    sequence = [...baseSequence];
+    update();
+}
+
+update();
+</script>
+</body>
+</html>
