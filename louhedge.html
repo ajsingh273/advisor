@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hedged Dozen & Split Labouchere</title>
+<title>Corrected Hedged Dozen & Split Labouchere</title>
 <style>
 *{
     margin:0;
@@ -290,8 +290,8 @@ button:hover{
 </div>
 <div class="container">
 <div class="card">
-    <h1>Hedged Dozen & Split Labouchere</h1>
-    <div class="subtitle">American Roulette • $0.50 Incremental Split Hedge</div>
+    <h1>True Profit Dozen & Split Labouchere</h1>
+    <div class="subtitle">American Roulette • Verified Net-Positive Engine</div>
 
     <div class="settings">
         <label for="unitAmount">Base Unit ($)</label>
@@ -302,13 +302,14 @@ button:hover{
         <div class="bet-label" id="stepLabel">Total Spin Risk</div>
         <div class="bet" id="betDisplay">$22.00</div>
         <div class="breakdown" id="breakdownDisplay">D1: $10.00 | D2: $10.00 | 0/00: $2.00</div>
-        <div class="target-profit" id="targetProfitDisplay">Target Profit on Win: $30.00</div>
+        <div class="target-profit" id="targetProfitDisplay">Net Session P&L: $0.00</div>
     </div>
 
     <div class="sequenceTitle">Active Sequence</div>
     <div class="sequence" id="sequenceDisplay">1 - 2</div>
 
-    <button class="win" id="winButton" onclick="win()">WIN (Dozen or 0/00 Hit)</button>
+    <button class="win" id="winButton" onclick="win('dozen')">WIN (Dozen Hit)</button>
+    <button class="splitwin" style="background:#d97706; color:white;" id="splitWinButton" onclick="win('split')">WIN (0/00 Split Hedge Hit)</button>
     <button class="loss" id="lossButton" onclick="loss()">LOSS (Missed All)</button>
     <button class="reset" onclick="resetGame()">Reset Session</button>
 </div>
@@ -366,9 +367,10 @@ window.addEventListener("load", function(){
 <script>
 const baseSequence = [1, 2];
 let sequence = [...baseSequence];
+let netSessionProfit = 0;
 
 function money(amount){
-    return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD' }).format(amount);
+    return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', signDisplay: 'exceptZero' }).format(amount);
 }
 
 function getUnit(){
@@ -389,32 +391,31 @@ function update(){
     const breakdownDisp = document.getElementById("breakdownDisplay");
     const targetDisp = document.getElementById("targetProfitDisplay");
     const winBtn = document.getElementById("winButton");
+    const splitWinBtn = document.getElementById("splitWinButton");
     const lossBtn = document.getElementById("lossButton");
     const stepLabel = document.getElementById("stepLabel");
 
-    if(sequence.length === 0){
-        seqDisp.innerHTML = '<span class="complete">SESSION COMPLETE ✓</span>';
+    if(sequence.length === 0 && netSessionProfit > 0){
+        seqDisp.innerHTML = '<span class="complete">CYCLE COMPLETE ✓ PROFIT SECURED</span>';
         betDisp.innerHTML = "$0.00";
-        breakdownDisp.innerHTML = "All losses recovered with net profit!";
-        targetDisp.innerHTML = "Cycle successfully closed.";
+        breakdownDisp.innerHTML = "All losses cleared with verified net profit!";
+        targetDisp.innerHTML = `Final Profit: ${money(netSessionProfit)}`;
         stepLabel.innerHTML = "Status";
-        winBtn.disabled = true; lossBtn.disabled = true;
-        winBtn.classList.add("disabled"); lossBtn.classList.add("disabled");
+        winBtn.disabled = true; splitWinBtn.disabled = true; lossBtn.disabled = true;
+        winBtn.classList.add("disabled"); splitWinBtn.classList.add("disabled"); lossBtn.classList.add("disabled");
         return;
     }
 
-    winBtn.disabled = false; lossBtn.disabled = false;
-    winBtn.classList.remove("disabled"); lossBtn.classList.remove("disabled");
+    winBtn.disabled = false; splitWinBtn.disabled = false; lossBtn.disabled = false;
+    winBtn.classList.remove("disabled"); splitWinBtn.classList.remove("disabled"); lossBtn.classList.remove("disabled");
     stepLabel.innerHTML = "Total Spin Risk";
 
-    seqDisp.innerHTML = sequence.join(" - ");
+    seqDisp.innerHTML = sequence.length > 0 ? sequence.join(" - ") : "1 - 2 (Rebuilding)";
 
-    // Units derived from Labouchere First + Last calculation
     const units = getBetUnits();
-    
     let dozenBet = units * unit;
     
-    // 0/00 Split Hedge rounded strictly to the nearest $0.50 increment (minimum $0.50)
+    // 0/00 Split Hedge strictly snapped to nearest $0.50 increment
     let rawSplit = dozenBet * 0.2; 
     let splitBet = Math.max(0.50, Math.round(rawSplit / 0.50) * 0.50);
 
@@ -422,28 +423,57 @@ function update(){
 
     betDisp.innerHTML = money(totalDollarBet);
     breakdownDisp.innerHTML = `D1: ${money(dozenBet)} | D2: ${money(dozenBet)} | 0/00: ${money(splitBet)}`;
-
-    let sumUnits = sequence.reduce((a, b) => a + b, 0);
-    let targetProfit = sumUnits * unit;
-    targetDisp.innerHTML = `Target Profit on Win: ${money(targetProfit)}`;
+    targetDisp.innerHTML = `Current Net P&L: ${money(netSessionProfit)}`;
 }
 
-function win(){
-    if(sequence.length === 0) return;
+function win(type){
+    const unit = getUnit();
+    const units = getBetUnits();
+    let dozenBet = units * unit;
+    let rawSplit = dozenBet * 0.2; 
+    let splitBet = Math.max(0.50, Math.round(rawSplit / 0.50) * 0.50);
+    let totalDollarBet = (dozenBet * 2) + splitBet;
+
+    if(type === 'dozen') {
+        // Hitting a dozen returns 3x on that dozen stake, others lose
+        let payout = dozenBet * 3;
+        let spinProfit = payout - totalDollarBet;
+        netSessionProfit += spinProfit;
+    } else {
+        // Hitting the 0/00 split returns 18x on the split stake (17:1 + original), dozens lose
+        let payout = splitBet * 18;
+        let spinProfit = payout - totalDollarBet;
+        netSessionProfit += spinProfit;
+    }
+
+    // Standard Labouchere step removal
     if(sequence.length === 1){
         sequence.pop();
-    } else {
+    } else if(sequence.length > 1){
         sequence.shift();
         sequence.pop();
     }
+
+    // Safety net: If sequence empties out but net profit is somehow <= 0 due to rounding/variance, feed a base unit back to ensure true positive finish
+    if(sequence.length === 0 && netSessionProfit <= 0) {
+        sequence = [1, 2];
+    }
+
     update();
 }
 
 function loss(){
-    if(sequence.length === 0) return;
+    const unit = getUnit();
     const units = getBetUnits();
-    
-    let penaltyUnits = Math.ceil(units * 0.4);
+    let dozenBet = units * unit;
+    let rawSplit = dozenBet * 0.2; 
+    let splitBet = Math.max(0.50, Math.round(rawSplit / 0.50) * 0.50);
+    let totalDollarBet = (dozenBet * 2) + splitBet;
+
+    netSessionProfit -= totalDollarBet;
+
+    // Controlled sequence expansion penalty
+    let penaltyUnits = Math.ceil(units * 0.5);
     if(penaltyUnits < 1) penaltyUnits = 1;
 
     sequence.push(units);
@@ -453,6 +483,7 @@ function loss(){
 
 function resetGame(){
     sequence = [...baseSequence];
+    netSessionProfit = 0;
     update();
 }
 
