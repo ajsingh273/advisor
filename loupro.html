@@ -2,197 +2,81 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07090f">
 <title>Strict 4-Step Labouchere</title>
 <style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial,Helvetica,sans-serif;
+:root{
+  --bg:#07090f; --panel:rgba(255,255,255,.045); --line:rgba(255,255,255,.09);
+  --text:#f4f7fb; --mute:#8b97ab; --win:#2ee6a6; --loss:#ff5d73; --amber:#ffc65c; --accent:#6ea8ff;
 }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
 body{
-    background:#0b0f19;
-    color:white;
-    padding:20px;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    min-height:100vh;
+  background:
+    radial-gradient(900px 500px at 50% -10%, rgba(110,168,255,.16), transparent 60%),
+    radial-gradient(700px 500px at 100% 110%, rgba(46,230,166,.08), transparent 60%),
+    var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  display:flex;justify-content:center;
+  padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));
+  touch-action:manipulation;user-select:none;-webkit-user-select:none;
 }
-.container{
-    width:100%;
-    max-width:480px;
+.app{width:100%;max-width:420px;min-height:100%;display:flex;flex-direction:column;gap:16px}
+header{display:flex;justify-content:space-between;align-items:center}
+.brand{font-weight:800;letter-spacing:.2em;font-size:12px;color:var(--text);opacity:.9}
+.unit{display:flex;align-items:center;gap:2px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px}
+.unit button{width:30px;height:30px;border:0;border-radius:50%;background:transparent;color:var(--text);font-size:18px;cursor:pointer}
+.unit button:disabled{opacity:.25;cursor:not-allowed}
+.unit button:not(:disabled):active{background:rgba(255,255,255,.1)}
+.unit span{min-width:52px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums;font-size:14px}
+
+.stage{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015));
+  border:1px solid var(--line);border-radius:28px;padding:28px 20px;position:relative;overflow:hidden;
+  transition:border-color .4s, box-shadow .4s;
 }
-.card{
-    background:#131d2d;
-    border-radius:16px;
-    padding:24px;
-    box-shadow:0 8px 30px rgba(0,0,0,.5);
-    border: 1px solid #1e293b;
+.stage::before{content:"";position:absolute;inset:-40% -20% auto -20%;height:70%;background:radial-gradient(closest-side,var(--glow,rgba(110,168,255,.22)),transparent);transition:background .5s;pointer-events:none}
+.stage[data-mode="recover"]{--glow:rgba(255,198,92,.2);border-color:rgba(255,198,92,.25)}
+.stage[data-mode="done"]{--glow:rgba(46,230,166,.28);border-color:rgba(46,230,166,.35)}
+
+.chip{position:relative;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:6px 12px;border-radius:999px;border:1px solid var(--line);color:var(--mute);background:rgba(0,0,0,.25)}
+[data-mode="recover"] .chip{color:var(--amber);border-color:rgba(255,198,92,.4)}
+[data-mode="done"] .chip{color:var(--win);border-color:rgba(46,230,166,.4)}
+
+.amount{position:relative;font-size:clamp(56px,20vw,84px);font-weight:800;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+.amount.pop{animation:pop .28s ease-out}
+@keyframes pop{0%{transform:scale(.94);opacity:.5}100%{transform:scale(1);opacity:1}}
+
+.target-profit{position:relative;color:var(--win);font-size:14px;font-weight:600}
+.sequence{position:relative;color:var(--accent);font-size:18px;font-weight:700;letter-spacing:2px;background:rgba(0,0,0,.3);padding:8px 16px;border-radius:12px;border:1px solid var(--line)}
+
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat-box{background:var(--panel);border:1px solid var(--line);padding:10px;border-radius:12px;text-align:center}
+.stat-label{font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.06em}
+.stat-val{font-size:15px;font-weight:bold;color:var(--text);margin-top:2px;font-variant-numeric:tabular-nums}
+
+.log-box{background:var(--panel);border:1px solid var(--line);padding:10px 14px;border-radius:12px;font-size:12px;color:var(--mute);text-align:center;min-height:38px;display:flex;align-items:center;justify-content:center}
+
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{
+  border:0;border-radius:20px;padding:18px 10px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  font-size:20px;font-weight:800;letter-spacing:.02em;transition:transform .08s, filter .2s, opacity .2s;
 }
-h1{
-    text-align:center;
-    font-size:20px;
-    margin-bottom:4px;
-    color:#38bdf8;
-}
-.subtitle{
-    text-align:center;
-    color:#94a3b8;
-    margin-bottom:16px;
-    font-size:13px;
-}
-.settings{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    background:#0f172a;
-    padding:10px 16px;
-    border-radius:10px;
-    border: 1px solid #1e293b;
-    margin-bottom:14px;
-}
-.settings label{
-    color:#cbd5e1;
-    font-size:13px;
-}
-.settings input{
-    width:80px;
-    padding:6px;
-    border:none;
-    border-radius:8px;
-    background:#1e293b;
-    color:white;
-    font-size:16px;
-    text-align:center;
-    outline:none;
-}
-.main-display {
-    background: #0f172a;
-    padding: 16px;
-    border-radius: 12px;
-    text-align: center;
-    border: 1px solid #1e293b;
-    margin-bottom: 14px;
-}
-.bet-label {
-    font-size: 11px;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-.bet{
-    font-size:36px;
-    margin:4px 0;
-    font-weight:bold;
-    color:#f8fafc;
-}
-.target-profit {
-    font-size: 13px;
-    color: #34d399;
-    font-weight: bold;
-}
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-bottom: 14px;
-}
-.stat-box {
-    background: #0f172a;
-    border: 1px solid #1e293b;
-    padding: 8px;
-    border-radius: 8px;
-    text-align: center;
-}
-.stat-label {
-    font-size: 10px;
-    color: #94a3b8;
-    text-transform: uppercase;
-}
-.stat-val {
-    font-size: 15px;
-    font-weight: bold;
-    color: #38bdf8;
-    margin-top: 2px;
-}
-.sequenceTitle{
-    text-align:center;
-    color:#94a3b8;
-    font-size:11px;
-    text-transform: uppercase;
-    margin-bottom:6px;
-    letter-spacing: 1px;
-}
-.sequence{
-    background:#0f172a;
-    padding:12px;
-    border-radius:10px;
-    text-align:center;
-    font-size:18px;
-    font-weight:bold;
-    color:#7dd3fc;
-    letter-spacing:1px;
-    word-break:break-all;
-    border: 1px solid #1e293b;
-    margin-bottom:14px;
-}
-.log-box {
-    background: #0f172a;
-    border: 1px solid #1e293b;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 11px;
-    color: #94a3b8;
-    margin-bottom: 16px;
-    min-height: 34px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-}
-button{
-    width:100%;
-    border:none;
-    padding:14px;
-    border-radius:10px;
-    font-size:16px;
-    margin-bottom:10px;
-    cursor:pointer;
-    transition:.2s;
-    font-weight:bold;
-}
-button:hover{
-    filter:brightness(1.1);
-}
-.win{
-    background:#059669;
-    color:white;
-}
-.loss{
-    background:#dc2626;
-    color:white;
-}
-.reset{
-    background:transparent;
-    color:#64748b;
-    padding:6px;
-    font-size:12px;
-    margin-top:2px;
-}
-.reset:hover{
-    color:#cbd5e1;
-    filter:none;
-}
-.complete{
-    color:#34d399;
-    font-size:18px;
-}
-.disabled{
-    opacity:.4;
-    cursor:not-allowed;
-}
+.btn small{font-size:11px;font-weight:600;opacity:.7;letter-spacing:.06em}
+.btn.win{background:linear-gradient(180deg,#43f0b5,#16c98a);color:#04110c}
+.btn.loss{background:linear-gradient(180deg,#ff7a8c,#f0415b);color:#1a0509}
+.btn:not(:disabled):active{transform:scale(.96)}
+.btn:disabled{opacity:.25;cursor:not-allowed}
+
+footer{display:grid;grid-template-columns:1fr;gap:8px}
+.ghost{background:transparent;border:1px solid var(--line);color:var(--mute);border-radius:14px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;width:100%}
+.ghost:not(:disabled):hover{color:var(--text);border-color:rgba(255,255,255,.2)}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 #passwordModal{
     position:fixed;
     top:0;
@@ -291,7 +175,6 @@ button:hover{
 }
 </style>
 </head>
-
 <body>
 <div id="passwordModal">
 
@@ -319,47 +202,49 @@ button:hover{
     </div>
 
 </div>
-<div class="container">
-<div class="card">
-    <h1>Strict 4-Step Labouchere</h1>
-    <div class="subtitle">American Roulette • Mathematically Guaranteed Recovery</div>
-
-    <div class="settings">
-        <label for="unitAmount">Base Unit ($)</label>
-        <input type="number" id="unitAmount" value="5" min="1" step="1" oninput="update()">
+<main class="app">
+  <header>
+    <div class="brand">4-STEP LABOUCHERE</div>
+    <div class="unit" aria-label="Base unit size">
+      <button id="uDown" aria-label="Smaller unit">&minus;</button>
+      <span id="unitVal">$5</span>
+      <button id="uUp" aria-label="Larger unit">+</button>
     </div>
+  </header>
 
-    <div class="stats-grid">
-        <div class="stat-box">
-            <div class="stat-label">Wins</div>
-            <div class="stat-val" id="winCount">0</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-label">Losses</div>
-            <div class="stat-val" id="lossCount">0</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-label">Streak</div>
-            <div class="stat-val" id="streakCount">0</div>
-        </div>
-    </div>
-
-    <div class="main-display">
-        <div class="bet-label" id="stepLabel">Next Bet</div>
-        <div class="bet" id="betDisplay">$10.00</div>
-        <div class="target-profit" id="targetProfitDisplay">Target Profit on Win: $20.00</div>
-    </div>
-
-    <div class="sequenceTitle">Active Sequence (Max 4)</div>
+  <section class="stage" id="stage" data-mode="fresh" aria-live="polite">
+    <div class="chip" id="chip">Ready</div>
+    <div class="amount" id="betDisplay">$10.00</div>
+    <div class="target-profit" id="targetProfitDisplay">Target Profit on Win: $20.00</div>
     <div class="sequence" id="sequenceDisplay">1 - 1 - 1 - 1</div>
+  </section>
 
-    <div class="log-box" id="logDisplay">Session started. Ready for spin outcome.</div>
+  <div class="stats-grid">
+    <div class="stat-box">
+      <div class="stat-label">Wins</div>
+      <div class="stat-val" id="winCount">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Losses</div>
+      <div class="stat-val" id="lossCount">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Streak</div>
+      <div class="stat-val" id="streakCount">0</div>
+    </div>
+  </div>
 
-    <button class="win" id="winButton" onclick="win()">WIN</button>
-    <button class="loss" id="lossButton" onclick="loss()">LOSS</button>
-    <button class="reset" onclick="resetGame()">Reset Session</button>
-</div>
-</div>
+  <div class="log-box" id="logDisplay">Session started. Ready for spin outcome.</div>
+
+  <section class="actions">
+    <button class="btn win" id="winButton" onclick="win()">Win<small>bet hit</small></button>
+    <button class="btn loss" id="lossButton" onclick="loss()">Loss<small>incl. 0 / 00</small></button>
+  </section>
+
+  <footer>
+    <button class="ghost" onclick="resetGame()">Reset Session</button>
+  </footer>
+</main>
 <script>
 
 const APP_PASSWORD = "YOURPASSW0RD";
@@ -417,14 +302,22 @@ let sequence = [...baseSequence];
 let totalWins = 0;
 let totalLosses = 0;
 let currentStreak = 0;
+let unitAmount = 5;
+
+let lastShown = null;
+function setAmount(text) {
+  const el = document.getElementById('betDisplay');
+  if (lastShown !== text) {
+    el.textContent = text;
+    el.classList.remove('pop');
+    void el.offsetWidth;
+    el.classList.add('pop');
+    lastShown = text;
+  }
+}
 
 function money(amount){
     return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD' }).format(amount);
-}
-
-function getUnit(){
-    let val = parseFloat(document.getElementById("unitAmount").value);
-    return (isNaN(val) || val <= 0) ? 5 : val;
 }
 
 function getBetUnits(){
@@ -434,40 +327,39 @@ function getBetUnits(){
 }
 
 function update(){
-    const unit = getUnit();
+    const stage = document.getElementById('stage');
     const seqDisp = document.getElementById("sequenceDisplay");
-    const betDisp = document.getElementById("betDisplay");
     const targetDisp = document.getElementById("targetProfitDisplay");
     const winBtn = document.getElementById("winButton");
     const lossBtn = document.getElementById("lossButton");
-    const stepLabel = document.getElementById("stepLabel");
     
     document.getElementById("winCount").innerText = totalWins;
     document.getElementById("lossCount").innerText = totalLosses;
     document.getElementById("streakCount").innerText = currentStreak;
+    document.getElementById("unitVal").innerText = money(unitAmount);
 
     if(sequence.length === 0){
+        stage.dataset.mode = "done";
+        document.getElementById("chip").innerText = "Complete";
         seqDisp.innerHTML = '<span class="complete">SESSION COMPLETE ✓</span>';
-        betDisp.innerHTML = "$0.00";
+        setAmount("$0.00");
         targetDisp.innerHTML = "Profit secured successfully!";
-        stepLabel.innerHTML = "Status";
         winBtn.disabled = true; lossBtn.disabled = true;
-        winBtn.classList.add("disabled"); lossBtn.classList.add("disabled");
         return;
     }
 
     winBtn.disabled = false; lossBtn.disabled = false;
-    winBtn.classList.remove("disabled"); lossBtn.classList.remove("disabled");
-    stepLabel.innerHTML = "Next Bet";
+    stage.dataset.mode = sequence.length < 4 ? "recover" : "fresh";
+    document.getElementById("chip").innerText = sequence.length < 4 ? "Recovering" : "Ready";
 
     seqDisp.innerHTML = sequence.join(" - ");
 
     const totalUnits = getBetUnits();
-    const totalDollarBet = totalUnits * unit;
-    betDisp.innerHTML = money(totalDollarBet);
+    const totalDollarBet = totalUnits * unitAmount;
+    setAmount(money(totalDollarBet));
 
     let sumUnits = sequence.reduce((a, b) => a + b, 0);
-    let targetProfit = sumUnits * unit;
+    let targetProfit = sumUnits * unitAmount;
     targetDisp.innerHTML = `Target Profit on Win: ${money(targetProfit)}`;
 }
 
@@ -486,7 +378,7 @@ function win(){
     totalWins++;
     currentStreak = currentStreak > 0 ? currentStreak + 1 : 1;
     
-    let logMsg = `Captured WIN on ${money(prevBet * getUnit())}. Sequence updated.`;
+    let logMsg = `Captured WIN on ${money(prevBet * unitAmount)}. Sequence updated.`;
     if(sequence.length === 0) logMsg = `🎉 Session Completed Successfully!`;
     document.getElementById("logDisplay").innerText = logMsg;
     
@@ -499,12 +391,9 @@ function loss(){
     const currentBetUnits = getBetUnits();
     const currentSum = sequence.reduce((a, b) => a + b, 0);
     
-    // MATHEMATICALLY CORRECT RECOVERY:
-    // New total sequence sum must absorb the lost bet + a progressive profit bonus
     const profitBonus = Math.max(1, Math.round(currentBetUnits * 0.25));
     const newSum = currentSum + currentBetUnits + profitBonus;
     
-    // Redistribute the exact new sum strictly into 4 balanced sequence numbers
     let s1 = Math.max(1, Math.floor(newSum * 0.20));
     let s2 = Math.max(1, Math.floor(newSum * 0.25));
     let s3 = Math.max(1, Math.round(newSum * 0.25));
@@ -516,7 +405,7 @@ function loss(){
     totalLosses++;
     currentStreak = currentStreak < 0 ? currentStreak - 1 : -1;
     
-    const newBet = getBetUnits() * getUnit();
+    const newBet = getBetUnits() * unitAmount;
     document.getElementById("logDisplay").innerText = `Captured LOSS. Bet adjusted to ${money(newBet)} (Max 4 steps).`;
     
     update();
@@ -530,6 +419,17 @@ function resetGame(){
     document.getElementById("logDisplay").innerText = "Session reset to base 4-step sequence.";
     update();
 }
+
+document.getElementById("uDown").onclick = () => {
+    if (unitAmount > 1) {
+        unitAmount = Math.max(1, unitAmount - (unitAmount <= 10 ? 1 : 5));
+        update();
+    }
+};
+document.getElementById("uUp").onclick = () => {
+    unitAmount += (unitAmount < 10 ? 1 : 5);
+    update();
+};
 
 update();
 </script>
