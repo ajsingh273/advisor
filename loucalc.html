@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Labouchere</title>
+<style>
+:root{--bg:#000;--gray:#333;--lgray:#a5a5a5;--win:#30d158;--loss:#ff453a;--amber:#ff9f0a;--text:#fff}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,sans-serif;
+  display:flex;justify-content:center;touch-action:manipulation;user-select:none;-webkit-user-select:none;
+  padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom))}
+.app{width:100%;max-width:400px;display:flex;flex-direction:column;justify-content:flex-end;gap:14px}
+
+.display{padding:0 8px;text-align:right}
+.net{font-size:15px;color:var(--lgray);font-variant-numeric:tabular-nums;min-height:20px}
+.net b{font-weight:600}
+.pos{color:var(--win)}.neg{color:var(--loss)}
+.bet{font-size:clamp(64px,22vw,96px);font-weight:300;line-height:1.05;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.bet.pop{animation:pop .15s ease-out}
+@keyframes pop{from{transform:scale(.96);opacity:.6}to{transform:scale(1);opacity:1}}
+.sub{font-size:14px;color:var(--lgray);margin-top:2px;min-height:18px}
+
+.seq{display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap;padding:0 4px;min-height:40px}
+.pill{min-width:40px;padding:8px 12px;border-radius:20px;background:var(--gray);font-size:17px;font-weight:600;text-align:center;font-variant-numeric:tabular-nums}
+.pill.edge{background:var(--amber);color:#000}
+.hint{text-align:right;font-size:12px;color:var(--lgray);padding:0 8px;min-height:16px}
+
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.b{aspect-ratio:1;border:0;border-radius:50%;font-size:22px;font-weight:500;color:var(--text);background:var(--gray);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:filter .15s,transform .08s}
+.b:active{filter:brightness(1.6);transform:scale(.96)}
+.b.light{background:var(--lgray);color:#000}
+.b.big{grid-column:span 2;aspect-ratio:auto;border-radius:999px;height:auto;padding:26px 0;font-size:28px;font-weight:600;flex-direction:column;gap:2px}
+.b.big small{font-size:12px;font-weight:500;opacity:.75}
+.b.win{background:var(--win);color:#001a08}
+.b.loss{background:var(--loss);color:#fff}
+.b:disabled{opacity:.35}
+
+#lock{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:99;padding:24px}
+#lock form{width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px;text-align:center}
+#lock input{width:100%;padding:16px;border:0;border-radius:14px;background:var(--gray);color:#fff;font-size:20px;text-align:center;outline:none}
+#lock button{padding:16px;border:0;border-radius:14px;background:var(--win);color:#001a08;font-size:18px;font-weight:600}
+#lockErr{color:var(--loss);min-height:20px;font-size:14px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="lock">
+  <form id="lockForm">
+    <h2>Labouchere</h2>
+    <input id="pw" type="password" placeholder="Password" autocomplete="off">
+    <button type="submit">Unlock</button>
+    <div id="lockErr"></div>
+  </form>
+</div>
+
+<main class="app">
+  <div class="display">
+    <div class="net" id="net"></div>
+    <div class="bet" id="bet">$0</div>
+    <div class="sub" id="sub"></div>
+  </div>
+
+  <div class="seq" id="seq"></div>
+  <div class="hint" id="hint"></div>
+
+  <div class="grid">
+    <button class="b light" id="undo" aria-label="Undo">↶</button>
+    <button class="b light" id="reset" aria-label="Reset">C</button>
+    <button class="b" id="uDown" aria-label="Smaller unit">−</button>
+    <button class="b" id="uUp" aria-label="Larger unit">+</button>
+    <button class="b big loss" id="lossBtn">Loss<small>incl. 0 / 00</small></button>
+    <button class="b big win" id="winBtn">Win<small>dozen hit</small></button>
+  </div>
+</main>
+
+<script>
+/* ---------- password gate (cosmetic only: anyone can read this file's source) ---------- */
+const APP_PASSWORD = "YOURPASSW0RD";
+const $ = id => document.getElementById(id);
+try { if (sessionStorage.getItem("unlocked") === "1") $("lock").style.display = "none"; } catch(e){}
+$("lockForm").addEventListener("submit", e => {
+  e.preventDefault();
+  if ($("pw").value === APP_PASSWORD) {
+    $("lock").style.display = "none";
+    try { sessionStorage.setItem("unlocked", "1"); } catch(e){}
+  } else { $("lockErr").textContent = "Incorrect password."; $("pw").value = ""; $("pw").focus(); }
+});
+window.addEventListener("load", () => $("pw").focus());
+
+/* ---------- game ---------- */
+const START = [1, 1];     // 2 steps to begin
+const MAX_STEPS = 5;      // never more than 5 steps
+const KEY = "labouchere.v2";
+
+let S = { seq: [...START], unit: 5, net: 0, wins: 0, losses: 0, cycles: 0, streak: 0, msg: "" };
+let history = [];
+
+try {
+  const saved = JSON.parse(localStorage.getItem(KEY));
+  if (saved && Array.isArray(saved.s && saved.s.seq) && saved.s.seq.length) { S = saved.s; history = saved.h || []; }
+} catch(e){}
+
+const sum   = a => a.reduce((x, y) => x + y, 0);
+const betU  = a => a.length === 1 ? a[0] : a[0] + a[a.length - 1];
+const money = n => (n < 0 ? "-" : "") + "$" + Math.abs(n).toLocaleString("en-US", { maximumFractionDigits: 2 });
+const buzz  = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch(e){} };
+
+function snapshot(){ history.push(JSON.stringify(S)); if (history.length > 100) history.shift(); }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify({ s: S, h: history.slice(-30) })); } catch(e){} }
+
+function win(){
+  snapshot();
+  const bet = betU(S.seq);
+  S.net += bet * S.unit;
+  S.wins++; S.streak = S.streak > 0 ? S.streak + 1 : 1;
+  S.seq = S.seq.length <= 2 ? [] : S.seq.slice(1, -1);       // cross off first and last
+  if (S.seq.length === 0) {
+    S.cycles++; S.seq = [...START];
+    S.msg = "Cycle complete. Fresh start.";
+  } else S.msg = "";
+  buzz(15); render(true);
+}
+
+function loss(){
+  snapshot();
+  const bet = betU(S.seq);
+  S.net -= bet * S.unit;
+  S.losses++; S.streak = S.streak < 0 ? S.streak - 1 : -1;
+  if (S.seq.length < MAX_STEPS) {
+    S.seq.push(bet);                                          // classic: add the lost bet to the end
+  } else {
+    // at 5 steps: fold the lost bet into the smallest step (ties: nearest the middle)
+    const mid = (S.seq.length - 1) / 2;
+    let k = 0;
+    S.seq.forEach((v, i) => {
+      if (v < S.seq[k] || (v === S.seq[k] && Math.abs(i - mid) < Math.abs(k - mid))) k = i;
+    });
+    S.seq[k] += bet;
+  }
+  S.msg = "";
+  buzz(30); render(true);
+}
+
+function undo(){
+  if (!history.length) return;
+  S = JSON.parse(history.pop());
+  render(true);
+}
+
+function reset(){
+  if (!confirm("Reset session?")) return;
+  S = { seq: [...START], unit: S.unit, net: 0, wins: 0, losses: 0, cycles: 0, streak: 0, msg: "" };
+  history = [];
+  render(true);
+}
+
+function setUnit(d){
+  const u = S.unit, step = u < 10 ? 1 : u < 50 ? 5 : 25;
+  S.unit = Math.max(1, u + d * (d < 0 && u === 10 ? 1 : step));
+  render(false);
+}
+
+let lastBet = null;
+function render(animate){
+  const bet = betU(S.seq) * S.unit;
+  const b = $("bet");
+  b.textContent = money(bet);
+  if (animate && lastBet !== bet) { b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop"); }
+  lastBet = bet;
+
+  const netEl = $("net");
+  netEl.innerHTML = `Net <b class="${S.net > 0 ? "pos" : S.net < 0 ? "neg" : ""}">${S.net > 0 ? "+" : ""}${money(S.net)}</b> · $${S.unit}/unit`;
+
+  $("sub").textContent = S.msg || `Win clears ${money(sum(S.seq) * S.unit)} total · ${S.wins}W ${S.losses}L · ${S.cycles} cycles`;
+
+  const last = S.seq.length - 1;
+  $("seq").innerHTML = S.seq.map((v, i) =>
+    `<div class="pill${(i === 0 || i === last) ? " edge" : ""}">${v}</div>`).join("");
+  $("hint").textContent = S.seq.length >= MAX_STEPS ? "Max 5 steps: losses now add to the smallest step" : "";
+
+  $("undo").disabled = history.length === 0;
+  save();
+}
+
+$("winBtn").onclick = win;
+$("lossBtn").onclick = loss;
+$("undo").onclick = undo;
+$("reset").onclick = reset;
+$("uDown").onclick = () => setUnit(-1);
+$("uUp").onclick = () => setUnit(1);
+
+render(false);
+</script>
+</body>
+</html>
