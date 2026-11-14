@@ -25,7 +25,7 @@ body{padding-top:env(safe-area-inset-top);
 .brand{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:8px}
 .brand h1{font-family:var(--mono);font-size:16px;font-weight:700;letter-spacing:3px;text-transform:uppercase}
 .brand span{font-family:var(--mono);font-size:10px;letter-spacing:1.6px;color:var(--dim);text-transform:uppercase}
-.strip{display:grid;grid-template-columns:1.1fr 1.3fr .8fr;border:1px solid var(--line2);border-radius:4px;background:var(--panel2);margin-bottom:12px}
+.strip{display:grid;grid-template-columns:1.4fr 1fr;border:1px solid var(--line2);border-radius:4px;background:var(--panel2);margin-bottom:12px}
 .strip div{padding:7px 9px;border-left:1px solid var(--line);min-width:0}
 .strip div:first-child{border-left:0}
 .strip .k{font-family:var(--mono);font-size:9px;letter-spacing:1.4px;color:var(--dim);text-transform:uppercase}
@@ -43,7 +43,7 @@ body{padding-top:env(safe-area-inset-top);
 /* Master decision */
 .master{text-align:center;background:linear-gradient(180deg,#0f1c2c,#0c1521);border-color:#2e4a6b}
 .m-label{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;font-weight:700}
-.m-target{font-family:var(--mono);font-size:36px;font-weight:700;margin:8px 0 4px;letter-spacing:3px}
+.m-target{font-family:var(--mono);font-size:40px;font-weight:700;margin:8px 0 4px;letter-spacing:3px}
 .m-sub{font-size:12px;color:var(--dim);line-height:1.4}
 .t-RED{color:#ff5d52}.t-BLACK{color:#aabbd0}.t-neutral{color:var(--ink)}.t-none{color:var(--dim)}
 .chips{display:flex;gap:6px;justify-content:center;margin-top:12px;flex-wrap:wrap}
@@ -51,15 +51,10 @@ body{padding-top:env(safe-area-inset-top);
 .chip b{color:var(--ink)}
 .honest{margin-top:12px;font-size:11px;line-height:1.5;color:var(--dim);border-top:1px dashed var(--line2);padding-top:10px;text-align:left}
 
-/* category rows */
-.cat{padding:11px 0;border-top:1px solid var(--line)}
-.cat:first-of-type{border-top:0;padding-top:0}
-.cat-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;gap:8px}
-.cat-h .n{font-family:var(--mono);font-size:11px;color:var(--dim);font-weight:700;letter-spacing:1px}
-.cat-h .pk{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:1px}
-.bar{display:flex;height:8px;border-radius:2px;overflow:hidden;background:var(--panel2);border:1px solid var(--line2)}
+/* channel bar */
+.bar{display:flex;height:10px;border-radius:2px;overflow:hidden;background:var(--panel2);border:1px solid var(--line2)}
 .bar i{display:block;height:100%;transition:width .3s}
-.bar-l{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:5px}
+.bar-l{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:6px}
 
 /* number pad */
 .pad{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin-bottom:10px}
@@ -84,12 +79,14 @@ body{padding-top:env(safe-area-inset-top);
 .pos{color:var(--green)}.neg{color:#ff5d52}
 
 /* models */
-.mrow{display:grid;grid-template-columns:96px minmax(0,1fr) 44px;gap:8px;align-items:center;font-family:var(--mono);font-size:11px;padding:4px 0}
+.mrow{display:grid;grid-template-columns:112px minmax(0,1fr) 38px 16px;gap:8px;align-items:center;font-family:var(--mono);font-size:11px;padding:4px 0}
 .mrow .nm{color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mrow .tr{height:6px;background:var(--panel2);border-radius:1px;border:1px solid var(--line2);position:relative;overflow:hidden}
 .mrow .tr i{position:absolute;left:0;top:0;bottom:0;background:var(--accent)}
 .mrow .tr em{position:absolute;left:50%;top:-1px;bottom:-1px;width:1px;background:var(--gold)}
 .mrow .ac{text-align:right;font-weight:700}
+.mrow .vt{text-align:center;font-weight:700}
+.vt.R{color:#ff5d52}.vt.B{color:#aabbd0}
 
 /* log */
 .log{display:flex;flex-wrap:wrap;gap:5px;max-height:130px;overflow-y:auto}
@@ -156,11 +153,10 @@ nav button.on{background:var(--accent);border-color:var(--accent);color:#04162a}
 <div id="app">
   <div class="brand">
     <h1>Bernoulli</h1>
-    <span>Mission Control · Even-Money Ops</span>
+    <span>Mission Control · Red / Black Ops</span>
   </div>
   <div class="strip">
     <div><div class="k">Status</div><div class="v"><span class="dot" id="hDot"></span><span id="hStatus">STANDBY</span></div></div>
-    <div><div class="k">Mission Elapsed</div><div class="v" id="met">T+00:00:00</div></div>
     <div><div class="k">Spins</div><div class="v" id="hSpins">0</div></div>
   </div>
 
@@ -170,7 +166,7 @@ nav button.on{background:var(--accent);border-color:var(--accent);color:#04162a}
     <section class="card master" id="masterCard"></section>
 
     <section class="card">
-      <div class="ttl">Even-Money Channels</div>
+      <div class="ttl">Red / Black Channel</div>
       <div id="catArea"></div>
     </section>
 
@@ -191,7 +187,7 @@ nav button.on{background:var(--accent);border-color:var(--accent);color:#04162a}
     <section class="card">
       <div class="ttl">Model Council <span id="councilCat"></span></div>
       <div id="council"></div>
-      <div class="note" style="margin-top:8px">Bar = model's walk-forward hit rate on this channel. Gold tick = 50% (coin flip). Models only earn voting weight if they beat 50%.</div>
+      <div class="note" style="margin-top:8px">Bar = model's walk-forward hit rate (last 400 spins). Gold tick = 50% (coin flip). Letter = the model's current vote. Models only earn real voting weight if they beat 50% on your data.</div>
     </section>
 
     <section class="card">
@@ -240,12 +236,6 @@ nav button.on{background:var(--accent);border-color:var(--accent);color:#04162a}
       </div>
       <div class="note" style="margin-top:10px">WIN removes the first and last numbers. LOSS adds the amount wagered (in units) to the end. A 0 or 00 is a LOSS. When the sequence clears, the cycle is banked; tap Start Next Cycle to begin a fresh 1-2 sequence.</div>
     </section>
-
-    <section class="card">
-      <div class="ttl">Session Ledger</div>
-      <div class="tiles" id="lbTiles"></div>
-      <div class="note" style="margin-top:10px">"House tax" = total wagered &times; 5.26%, the long-run cost of American roulette's even-money bets. Short-run results swing around it.</div>
-    </section>
   </div>
 </div>
 
@@ -277,12 +267,10 @@ window.addEventListener("load", () => document.getElementById("appPassword").foc
 ========================================================= */
 const KEY = 'bernoulliControlCenter.v1';
 const REDS = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
-const CATS = { RB:['RED','BLACK'], EO:['ODD','EVEN'], LH:['LOW','HIGH'] };
-const CAT_NAME = { RB:'Red / Black', EO:'Odd / Even', LH:'Low / High' };
 const TRUE_P = 18/38;
 const START_SEQ = [1,2];
 
-let S = { spins:[], lb:{ seq:[...START_SEQ], step:1, cycles:0, pnl:0, wagered:0, complete:false, snaps:[], unit:10 } };
+let S = { spins:[], lb:{ seq:[...START_SEQ], step:1, cycles:0, complete:false, snaps:[], unit:10 } };
 try { const raw = localStorage.getItem(KEY); if (raw) { const p = JSON.parse(raw); if (p && p.spins && p.lb) S = p; } } catch(e){}
 S.lb.complete = !!S.lb.complete;
 if (!Array.isArray(S.lb.seq) || (!S.lb.seq.length && !S.lb.complete)) S.lb.seq = [...START_SEQ];
@@ -292,119 +280,190 @@ function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){
 /* =========================================================
    ROULETTE HELPERS
 ========================================================= */
-function attr(s){
-  if (s === '0' || s === '00') return { RB:'Z', EO:'Z', LH:'Z' };
-  const n = +s;
-  return { RB: REDS.has(n)?'RED':'BLACK', EO: n%2?'ODD':'EVEN', LH: n<=18?'LOW':'HIGH' };
+// American double-zero wheel, physical pocket order (clockwise)
+const WHEEL = ['0','28','9','26','30','11','7','20','32','17','5','22','34','15','3','24','36','13','1','00','27','10','25','29','12','8','19','31','18','6','21','33','16','4','23','35','14','2'];
+const POS = {}; WHEEL.forEach((s,i)=>POS[s]=i);
+function colorOf(s){
+  if (s === '0' || s === '00') return 'Z';
+  return REDS.has(+s) ? 'RED' : 'BLACK';
 }
-const series = cat => S.spins.map(s => attr(s)[cat]);
+const WCOL = WHEEL.map(colorOf);
+// P(RED | non-zero) from a weight distribution over the 38 pockets
+function pRedFromW(w){
+  let r=0,b=0;
+  for (let i=0;i<38;i++){ if (WCOL[i]==='RED') r+=w[i]; else if (WCOL[i]==='BLACK') b+=w[i]; }
+  return r/(r+b);
+}
 
 /* =========================================================
-   THE ENGINE
-   Nine independent pattern models vote on each channel.
-   Every model is scored walk-forward (predict spin t using only
-   spins before t). A model only gets voting weight if it has
-   actually beaten 50% on YOUR logged history; otherwise its vote
-   is nearly muted. If nothing beats chance the engine says so.
+   THE ENGINE — RED / BLACK
+   14 independent models. Each outputs P(next non-zero spin is RED).
+   Families:
+     Sequence  : trend, EMA, reversion, long-run Bayes
+     Memory    : Markov-1/2/3, longest-pattern match, run-length hazard, zigzag
+     Physical  : per-pocket wheel bias (all-time + recent), dealer signature
+                 (spin-to-spin pocket offsets), sector heat on the wheel ring
+   Every model is scored walk-forward (it predicts spin t using only
+   spins before t). Voting weight is earned from shrunk walk-forward
+   accuracy, so models that do not beat chance are nearly muted.
 ========================================================= */
-const MODEL_NAMES = ['Trend 12','EMA fast','Reversion','Markov-1','Markov-2','Streak ride','Streak fade','Zigzag','Long-run'];
+const MODEL_NAMES = ['Trend 12','EMA fast','Reversion','Long-run','Markov-1','Markov-2','Markov-3','Pattern match','Run hazard','Zigzag','Wheel bias','Bias (recent)','Dealer signature','Sector heat'];
+const MIN = 6, WINDOW = 400;
 
-function freq(d,a,w){ const s = d.slice(-w); return s.length ? s.filter(x=>x===a).length/s.length : .5; }
-function markov(d,k,a){
-  if (d.length <= k) return .5;
-  const key = d.slice(-k).join('|'); let ca=0, t=0;
-  for (let i=k;i<d.length;i++){ if (d.slice(i-k,i).join('|')===key){ t++; if (d[i]===a) ca++; } }
-  return (ca+2)/(t+4);
+function markovS(ds,k){
+  const n = ds.length; if (n <= k) return .5;
+  const key = ds.slice(n-k); let t=0, cr=0;
+  for (let i=k;i<n;i++){ if (ds.substr(i-k,k)===key){ t++; if (ds[i]==='R') cr++; } }
+  return (cr+2)/(t+4);
 }
-function streakOf(d){
-  if (!d.length) return {val:null,count:0};
-  const v = d[d.length-1]; let c = 1;
-  for (let i=d.length-2;i>=0 && d[i]===v;i--) c++;
-  return {val:v,count:c};
-}
-function modelProbs(d, a){
-  const n = d.length, st = streakOf(d);
-  let ema = .5; d.forEach(x => ema = .3*(x===a?1:0) + .7*ema);
-  const f24 = freq(d,a,24);
-  let ride = .5, fade = .5;
-  if (st.count >= 3){
-    const pc = .5 + Math.min(.15, .03*st.count);
-    ride = st.val === a ? pc : 1-pc;
-    fade = 1 - ride;
+function patternMatch(ds){
+  const n = ds.length;
+  for (let L=Math.min(7,n-1); L>=2; L--){
+    const key = ds.slice(n-L); let t=0, cr=0;
+    for (let i=L;i<n;i++){ if (ds.substr(i-L,L)===key){ t++; if (ds[i]==='R') cr++; } }
+    if (t >= 3) return (cr+1)/(t+2);
   }
+  return .5;
+}
+function runHazard(ds){
+  const n = ds.length; if (n < 2) return .5;
+  const runs = []; let c = 1;
+  for (let i=1;i<n;i++){ if (ds[i]===ds[i-1]) c++; else { runs.push(c); c = 1; } }
+  let ge=0, gt=0;
+  for (const r of runs){ if (r >= c){ ge++; if (r > c) gt++; } }
+  const pc = (gt+1)/(ge+2);
+  return ds[n-1]==='R' ? pc : 1-pc;
+}
+function biasP(h,win,alpha){
+  const w = new Array(38).fill(alpha);
+  const s = h.slice(-win);
+  for (const x of s) w[POS[x]]++;
+  return pRedFromW(w);
+}
+function dealerSig(h){
+  if (h.length < 2) return .5;
+  const s = h.slice(-300), off = new Array(38).fill(1);
+  for (let i=1;i<s.length;i++) off[(POS[s[i]]-POS[s[i-1]]+38)%38]++;
+  const last = POS[h[h.length-1]], w = new Array(38).fill(0);
+  for (let o=0;o<38;o++) w[(last+o)%38] += off[o];
+  return pRedFromW(w);
+}
+function sectorHeat(h){
+  const s = h.slice(-18); if (s.length < 3) return .5;
+  const w = new Array(38).fill(1);
+  s.forEach((x,k)=>{
+    const p = POS[x], dec = Math.pow(.92, s.length-1-k);
+    for (let j=0;j<38;j++){ let d = Math.abs(j-p); d = Math.min(d,38-d); w[j] += dec*1.5*Math.exp(-d*d/12.5); }
+  });
+  return pRedFromW(w);
+}
+
+// h = every logged number (strings incl. 0/00); ds = string of R/B for non-zero spins
+function modelProbs(h, ds){
+  const n = ds.length;
+  const last12 = ds.slice(-12), last24 = ds.slice(-24);
+  const f12 = last12.split('R').length-1, f24 = last24.split('R').length-1;
+  let ema = .5; const tail = ds.slice(-60);
+  for (let i=0;i<tail.length;i++) ema = .3*(tail[i]==='R'?1:0) + .7*ema;
   let zig = .5;
-  if (n >= 4){
-    const z = d[n-1]!==d[n-2] && d[n-2]!==d[n-3] && d[n-3]!==d[n-4];
-    if (z) zig = d[n-1]===a ? .35 : .65;
-  }
-  const cnt = d.filter(x=>x===a).length;
+  if (n >= 4 && ds[n-1]!==ds[n-2] && ds[n-2]!==ds[n-3] && ds[n-3]!==ds[n-4]) zig = ds[n-1]==='R' ? .35 : .65;
+  const cntR = ds.split('R').length-1;
   return [
-    freq(d,a,12),
+    f12/last12.length,
     ema,
-    Math.min(.95,Math.max(.05, .5-(f24-.5)*.8)),
-    markov(d,1,a),
-    markov(d,2,a),
-    ride, fade, zig,
-    (cnt+20)/(n+40)
+    Math.min(.95,Math.max(.05, .5-(f24/last24.length-.5)*.8)),
+    (cntR+20)/(n+40),
+    markovS(ds,1), markovS(ds,2), markovS(ds,3),
+    patternMatch(ds),
+    runHazard(ds),
+    zig,
+    biasP(h, 100000, 2),
+    biasP(h, 200, 3),
+    dealerSig(h),
+    sectorHeat(h)
   ];
 }
 
-function analyze(cat){
-  const [a,b] = CATS[cat];
-  const full = series(cat);
-  const nz = [];
+// Pearson chi-square test for an unbalanced wheel (df = 37)
+function normCdf(z){
+  const t = 1/(1+.2316419*Math.abs(z));
+  const d = .3989423*Math.exp(-z*z/2);
+  const p = d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));
+  return z > 0 ? 1-p : p;
+}
+function wheelBias(){
+  const N = S.spins.length, counts = new Array(38).fill(0);
+  S.spins.forEach(s => counts[POS[s]]++);
+  const hot = counts.map((c,i)=>({n:WHEEL[i],c})).filter(x=>x.c>0).sort((a,b)=>b.c-a.c).slice(0,3);
+  if (N < 190) return { N, ok:false, hot };
+  const exp = N/38; let chi = 0;
+  counts.forEach(c => chi += (c-exp)*(c-exp)/exp);
+  const df = 37, z = (Math.pow(chi/df,1/3) - (1-2/(9*df))) / Math.sqrt(2/(9*df));
+  return { N, ok:true, chi, p: 1-normCdf(z), hot };
+}
+
+let _cache = { key:null, val:null };
+function analyze(){
+  const key = S.spins.join(',');
+  if (_cache.key === key) return _cache.val;
+
+  const h = S.spins, N = h.length;
   const hits = MODEL_NAMES.map(()=>0), calls = MODEL_NAMES.map(()=>0);
-  const results = [];
+  let ds = '', bets = 0, wins = 0, zeros = 0;
+  const start = Math.max(0, N-WINDOW);
+
   const weights = () => MODEL_NAMES.map((_,i)=>{
-    const acc = (hits[i]+5)/(calls[i]+10);
-    return .1 + Math.max(0,(acc-.5)*12);
+    const accS = (hits[i]+8)/(calls[i]+16);        // shrunk accuracy
+    return .1 + Math.max(0,(accS-.5)*14);
   });
   const ensemble = probs => {
     const w = weights(); let sw=0, sp=0;
     probs.forEach((p,i)=>{ sw+=w[i]; sp+=w[i]*p; });
     return sp/sw;
   };
-  const MIN = 6;
 
-  for (const x of full){
-    if (nz.length >= MIN){
-      const probs = modelProbs(nz,a);
-      const p = ensemble(probs);
-      const pick = p >= .5 ? a : b;
-      results.push(x === pick ? 1 : 0);
-      if (x !== 'Z'){
+  for (let t=0;t<N;t++){
+    const c = colorOf(h[t]);
+    if (c === 'Z') zeros++;
+    if (t >= start && ds.length >= MIN){
+      const probs = modelProbs(h.slice(0,t), ds);
+      const pick = ensemble(probs) >= .5 ? 'RED' : 'BLACK';
+      bets++; if (c === pick) wins++;               // zero = loss
+      if (c !== 'Z'){
         probs.forEach((pr,i)=>{
           if (pr === .5) return;
           calls[i]++;
-          if ((pr>.5?a:b) === x) hits[i]++;
+          if ((pr>.5?'RED':'BLACK') === c) hits[i]++;
         });
       }
     }
-    if (x !== 'Z') nz.push(x);
+    if (c !== 'Z') ds += (c==='RED'?'R':'B');
   }
 
-  const n = nz.length;
-  let p = .5, models = [];
-  if (n >= MIN){
-    const probs = modelProbs(nz,a);
+  const n = ds.length, ready = n >= MIN;
+  let p = .5, models = [], votesR = 0, votesB = 0;
+  if (ready){
+    const probs = modelProbs(h, ds);
     p = ensemble(probs);
-    const w = weights();
-    models = MODEL_NAMES.map((nm,i)=>({ name:nm, p:probs[i], acc: calls[i]? hits[i]/calls[i] : .5, calls:calls[i], w:w[i] }));
+    models = MODEL_NAMES.map((nm,i)=>({ name:nm, p:probs[i], acc: calls[i]? hits[i]/calls[i] : .5, calls:calls[i] }));
+    probs.forEach(pr => { if (pr>.5) votesR++; else if (pr<.5) votesB++; });
   }
-  const pick = p >= .5 ? a : b;
+  const pick = p >= .5 ? 'RED' : 'BLACK';
   const pPick = p >= .5 ? p : 1-p;
   const strength = Math.abs(p-.5)*200;
 
-  const ca = nz.filter(x=>x===a).length;
+  const red = ds.split('R').length-1;
   let ent = 0;
-  const last30 = nz.slice(-30);
-  if (last30.length){ const q = last30.filter(x=>x===a).length/last30.length; [q,1-q].forEach(v=>{ if(v>0) ent -= v*Math.log2(v); }); }
-  const z = n ? (ca - n/2)/Math.sqrt(n/4) : 0;
-  const wins = results.reduce((s,v)=>s+v,0);
+  const l30 = ds.slice(-30);
+  if (l30.length){ const q = (l30.split('R').length-1)/l30.length; [q,1-q].forEach(v=>{ if (v>0) ent -= v*Math.log2(v); }); }
+  const z = n ? (red - n/2)/Math.sqrt(n/4) : 0;
+  let sc = 0; if (n){ const v = ds[n-1]; sc = 1; for (let i=n-2;i>=0 && ds[i]===v;i--) sc++; }
 
-  return { cat, a, b, n, p, pick, pPick, strength, models, streak: streakOf(nz),
-           ca, cb:n-ca, ent, z, bets:results.length, wins, results,
-           zeros: full.length - n, ready: n >= MIN };
+  const val = { n, ready, p, pick, pPick, strength, models, votesR, votesB,
+                streak:{ val: n ? (ds[n-1]==='R'?'RED':'BLACK') : null, count:sc },
+                red, black:n-red, ent, z, bets, wins, zeros, bias: wheelBias() };
+  _cache = { key, val };
+  return val;
 }
 
 /* =========================================================
@@ -415,90 +474,85 @@ const pct = (v,d=1) => (v*100).toFixed(d)+'%';
 const tcls = t => t==='RED' ? 't-RED' : t==='BLACK' ? 't-BLACK' : 't-neutral';
 const strengthLabel = s => s < 3 ? 'NO EDGE' : s < 8 ? 'WEAK LEAN' : s < 16 ? 'LEAN' : 'STRONG LEAN';
 
-function currentAnalysis(){ return { RB:analyze('RB'), EO:analyze('EO'), LH:analyze('LH') }; }
-
-function renderEngine(A){
+function renderEngine(a){
   $('hSpins').textContent = S.spins.length;
   $('hSpins2').textContent = S.spins.length + ' logged';
-
-  const list = [A.RB, A.EO, A.LH];
-  const ready = list.filter(x=>x.ready);
-  const top = ready.length ? ready.reduce((m,x)=> x.strength > m.strength ? x : m) : null;
+  const top = a.ready ? a : null;
 
   $('hStatus').textContent = top ? 'ARMED' : 'STANDBY';
   $('hDot').className = 'dot' + (top ? ' on' : '');
 
   if (!top){
     $('masterCard').innerHTML = `
-      <div class="m-label">Master Decision</div>
+      <div class="m-label">Master Decision · Red / Black</div>
       <div class="m-target t-none">STANDBY</div>
       <div class="m-sub">Log at least 6 non-zero spins to arm the engine.</div>
       <div class="honest">Each spin is independent. The wheel has no memory, so the engine measures patterns in your log but cannot see the future.</div>`;
   } else {
-    const lab = strengthLabel(top.strength);
     const none = top.strength < 3;
     $('masterCard').innerHTML = `
-      <div class="m-label">Master Decision · ${CAT_NAME[top.cat]}</div>
-      <div class="m-target ${none?'t-none':tcls(top.pick)}">${none ? 'NO EDGE' : top.pick}</div>
-      <div class="m-sub">${none ? 'Models disagree or sit at chance. Coin-flip territory: bet any side or sit out.' : 'Strongest model consensus across all three channels'}</div>
+      <div class="m-label">Master Decision · Red / Black</div>
+      <div class="m-target ${tcls(top.pick)}">${top.pick}</div>
+      <div class="m-sub">${none ? 'No statistical edge detected. Treat this as a coin flip.' : 'The council leans this way on the current data.'}</div>
       <div class="chips">
-        <span class="chip">Signal <b>${lab}</b></span>
+        <span class="chip">Signal <b>${strengthLabel(top.strength)}</b></span>
         <span class="chip">Model lean <b>${pct(top.pPick)}</b></span>
+        <span class="chip">Council <b>${top.votesR}R · ${top.votesB}B</b></span>
         <span class="chip">Streak <b>${top.streak.count}× ${top.streak.val||'-'}</b></span>
       </div>
       <div class="honest">True win chance of this bet: <b>${pct(TRUE_P,2)}</b> regardless of signal. The "model lean" is an internal score, not a probability the wheel obeys. Expected cost: about 5.26¢ per $1 wagered.</div>`;
   }
 
-  $('catArea').innerHTML = list.map(x=>{
-    const [a,b] = CATS[x.cat];
-    const pa = x.ready ? x.p : .5;
-    const colA = a==='RED' ? 'var(--red)' : 'var(--accent)';
-    const colB = b==='BLACK' ? '#4a5c72' : 'var(--gold)';
-    const pickTxt = !x.ready ? '—' : (x.strength<3 ? 'No edge' : x.pick);
-    const pickCls = !x.ready || x.strength<3 ? 't-none' : tcls(x.pick);
-    return `<div class="cat">
-      <div class="cat-h"><span class="n">${CAT_NAME[x.cat].toUpperCase()}</span><span class="pk ${pickCls}">${pickTxt}</span></div>
-      <div class="bar"><i style="width:${pa*100}%;background:${colA}"></i><i style="width:${(1-pa)*100}%;background:${colB}"></i></div>
-      <div class="bar-l"><span>${a} ${pct(pa)}</span><span>${b} ${pct(1-pa)}</span></div>
-    </div>`;
-  }).join('');
+  const pa = a.ready ? a.p : .5;
+  $('catArea').innerHTML = `
+    <div class="bar"><i style="width:${pa*100}%;background:var(--red)"></i><i style="width:${(1-pa)*100}%;background:#4a5c72"></i></div>
+    <div class="bar-l"><span>RED ${pct(pa)}</span><span>BLACK ${pct(1-pa)}</span></div>`;
 
-  const all = list.filter(x=>x.bets>0);
-  const totBets = all.reduce((s,x)=>s+x.bets,0), totWins = all.reduce((s,x)=>s+x.wins,0);
   let hitTxt='—', hitSub='needs more spins', hitCls='';
-  if (totBets){
-    const hr = totWins/totBets;
-    const zz = (hr - TRUE_P)/Math.sqrt(TRUE_P*(1-TRUE_P)/totBets);
+  if (a.bets){
+    const hr = a.wins/a.bets;
+    const zz = (hr - TRUE_P)/Math.sqrt(TRUE_P*(1-TRUE_P)/a.bets);
     hitTxt = pct(hr); hitCls = hr >= TRUE_P ? 'pos' : 'neg';
-    hitSub = `vs ${pct(TRUE_P)} baseline · z ${zz.toFixed(2)} · ${totBets} paper bets`;
+    hitSub = `vs ${pct(TRUE_P)} baseline · z ${zz.toFixed(2)} · ${a.bets} paper bets`;
   }
-  const rb = A.RB;
   const last = S.spins.length ? S.spins[S.spins.length-1] : '—';
-  const zeros = rb.zeros;
   const zExp = S.spins.length ? (S.spins.length*2/38) : 0;
+  const bi = a.bias;
+  let biasTxt, biasSub, biasCls = '';
+  if (!bi.ok){ biasTxt = '—'; biasSub = `needs 190+ spins (${bi.N} logged)`; }
+  else {
+    biasTxt = 'p = ' + (bi.p < .001 ? '<0.001' : bi.p.toFixed(3));
+    if (bi.p < .01){ biasSub = 'possible wheel bias detected'; biasCls = 'pos'; }
+    else if (bi.p < .05){ biasSub = 'weak hint of bias; keep logging'; }
+    else biasSub = 'no bias detected · wheel looks fair';
+  }
+  const hotTxt = bi.hot.length ? bi.hot.map(x=>`${x.n}×${x.c}`).join('  ') : '—';
   $('telemetry').innerHTML = `
     <div class="tiles">
-      <div class="tile" style="grid-column:span 2"><div class="k">Engine paper hit-rate (walk-forward, all channels)</div><div class="v ${hitCls}">${hitTxt}</div><div class="s">${hitSub}</div></div>
-      <div class="tile"><div class="k">Entropy (RB, last 30)</div><div class="v">${rb.ent.toFixed(2)}<span style="font-size:11px;font-weight:400"> bits</span></div><div class="s">1.00 = maximum randomness</div></div>
-      <div class="tile"><div class="k">Zeros seen</div><div class="v">${zeros}</div><div class="s">expected ≈ ${zExp.toFixed(1)}</div></div>
-      <div class="tile"><div class="k">Red / Black</div><div class="v">${rb.ca} / ${rb.cb}</div><div class="s">balance z ${rb.z.toFixed(2)}</div></div>
+      <div class="tile" style="grid-column:span 2"><div class="k">Engine paper hit-rate (walk-forward)</div><div class="v ${hitCls}">${hitTxt}</div><div class="s">${hitSub}</div></div>
+      <div class="tile"><div class="k">Entropy (last 30)</div><div class="v">${a.ent.toFixed(2)}<span style="font-size:11px;font-weight:400"> bits</span></div><div class="s">1.00 = maximum randomness</div></div>
+      <div class="tile"><div class="k">Zeros seen</div><div class="v">${a.zeros}</div><div class="s">expected ≈ ${zExp.toFixed(1)}</div></div>
+      <div class="tile"><div class="k">Red / Black</div><div class="v">${a.red} / ${a.black}</div><div class="s">balance z ${a.z.toFixed(2)}</div></div>
       <div class="tile"><div class="k">Last spin</div><div class="v">${last}</div><div class="s">${S.spins.length?'':'none yet'}</div></div>
+      <div class="tile" style="grid-column:span 2"><div class="k">Wheel bias test (chi-square, 38 pockets)</div><div class="v ${biasCls}">${biasTxt}</div><div class="s">${biasSub}</div><div class="s" style="margin-top:6px">Hot pockets: ${hotTxt}</div></div>
     </div>
-    <div class="note" style="margin-top:10px">Paper hit-rate counts every engine pick as a $1 bet (zeros lose). If it hovers near ${pct(TRUE_P)}, the patterns are not predictive, which is what theory says to expect. |z| below 2 is noise.</div>`;
+    <div class="note" style="margin-top:10px">Paper hit-rate counts every engine pick as a $1 bet (zeros lose). If it hovers near ${pct(TRUE_P)}, the patterns are not predictive, which is what theory says to expect. |z| below 2 is noise. A real wheel bias, if one exists, would show up in the chi-square test first.</div>`;
 
-  const focus = top || A.RB;
-  $('councilCat').textContent = CAT_NAME[focus.cat];
-  if (!focus.models.length){
+  $('councilCat').textContent = MODEL_NAMES.length + ' models';
+  if (!a.models.length){
     $('council').innerHTML = '<div class="empty">Awaiting data.</div>';
   } else {
-    $('council').innerHTML = focus.models.map(m=>`
-      <div class="mrow"><span class="nm">${m.name}</span>
+    $('council').innerHTML = a.models.map(m=>{
+      const v = m.p===.5 ? '—' : (m.p>.5 ? 'R' : 'B');
+      return `<div class="mrow"><span class="nm">${m.name}</span>
         <div class="tr"><i style="width:${m.acc*100}%"></i><em></em></div>
-        <span class="ac">${m.calls? Math.round(m.acc*100)+'%' : '—'}</span></div>`).join('');
+        <span class="ac">${m.calls? Math.round(m.acc*100)+'%' : '—'}</span>
+        <span class="vt ${v}">${v}</span></div>`;
+    }).join('');
   }
 
   $('spinLog').innerHTML = S.spins.length
-    ? [...S.spins].reverse().map(n=>{ const r = attr(n).RB; return `<span class="${r==='RED'?'r':r==='BLACK'?'b':'g'}">${n}</span>`; }).join('')
+    ? [...S.spins].reverse().map(n=>{ const r = colorOf(n); return `<span class="${r==='RED'?'r':r==='BLACK'?'b':'g'}">${n}</span>`; }).join('')
     : '<div class="empty">No numbers logged yet.</div>';
 
   return top;
@@ -512,21 +566,18 @@ const L = () => S.lb;
 function lbBetUnits(){ const q = L().seq; if (!q.length) return 0; return q.length===1 ? q[0] : q[0]+q[q.length-1]; }
 function snap(){
   const l = L();
-  l.snaps.push(JSON.stringify({seq:l.seq,step:l.step,cycles:l.cycles,pnl:l.pnl,wagered:l.wagered,complete:l.complete}));
+  l.snaps.push(JSON.stringify({seq:l.seq,step:l.step,cycles:l.cycles,complete:l.complete}));
   if (l.snaps.length > 200) l.snaps.shift();
 }
 
 function lbAct(win){
   const l = L(); if (l.complete || !l.seq.length) return;
   snap();
-  const u = lbBetUnits(), dollars = u*l.unit;
-  l.wagered += dollars;
+  const u = lbBetUnits();
   if (win){
-    l.pnl += dollars;
     if (l.seq.length===1) l.seq.shift(); else { l.seq.shift(); l.seq.pop(); }
     if (!l.seq.length){ l.cycles++; l.complete = true; }
   } else {
-    l.pnl -= dollars;
     l.seq.push(u);
   }
   l.step++;
@@ -542,22 +593,22 @@ function lbNext(){
 function lbUndo(){
   const l = L(); if (!l.snaps.length) return;
   const s = JSON.parse(l.snaps.pop());
-  l.seq = s.seq; l.step = s.step; l.cycles = s.cycles; l.pnl = s.pnl; l.wagered = s.wagered; l.complete = !!s.complete;
+  l.seq = s.seq; l.step = s.step; l.cycles = s.cycles; l.complete = !!s.complete;
   save(); render();
 }
 function lbReset(){
-  if (!confirm('Reset the Labouchère session (sequence, P&L, cycles)?')) return;
+  if (!confirm('Reset the Labouchère session (sequence and cycles)?')) return;
   const unit = S.lb.unit;
-  S.lb = { seq:[...START_SEQ], step:1, cycles:0, pnl:0, wagered:0, complete:false, snaps:[], unit };
+  S.lb = { seq:[...START_SEQ], step:1, cycles:0, complete:false, snaps:[], unit };
   save(); render();
 }
 
 function renderLB(top){
   const l = L();
-  if (top && top.strength >= 3){
-    $('lbSuggest').innerHTML = `<span>${CAT_NAME[top.cat]}</span><b class="${tcls(top.pick)}">${top.pick}</b><span class="chip">${strengthLabel(top.strength)}</span>`;
+  if (top){
+    $('lbSuggest').innerHTML = `<span>Red / Black</span><b class="${tcls(top.pick)}">${top.pick}</b><span class="chip">${strengthLabel(top.strength)}</span>`;
   } else {
-    $('lbSuggest').innerHTML = `<span style="color:var(--dim)">${top ? 'No edge detected. Any even-money side is equal.' : 'Log spins on the Engine tab to get a suggestion.'}</span>`;
+    $('lbSuggest').innerHTML = `<span style="color:var(--dim)">Log spins on the Engine tab to get a suggestion.</span>`;
   }
 
   $('cycTxt').textContent = Math.min(l.cycles,999)+' / 100';
@@ -588,13 +639,6 @@ function renderLB(top){
     $('nextBtn').style.display = 'none';
   }
 
-  const tax = l.wagered*(2/38);
-  $('lbTiles').innerHTML = `
-    <div class="tile"><div class="k">Session P&amp;L</div><div class="v ${l.pnl>=0?'pos':'neg'}">${money(l.pnl)}</div></div>
-    <div class="tile"><div class="k">Cycles banked</div><div class="v">${l.cycles}</div></div>
-    <div class="tile"><div class="k">Total wagered</div><div class="v">${money(l.wagered)}</div></div>
-    <div class="tile"><div class="k">Expected house tax</div><div class="v neg">${money(-tax)}</div><div class="s">5.26% of wagered</div></div>`;
-
   if (document.activeElement !== $('unitIn')) $('unitIn').value = l.unit;
   $('lbUndo').disabled = !l.snaps.length;
 }
@@ -603,8 +647,8 @@ function renderLB(top){
    WIRING
 ========================================================= */
 function render(){
-  const A = currentAnalysis();
-  const top = renderEngine(A);
+  const a = analyze();
+  const top = renderEngine(a);
   renderLB(top);
 }
 
@@ -638,13 +682,6 @@ function showTab(which){
 }
 $('navE').onclick = () => showTab('e');
 $('navL').onclick = () => showTab('l');
-
-/* mission elapsed clock */
-const T0 = Date.now();
-setInterval(()=>{
-  const s = Math.floor((Date.now()-T0)/1000), p = n => String(n).padStart(2,'0');
-  $('met').textContent = 'T+'+p(Math.floor(s/3600))+':'+p(Math.floor(s/60)%60)+':'+p(s%60);
-}, 1000);
 
 render();
 </script>
