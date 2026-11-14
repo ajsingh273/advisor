@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070b12">
+<title>Bernoulli Control Center · 20 Spin Snapshot</title>
+<style>
+:root{--bg:#070b12;--panel:#0d141f;--panel2:#09101a;--line:#1f2d40;--line2:#2b3f58;--ink:#dfe8f3;--dim:#7a8ea6;--accent:#4da3ff;--red:#d9392e;--black:#2d3a4a;--green:#38b27a;--gold:#e8a634;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{padding-top:env(safe-area-inset-top);background-image:linear-gradient(rgba(77,163,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(77,163,255,.035) 1px,transparent 1px);background-size:28px 28px;background-attachment:fixed}
+#app{width:100%;max-width:540px;margin:0 auto;padding:14px 12px calc(28px + env(safe-area-inset-bottom))}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:9px}.brand h1{font:700 17px var(--mono);letter-spacing:3px;text-transform:uppercase}.brand span{font:10px var(--mono);letter-spacing:1.1px;color:var(--dim);text-transform:uppercase;text-align:right}
+.strip{display:grid;grid-template-columns:1.4fr 1fr;border:1px solid var(--line2);border-radius:5px;background:var(--panel2);margin-bottom:12px}.strip div{padding:8px 10px;border-left:1px solid var(--line);min-width:0}.strip div:first-child{border-left:0}
+.k{font:9px var(--mono);letter-spacing:1.4px;color:var(--dim);text-transform:uppercase}.v{font:700 14px var(--mono);margin-top:3px;white-space:nowrap}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--gold);margin-right:7px}.dot.on{background:var(--green);box-shadow:0 0 7px var(--green)}
+.card{position:relative;background:var(--panel);border:1px solid var(--line2);border-radius:5px;padding:14px;margin-bottom:12px;min-width:0}.card:before{content:"";position:absolute;top:-1px;left:-1px;width:18px;height:18px;border-top:2px solid var(--accent);border-left:2px solid var(--accent);border-radius:5px 0 0}
+.ttl{font:700 10px var(--mono);letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:12px;display:flex;justify-content:space-between;gap:8px}.master{text-align:center;background:linear-gradient(180deg,#0f1c2c,#0c1521);border-color:#2e4a6b}
+.m-label{font:700 10px var(--mono);letter-spacing:2px;color:var(--dim);text-transform:uppercase}.m-target{font:700 clamp(30px,9vw,42px) var(--mono);letter-spacing:3px;margin:9px 0 4px}.m-sub{font-size:12px;color:var(--dim);line-height:1.5}
+.t-RED{color:#ff6258}.t-BLACK{color:#b5c4d5}.t-none{color:var(--gold)}.chips{display:flex;gap:6px;justify-content:center;margin-top:12px;flex-wrap:wrap}.chip{font:10px var(--mono);padding:5px 8px;border:1px solid var(--line2);border-radius:3px;color:var(--dim)}.chip b{color:var(--ink)}
+.honest{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line2);font-size:11px;line-height:1.55;color:var(--dim);text-align:left}
+.bar{display:flex;height:10px;border-radius:2px;overflow:hidden;background:var(--panel2);border:1px solid var(--line2)}.bar i{display:block;height:100%;transition:width .25s}.bar-l{display:flex;justify-content:space-between;font:11px var(--mono);color:var(--dim);margin-top:6px}
+.pad{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin-bottom:10px}.nb{height:43px;border:1px solid rgba(255,255,255,.08);border-radius:3px;font:700 15px var(--mono);color:#fff;cursor:pointer;touch-action:manipulation}.nb:active{transform:scale(.95);filter:brightness(1.3)}.nb.r{background:var(--red)}.nb.b{background:var(--black)}.nb.g{background:#1f7d57;grid-column:span 3}
+.row{display:flex;gap:8px}.btn{flex:1;min-height:44px;border-radius:4px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink);font:700 11px var(--mono);letter-spacing:1px;text-transform:uppercase;cursor:pointer}.btn:active{filter:brightness(1.3)}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.tile{background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:10px;min-width:0}.tile .k{font-size:9px}.tile .v{font-size:18px;overflow-wrap:anywhere}.tile .s{font-size:11px;color:var(--dim);margin-top:4px;line-height:1.4}
+.pos{color:var(--green)}.neg{color:#ff6258}.note{font-size:10px;color:var(--dim);line-height:1.55}.model{padding:9px 0;border-bottom:1px solid var(--line)}.model:last-child{border-bottom:0}.model-head{display:flex;justify-content:space-between;gap:8px;font:11px var(--mono)}.model-name{font-weight:700}.model-meta{color:var(--dim);text-align:right}.track{height:5px;background:#07101b;border:1px solid var(--line2);margin-top:7px;overflow:hidden;border-radius:2px}.track i{display:block;height:100%;background:var(--accent)}
+.pockets{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}.pocket{padding:7px 2px;text-align:center;border:1px solid var(--line);background:var(--panel2);border-radius:3px;font:11px var(--mono)}.pocket small{display:block;color:var(--dim);font-size:9px;margin-top:3px}.pocket.hot{border-color:var(--gold);background:#211b10}.pocket.cold{border-color:#49627d}
+.log{display:flex;flex-wrap:wrap;gap:5px;max-height:140px;overflow-y:auto}.log span{font:700 12px var(--mono);padding:3px 7px;border:1px solid;border-radius:2px}.log .r{color:#ff6258;border-color:#8c2a24}.log .b{color:#b5c4d5;border-color:#4a5c72}.log .g{color:var(--green);border-color:#25704e}.empty{color:var(--dim);font-size:13px;text-align:center;padding:8px 0}
+@media(max-width:360px){#app{padding-left:9px;padding-right:9px}.card{padding:11px}.brand h1{font-size:15px}.brand span{font-size:9px}.nb{height:40px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="brand"><h1>Bernoulli</h1><span>Machine Integrity · 20 Spin Lab</span></div>
+  <div class="strip"><div><div class="k">Engine state</div><div class="v"><span class="dot" id="statusDot"></span><span id="status">COLLECTING DATA</span></div></div><div><div class="k">Logged spins</div><div class="v" id="spinCount">0 / 20</div></div></div>
+  <section class="card master" id="master"></section>
+
+  <section class="card">
+    <div class="ttl">Red / black posterior estimate <span>conditional on non-zero</span></div>
+    <div class="bar"><i id="redBar" style="width:50%;background:var(--red)"></i><i id="blackBar" style="width:50%;background:#4a5c72"></i></div>
+    <div class="bar-l"><span id="redPct">RED 50.0%</span><span id="blackPct">BLACK 50.0%</span></div>
+    <div class="note" style="margin-top:8px">The estimate is descriptive until a color imbalance is independently confirmed. A pocket-distribution anomaly does not necessarily imply a red/black advantage.</div>
+  </section>
+
+  <section class="card">
+    <div class="ttl">Machine integrity diagnostics</div><div id="diagnostics"></div>
+  </section>
+
+  <section class="card">
+    <div class="ttl">38-pocket distribution <span id="pocketSummary"></span></div>
+    <div class="pockets" id="pockets"></div>
+    <div class="note" style="margin-top:9px">Gold = unusually frequent; blue outline = unusually infrequent in this sample. These are exploratory flags, not proof of a biased pocket. Multiple comparisons are controlled using Benjamini–Hochberg false-discovery-rate adjustment.</div>
+  </section>
+
+  <section class="card">
+    <div class="ttl">Log spin <span id="logCount">0 / 20</span></div><div class="pad" id="pad"></div><div class="bar" style="margin:0 0 10px"><i id="entryBar" style="width:0%;background:var(--accent)"></i></div><div class="note" id="entryNote" style="margin-bottom:10px">Enter up to 20 consecutive spins for one snapshot. The same four-family brain and statistical tests remain active.</div>
+    <div class="row"><button class="btn" id="undo">Undo last</button><button class="btn" id="clear">Clear history</button></div>
+  </section>
+
+  <section class="card">
+    <div class="ttl">Brain evidence council <span>4 families</span></div><div id="council"></div>
+    <div class="note" style="margin-top:9px">The same four-family engine is retained. With only 20 spins, the sample is for exploratory inspection only; the original larger-sample confirmation thresholds remain in place and cannot be met here.</div>
+  </section>
+
+  <section class="card"><div class="ttl">Spin history · newest first</div><div class="log" id="history"></div></section>
+</div>
+<script>
+"use strict";
+/* Bernoulli v5 — 20-spin snapshot using the same machine-bias research engine.
+   American roulette has 38 outcomes. The app tests observed output;
+   it cannot establish the machine's internal mechanism or guarantee prediction. */
+const KEY="bernoulli-machine-bias-v5";
+const MAX_SPINS=20;
+const WHEEL=["0","28","9","26","30","11","7","20","32","17","5","22","34","15","3","24","36","13","1","00","27","10","25","29","12","8","19","31","18","6","21","33","16","4","23","35","14","2"];
+const REDS=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+const POS=Object.fromEntries(WHEEL.map((x,i)=>[x,i]));
+const $=id=>document.getElementById(id);
+let S={spins:[]};
+try{const x=JSON.parse(localStorage.getItem(KEY)||"null");if(x&&Array.isArray(x.spins)&&x.spins.every(n=>WHEEL.includes(String(n))))S={spins:x.spins.slice(-MAX_SPINS)};}catch(e){}
+const color=n=>n==="0"||n==="00"?"ZERO":REDS.has(+n)?"RED":"BLACK";
+const pct=(x,d=1)=>(100*x).toFixed(d)+"%";
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function counts(arr){const c=new Array(38).fill(0);arr.forEach(n=>{const i=POS[n];if(i!==undefined)c[i]++;});return c;}
+function nonzero(arr){return arr.filter(n=>color(n)!=="ZERO");}
+function colorCounts(arr){let r=0,b=0,z=0;arr.forEach(n=>{const c=color(n);if(c==="RED")r++;else if(c==="BLACK")b++;else z++;});return {r,b,z,n:r+b};}
+function logGamma(z){
+ const p=[676.5203681218851,-1259.1392167224028,771.3234287776531,-176.6150291621406,12.507343278686905,-.13857109526572012,9.984369578019572e-6,1.5056327351493116e-7];
+ if(z<.5)return Math.log(Math.PI)-Math.log(Math.sin(Math.PI*z))-logGamma(1-z);
+ z-=1;let x=.9999999999998099;for(let i=0;i<p.length;i++)x+=p[i]/(z+i+1);
+ const t=z+p.length-.5;return .5*Math.log(2*Math.PI)+(z+.5)*Math.log(t)-t+Math.log(x);
+}
+function gammaQ(a,x){
+ if(x<0||a<=0)return NaN;if(x===0)return 1;
+ const gln=logGamma(a),IT=200,EPS=3e-14,FPMIN=1e-300;
+ if(x<a+1){let ap=a,sum=1/a,del=sum;for(let n=1;n<=IT;n++){ap++;del*=x/ap;sum+=del;if(Math.abs(del)<Math.abs(sum)*EPS)break;}const P=sum*Math.exp(-x+a*Math.log(x)-gln);return clamp(1-P,0,1);}
+ let b=x+1-a,c=1/FPMIN,d=1/b,h=d;
+ for(let i=1;i<=IT;i++){const an=-i*(i-a);b+=2;d=an*d+b;if(Math.abs(d)<FPMIN)d=FPMIN;c=b+an/c;if(Math.abs(c)<FPMIN)c=FPMIN;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<EPS)break;}
+ return clamp(Math.exp(-x+a*Math.log(x)-gln)*h,0,1);
+}
+function chiSquare(obs,expected){
+ let x=0;for(let i=0;i<obs.length;i++)if(expected[i]>0)x+=(obs[i]-expected[i])**2/expected[i];
+ return {x,p:gammaQ((obs.length-1)/2,x/2)};
+}
+function binomialZ(success,n,p){if(!n)return 0;return (success-n*p)/Math.sqrt(n*p*(1-p));}
+function normalP2(z){ // two-sided normal-tail approximation
+ const x=Math.abs(z),t=1/(1+.2316419*x),d=.3989423*Math.exp(-x*x/2);
+ const tail=d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));
+ return clamp(2*tail,0,1);
+}
+function bhAdjust(items){
+ const sorted=items.map((v,i)=>({i,p:v.p})).sort((a,b)=>a.p-b.p),m=sorted.length,out=new Array(m);let running=1;
+ for(let j=m-1;j>=0;j--){running=Math.min(running,sorted[j].p*m/(j+1));out[sorted[j].i]=Math.min(1,running);}
+ return out;
+}
+function distribution(arr){
+ const c=counts(arr),n=arr.length,exp=n/38;
+ const test=n?chiSquare(c,new Array(38).fill(exp)):{x:0,p:1};
+ const tests=c.map((v,i)=>({p:normalP2((v-exp)/Math.sqrt(Math.max(exp,1e-12))),i,z:(v-exp)/Math.sqrt(Math.max(exp,1e-12))}));
+ const q=bhAdjust(tests);
+ const flagged=tests.map((t,i)=>({...t,count:c[i],q:q[i],number:WHEEL[i]})).filter(x=>x.q<.05).sort((a,b)=>a.q-b.q);
+ return {counts:c,n,expected:exp,chi:test.x,p:test.p,flagged,top:c.map((v,i)=>({number:WHEEL[i],count:v,delta:v-exp})).sort((a,b)=>b.count-a.count).slice(0,5)};
+}
+function splitAt(arr){return Math.floor(arr.length*.6);}
+function colorTest(arr){
+ const cc=colorCounts(arr),z=binomialZ(cc.r,cc.n,.5);
+ return {...cc,z,p:normalP2(z),rate:cc.n?cc.r/cc.n:.5};
+}
+function analyze(){
+ const all=S.spins,n=all.length,cut=splitAt(all),train=all.slice(0,cut),hold=all.slice(cut);
+ const trainColor=colorTest(train),holdColor=colorTest(hold),allColor=colorTest(all);
+ const trainDist=distribution(train),holdDist=distribution(hold),allDist=distribution(all);
+ const enough=train.length>=200&&hold.length>=150;
+ const sameDirection=Math.sign(trainColor.rate-.5)===Math.sign(holdColor.rate-.5)&&Math.abs(trainColor.rate-.5)>0&&Math.abs(holdColor.rate-.5)>0;
+ const colorConfirmed=enough&&sameDirection&&trainColor.p<.01&&holdColor.p<.01;
+ // Detect whether a discovery-set pocket anomaly recurs in the untouched holdout.
+ // Candidate set is fixed from training only; holdout is evaluated once.
+ const candidates=trainDist.flagged.map(x=>x.number).filter(x=>x!=="0"&&x!=="00");
+ let pocketConfirm={candidates,observed:0,expected:0,z:0,p:1,confirmed:false};
+ if(candidates.length&&hold.length>=200){
+   const hnon=nonzero(hold),candSet=new Set(candidates);
+   const observed=hnon.filter(x=>candSet.has(x)).length;
+   const p0=candidates.length/38;
+   const z=binomialZ(observed,hnon.length,p0);
+   pocketConfirm={candidates,observed,expected:hnon.length*p0,z,p:normalP2(z),confirmed:z>0&&normalP2(z)<.01};
+ }
+ // Red/black direction is only surfaced if the color signal itself replicates.
+ const actionable=colorConfirmed;
+ const pick=holdColor.rate>.5?"RED":holdColor.rate<.5?"BLACK":"NONE";
+ const redPosterior=(allColor.r+1)/(allColor.n+2); // mild Beta(1,1) smoothing, conditional nonzero
+ return {n,cut,train,hold,trainColor,holdColor,allColor,trainDist,holdDist,allDist,enough,sameDirection,colorConfirmed,actionable,pick,pocketConfirm,redPosterior};
+}
+function render(){
+ const a=analyze();$("spinCount").textContent=`${a.n} / ${MAX_SPINS}`;$("logCount").textContent=`${a.n} / ${MAX_SPINS}`;$("entryBar").style.width=(a.n/MAX_SPINS*100)+"%";$("entryNote").textContent=a.n>=MAX_SPINS?"20-spin snapshot complete. Input is locked; use Undo or Clear history to revise it.":"Enter "+(MAX_SPINS-a.n)+" more spin"+(MAX_SPINS-a.n===1?"":"s")+" to complete this 20-spin snapshot.";
+ $("status").textContent=a.n>=MAX_SPINS?"20-SPIN SNAPSHOT COMPLETE":"COLLECTING SNAPSHOT";
+ $("statusDot").className="dot"+(a.n>=MAX_SPINS?" on":"");
+ let title,sub,detail;
+ if(a.n<MAX_SPINS){title="COLLECTING";sub="Complete the 20-spin snapshot.";detail="This compact view is exploratory. The brain keeps its original 200-spin training and 150-spin holdout requirements for color confirmation, so 20 spins cannot establish a repeatable machine bias.";} 
+ else if(a.actionable){title=a.pick;sub="A red/black imbalance passed the discovery and holdout tests.";detail="This is evidence of a repeatable imbalance in the recorded sample, not proof the machine is biased or that the effect will continue. Verify the machine identity and collect a fresh future sample before relying on it.";}
+ else{title="SNAPSHOT ONLY";sub="20 spins are not enough to confirm a machine bias or betting edge.";detail="The original brain and its thresholds are unchanged, but its confirmation gates intentionally remain closed at this sample size. Any hot/cold pocket or color pattern shown below is descriptive noise until it replicates in a much larger, independent sample."; }
+ $("master").innerHTML=`<div class="m-label">Machine bias decision</div><div class="m-target ${a.actionable?(a.pick==="RED"?"t-RED":"t-BLACK"):"t-none"}">${title}</div><div class="m-sub">${sub}</div><div class="chips"><span class="chip">Training <b>${a.cut}</b></span><span class="chip">Holdout <b>${a.n-a.cut}</b></span><span class="chip">Replication <b>${a.colorConfirmed?"PASS":"NOT PASSED"}</b></span></div><div class="honest">${detail} A fair American wheel has a 47.37% win probability on a red or black wager because 0 and 00 lose.</div>`;
+ $("redBar").style.width=(a.redPosterior*100)+"%";$("blackBar").style.width=((1-a.redPosterior)*100)+"%";
+ $("redPct").textContent="RED "+pct(a.redPosterior);$("blackPct").textContent="BLACK "+pct(1-a.redPosterior);
+ const f=(x)=>x<.001?"<0.001":x.toFixed(3);
+ $("diagnostics").innerHTML=`<div class="tiles">
+ <div class="tile"><div class="k">Training color test</div><div class="v">${pct(a.trainColor.rate)}</div><div class="s">${a.trainColor.r} red / ${a.trainColor.b} black · p ${f(a.trainColor.p)}</div></div>
+ <div class="tile"><div class="k">Holdout color test</div><div class="v">${pct(a.holdColor.rate)}</div><div class="s">${a.holdColor.r} red / ${a.holdColor.b} black · p ${f(a.holdColor.p)}</div></div>
+ <div class="tile"><div class="k">Training 38-pocket test</div><div class="v">${a.trainDist.n?("p "+f(a.trainDist.p)):"—"}</div><div class="s">χ² ${a.trainDist.chi.toFixed(1)} · 37 degrees of freedom</div></div>
+ <div class="tile"><div class="k">Holdout 38-pocket test</div><div class="v">${a.holdDist.n?("p "+f(a.holdDist.p)):"—"}</div><div class="s">χ² ${a.holdDist.chi.toFixed(1)} · 37 degrees of freedom</div></div>
+ <div class="tile" style="grid-column:span 2"><div class="k">Training-selected pockets in holdout</div><div class="v">${a.pocketConfirm.candidates.length?a.pocketConfirm.candidates.join(" · "):"No discovery candidates"}</div><div class="s">${a.pocketConfirm.observed} observed vs ${a.pocketConfirm.expected.toFixed(1)} expected · p ${f(a.pocketConfirm.p)} · ${a.pocketConfirm.confirmed?"recurrence flag":"not independently confirmed"}</div></div>
+ </div>`;
+ $("pocketSummary").textContent=a.n+" total";
+ $("pockets").innerHTML=WHEEL.map((num,i)=>{
+   const c=a.allDist.counts[i],expected=a.allDist.expected;
+   const flag=a.allDist.flagged.find(x=>x.number===num);
+   const cls=flag?(flag.z>0?"hot":"cold"):"";
+   return `<div class="pocket ${cls}">${num}<small>${c} · exp ${expected.toFixed(1)}</small></div>`;
+ }).join("");
+ $("council").innerHTML=[
+  ["Color imbalance","Training and holdout must independently reject 50/50 at p < 0.01, in the same direction.",a.colorConfirmed?"CONFIRMED":"NOT CONFIRMED"],
+  ["Pocket distribution","38-outcome chi-square test; useful as an omnibus anomaly detector, not a directional bet.",a.allDist.p<.01?"ANOMALY FLAG":"NO STRONG FLAG"],
+  ["Pocket recurrence","Training-selected pockets tested against a fixed holdout sample; candidate set is not reselected.",a.pocketConfirm.confirmed?"RECURRENCE FLAG":"NOT CONFIRMED"],
+  ["Time stability","Chronological split reduces discovery/validation leakage; additional rolling periods are needed to establish durability.",a.n>=1000?"MORE HISTORY AVAILABLE":"MORE HISTORY NEEDED"]
+ ].map(x=>`<div class="model"><div class="model-head"><span class="model-name">${x[0]}</span><span class="model-meta">${x[2]}</span></div><div class="note" style="margin-top:5px">${x[1]}</div></div>`).join("");
+ $("pad").querySelectorAll("button[data-n]").forEach(b=>{b.disabled=a.n>=MAX_SPINS;b.style.opacity=a.n>=MAX_SPINS?".38":"1";b.style.cursor=a.n>=MAX_SPINS?"not-allowed":"pointer";});
+ $("history").innerHTML=a.n?[...S.spins].reverse().map(num=>{const c=color(num);return `<span class="${c==="RED"?"r":c==="BLACK"?"b":"g"}">${num}</span>`;}).join(""):'<div class="empty">No spins recorded.</div>';
+}
+function buildPad(){
+ const items=[];for(let i=1;i<=36;i++)items.push(String(i));items.push("0","00");
+ $("pad").innerHTML=items.map(n=>{const c=color(n);return `<button class="nb ${c==="RED"?"r":c==="BLACK"?"b":"g"}" data-n="${n}">${n}</button>`;}).join("");
+ $("pad").addEventListener("click",e=>{const b=e.target.closest("button[data-n]");if(!b||S.spins.length>=MAX_SPINS)return;S.spins.push(b.dataset.n);save();render();});
+}
+$("undo").addEventListener("click",()=>{if(!S.spins.length)return;S.spins.pop();save();render();});
+$("clear").addEventListener("click",()=>{if(!S.spins.length)return;if(!confirm("Clear the entire spin history?"))return;S.spins=[];save();render();});
+buildPad();render();
+</script>
+</body>
+</html>
